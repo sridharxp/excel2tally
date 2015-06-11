@@ -1,0 +1,45 @@
+Excel to Tally
+Copyright (C) 2013, Sridharan S, aurosridhar at gmail dot com
+
+What does it cost?
+        This software is Free to use and redistribute;
+
+Waht does it do?
+        Exports from Excel and Jet data to Tally.
+
+How does it do?
+        Converts Excel rows into Vouchers using Xml rules.
+        Uses VchUpdate.dll to post vouchers to Tally
+
+What is the License?
+        GPL3. It means Free Software. Sales of any kind of derived software by third parties is prohibited.
+        Such software when distributed should publish source code.
+
+Where can I find updates?
+        http://www.sourceforge.net/projects/excel2tally/
+
+Can it Export Masters (Ledger / Item)?
+        No, as of now. Code to handle Xml rules needs to be written.
+        Create or Update Masters functionality is already available in the dll.
+
+How to avoid duplication of Vouchers?
+Can the data in a different file format exported?
+        Code to handle such functionality needs to be written.
+        Basic framework is already available in the dll.
+	Also see the next one.
+
+How to post my data Online?
+	Excel to Tally and Xml rules are designed for wide applicability and Offline use. Designed with end user in mind for simplicity to use.
+	Other needs are better served by customized software with or without VchUpdate.dll. 
+
+What are the dependencies?
+        This is a Win32 program. Needs ADO.
+        Sos it needs either MS Excel  or MS ADO library installed.
+        Uses VchUpdate.dll (a free tool by the same author).
+
+I need Tally Customization / Add on. Can you do it?
+        Yes.
+
+I need a new business software. Can you do it?
+        Yes.
+
