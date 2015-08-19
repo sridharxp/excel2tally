@@ -44,7 +44,7 @@ uses
 
 Const
   COLUMNLIMIT = 22;
-  PGLEN = 12;
+  PGLEN = 4;
 //  TallyAmtPicture = '############.##';
 
 {$IFDEF ADO}
@@ -74,6 +74,8 @@ type
     DiLedgerValue: array [1..COLUMNLIMIT] of String;
 { Non Default }
     NarrationColValue: string;
+    NarrationCol2Value: string;
+    NarrationCol3Value: string;
     DiRoundOff: string;
     RoundOffCol: string;
     RoundOffGroup: string;
@@ -82,7 +84,7 @@ type
 
 { COLUMNLIMIT - To limit looping  }
     IsLedgerDefined: array [1..COLUMNLIMIT] of boolean;
-    IsGSTNDefined: array [1..COLUMNLIMIT] of boolean;
+//    IsGSTNDefined: array [1..COLUMNLIMIT] of boolean;
     IsAmtDefined: array [1..COLUMNLIMIT] of boolean;
     IsCrAmtDefined: array [1..COLUMNLIMIT] of boolean;
     IsDrAmtDefined: array [1..COLUMNLIMIT] of boolean;
@@ -98,12 +100,15 @@ type
     UAmount2Name: array [1..COLUMNLIMIT] of string;
     UAmount3Name: array [1..COLUMNLIMIT] of string;
     LedgerGroup: array [1..COLUMNLIMIT] of string;
-    UGSTNName: array [1..COLUMNLIMIT] of string;
 { +1 for RoundOff }
-    LedgerDict: array [1..COLUMNLIMIT+1] of TList;
+    LedgerDict: array [1..COLUMNLIMIT + 1] of TList;
+    IsGSTNDefined: array [1..COLUMNLIMIT + 1] of boolean;
+    UGSTNName: array [1..COLUMNLIMIT + 1] of string;
     UDateName: string;
     UTypeName: string;
     UNarrationName: string;
+    UNarration2Name: string;
+    UNarration3Name: string;
 
     IsAssessableDefined: array [1..COLUMNLIMIT] of boolean;
     UAssessableName: array [1..COLUMNLIMIT] of string;
@@ -117,6 +122,8 @@ type
     IsCrAmt1Defined: boolean;
     IsDrAmt1Defined: boolean;
     IsNarrationDefined: boolean;
+    IsNarration2Defined: boolean;
+    IsNarration3Defined: boolean;
     IsTallyIdDefined: boolean;
     notoskip: integer;
     IdName: string;
@@ -128,6 +135,7 @@ type
     DrAmtColType: string;
     CrAmtColType: string;
     IsCrDrAmtColsDefined: Boolean;
+    RoundOffName: string;
     procedure ReadColNames;
     procedure CheckColNames;
     procedure OpenFile;
@@ -156,6 +164,7 @@ type
     CCount: integer;
     FUpdate: TfnUpdate;
     DefGroup: string;
+    IsUnLocked: boolean;
     Host: string;
     constructor Create;
     destructor Destroy; override;
@@ -209,7 +218,6 @@ begin
   UDateName := 'DATE';
   UTypeName := 'VTYPE';
   UNarrationName := 'NARRATION';
-  GuiUpdateOnOff(19560229);
 end;
 
 destructor TbjMrMc.Destroy;
@@ -312,6 +320,11 @@ begin
     if Length(str) > 0 then
       RoundOffGroup := str;
     DiRoundOff := xCfg.GetChildContent('Default');
+
+    str :=xCfg.GetChildContent('GSTN');
+    UGSTNName[COLUMNLIMIT + 1] := str;
+    if Length(str) > 0 then
+      IsGSTNDefined[COLUMNLIMIT + 1] := True;
   end;
 
   xCfg := Cfg.SearchForTag(nil, UDateName);
@@ -369,9 +382,39 @@ begin
   xCfg := Cfg.SearchForTag(nil, UNarrationName);
   if Assigned(xCfg) then
   begin
-    str := xCfg.GetChildContent('Alias');
+//    str := xCfg.GetChildContent('Alias');
+//    if Length(str) > 0 then
+//    UNarrationName  := str;
+  xCfg := Cfg.SearchForTag(xCfg, 'Alias');
+  if xCfg <> nil then
+  begin
+    str := xCfg.GetContent;
     if Length(str) > 0 then
-    UNarrationName  := str;
+    begin
+      UNarrationName  := str;
+      IsNarrationDefined := True;
+    end;
+    xCfg := Cfg.SearchForTag(xCfg, 'Alias');
+    if xCfg <> nil then
+    begin
+      str := xCfg.GetContent;
+      if Length(str) > 0 then
+      begin
+        UNarration2Name  := str;
+        IsNarration2Defined := True;
+      end;
+      xCfg := Cfg.SearchForTag(xCfg, 'Alias');
+      if xCfg <> nil then
+      begin
+        str := xCfg.GetContent;
+        if Length(str) > 0 then
+        begin
+          UNarration3Name  := str;
+          IsNarration3Defined := True;
+        end;
+      end;
+    end;
+  end;
   end;
 
   xCfg := Cfg.SearchForTag(nil, IdName);
@@ -506,6 +549,8 @@ begin
 //    SetHost(pchar(Host));
 { No try except ...
 passing Windows Exception as it is }
+  if not FileExists(dbName) then
+    raise Exception.Create(dbname + ' not found');
 {$IFDEF ADO}
   if FileFmt = 'Excel_80_Table' then
   begin
@@ -645,8 +690,8 @@ begin
       notoskip := notoskip + 1;
   end;
   WriteStatus;
-//  MessageDlg(InttoStr(CCount) + ' Vouchers processed',
-//      mtInformation, [mbOK], 0);
+  MessageDlg(InttoStr(CCount) + ' Vouchers processed',
+      mtInformation, [mbOK], 0);
   FUpdate(InttoStr(CCount) + ' Vouchers processed');
 end;
 
@@ -746,8 +791,8 @@ begin
   for i := 0 to kadb.FieldDefs.Count-1 do
   begin
     Col := kadb.FieldDefs[i];
-    if col.Name = UNarrationName then
-      IsNarrationDefined := True;
+//    if col.Name = UNarrationName then
+//      IsNarrationDefined := True;
     if col.Name = 'TALLYID' then
       IstALLYiDDefined := True;
   end;
@@ -815,9 +860,10 @@ begin
 //        NewLedger(pchar(ULedgerName[i]), pchar(LedgerGroup[i]), 0);
   end;
   if Length(RoundOffGroup) > 0 then
-     if Length(RoundOffCol) > 0 then
-       NewLedger(pChar(RoundOffCol), pChar(RoundOffGroup), 0)
-     else
+{To fix Tin no bug with Round off col }
+//     if Length(RoundOffCol) > 0 then
+//       NewLedger(pChar(RoundOffCol), pChar(RoundOffGroup), 0)
+//     else
      if Length(DiRoundOff) > 0 then
        NewLedger(pChar(DiRoundOff), pChar(RoundOffGroup), 0);
 
@@ -850,9 +896,13 @@ var
   sint: integer;
   i: integer;
 begin
+//  for i:= 1 to COLUMNLIMIT do
   for i:= 1 to COLUMNLIMIT do
     if IsGSTNDefined[i] then
       NewParty(pchar(kadb.FieldByName(ULedgerName[I]).AsString), pchar(LedgerGroup[i]), pChar(kadb.FieldByName(UGSTNName[i]).AsString));
+    if IsGSTNDefined[COLUMNLIMIT+1] then
+    if Length(RoundOffCol) > 0 then
+       NewParty(pChar(kadb.FieldByName(RoundOffCol).AsString), pChar(RoundOffGroup), pChar(kadb.FieldByName(UGSTNName[COLUMNLIMIT+1]).AsString));
 
   if kadb.FindField(UIdName) <> nil then
     UIdstr := kadb.FieldByName(UIdName).AsString;
@@ -872,6 +922,7 @@ begin
 { Natural no as id would interfere will Tall's logic in some versions }
   StartVch(pchar(tid), pchar(DateColValue),
   pchar(typeColValue), pchar(NarrationColValue));
+  RoundOffName := GetRoundOffName;
   notoskip := 0;
   IsIdOnly := True;
 end;
@@ -903,6 +954,12 @@ begin
   if IsNarrationDefined then
   if kadb.FindField(UNarrationName) <> nil then
     NarrationColValue := GetFieldStr(kadb.FieldByName(UNarrationName));
+  if IsNarration2Defined then
+  if kadb.FindField(UNarration2Name) <> nil then
+    NarrationColValue := NarrationColValue + GetFieldStr(kadb.FieldByName(UNarration2Name));
+  if IsNarration3Defined then
+  if kadb.FindField(UNarration3Name) <> nil then
+    NarrationColValue := NarrationColValue + GetFieldStr(kadb.FieldByName(UNarration3Name));
 end;
 
 {
@@ -982,10 +1039,10 @@ begin
   begin
     if (level = 1) or (level = 2)  then
     begin
-      if Length(kadb.FieldByName(CrAmtCol).AsString) > 0 then
+      if Length(Trim(kadb.FieldByName(CrAmtCol).AsString)) > 0 then
       if kadb.FieldByName(CrAmtCol).AsFloat<> 0 then
         Result := kadb.FieldByName(CrAmtCol).AsFloat;
-      if Length(kadb.FieldByName(DrAmtCol).AsString) > 0 then
+      if Length(Trim(kadb.FieldByName(DrAmtCol).AsString)) > 0 then
       if kadb.FieldByName(DrAmtCol).AsFloat <> 0 then
         Result := -kadb.FieldByName(DrAmtCol).AsFloat;
     end;
@@ -1039,6 +1096,7 @@ var
   Item: pDict;
   lStr: string;
 begin
+  Result := '';
 {
 Depending on token in one column 1 RoundOff ledger is derived
 }
@@ -1070,9 +1128,9 @@ procedure TbjMrMc.WriteStatus;
 var
   i: integer;
   statmsg: integer;
-  RoundOffName: string;
+//  RoundOffName: string;
 begin
-  RoundOffName := GetRoundOffName;
+//  RoundOffName := GetRoundOffName;
   vchAction := 'Create';
   if Abs(VTotal) >= 0.01 then
     AddLine(pChar(RoundOffName), - VTotal);
