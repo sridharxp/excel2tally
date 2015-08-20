@@ -139,6 +139,7 @@ type
     procedure ReadColNames;
     procedure CheckColNames;
     procedure OpenFile;
+    procedure CreateColLedgers;
     procedure NewIdLine;
     procedure Process;
     procedure ProcessRow;
@@ -851,13 +852,9 @@ begin
   for i := 1 to COLUMNLIMIT do
   begin
     if (Length(LedgerGroup[i]) > 0) then
-{ Ledger with only Amount Column }
+{ Default Ledger with Amount Column }
       if (Length(DiLedgerValue[i]) > 0) then
         NewLedger(pchar(DiLedgerValue[i]), pchar(LedgerGroup[i]), 0);
-{ Default is to be named explicitly; Column Name is not implicit default }
-//      else
-//      if Length(ULedgerName[i]) > 0 then
-//        NewLedger(pchar(ULedgerName[i]), pchar(LedgerGroup[i]), 0);
   end;
   if Length(RoundOffGroup) > 0 then
 {To fix Tin no bug with Round off col }
@@ -890,20 +887,28 @@ begin
     end;
 end;
 
-procedure TbjMrMc.NewIdLine;
+procedure TbjMrMc.CreateColLedgers;
 var
-  TId: string;
-  sint: integer;
   i: integer;
 begin
-//  for i:= 1 to COLUMNLIMIT do
   for i:= 1 to COLUMNLIMIT do
     if IsGSTNDefined[i] then
       NewParty(pchar(kadb.FieldByName(ULedgerName[I]).AsString), pchar(LedgerGroup[i]), pChar(kadb.FieldByName(UGSTNName[i]).AsString));
     if IsGSTNDefined[COLUMNLIMIT+1] then
     if Length(RoundOffCol) > 0 then
        NewParty(pChar(kadb.FieldByName(RoundOffCol).AsString), pChar(RoundOffGroup), pChar(kadb.FieldByName(UGSTNName[COLUMNLIMIT+1]).AsString));
+  for i := 1 to COLUMNLIMIT do
+    if (Length(LedgerGroup[i]) > 0) then
+      if Length(ULedgerName[i]) > 0 then
+        NewLedger(pchar(kadb.FieldByName(ULedgerName[i]).AsString), pchar(LedgerGroup[i]), 0);
+end;
 
+procedure TbjMrMc.NewIdLine;
+var
+  TId: string;
+  sint: integer;
+begin
+  CreateColLedgers;
   if kadb.FindField(UIdName) <> nil then
     UIdstr := kadb.FieldByName(UIdName).AsString;
   UIdint := kadb.RecNo;
