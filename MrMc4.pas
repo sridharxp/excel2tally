@@ -899,7 +899,8 @@ begin
        NewParty(pChar(kadb.FieldByName(RoundOffCol).AsString), pChar(RoundOffGroup), pChar(kadb.FieldByName(UGSTNName[COLUMNLIMIT+1]).AsString));
   for i := 1 to COLUMNLIMIT do
     if (Length(LedgerGroup[i]) > 0) then
-      if Length(ULedgerName[i]) > 0 then
+//      if Length(ULedgerName[i]) > 0 then
+        if kadb.FindField(ULedgerName[i]) <> nil then
         NewLedger(pchar(kadb.FieldByName(ULedgerName[i]).AsString), pchar(LedgerGroup[i]), 0);
 end;
 
