@@ -99,6 +99,8 @@ type
     UAmountName: array [1..COLUMNLIMIT] of string;
     UAmount2Name: array [1..COLUMNLIMIT] of string;
     UAmount3Name: array [1..COLUMNLIMIT] of string;
+//    UGroupName: array [1..COLUMNLIMIT] of string;
+    UGroupName: string;
     LedgerGroup: array [1..COLUMNLIMIT] of string;
 { +1 for RoundOff }
     LedgerDict: array [1..COLUMNLIMIT + 1] of TList;
@@ -139,6 +141,7 @@ type
     procedure ReadColNames;
     procedure CheckColNames;
     procedure OpenFile;
+    procedure CreateRowLedgers;
     procedure CreateColLedgers;
     procedure NewIdLine;
     procedure Process;
@@ -204,11 +207,14 @@ begin
   UIdName := IdName;
   LedgerName[1] := 'LEDGER';
   ULedgerName[1] := 'LEDGER';
+  UGroupName := 'GROUP';
   for i:= 2 to COLUMNLIMIT do
   begin
     LedgerName[i] := 'LEDGER' + InttoStr(i);
     ULedgerName[i] := 'LEDGER' + InttoStr(i);
   end;
+//  for i:= 2 to COLUMNLIMIT do
+//    UGroupName[i] := 'GROUP' + InttoStr(i);
   UAmountName[1] := 'AMOUNT';
   for i:= 2 to COLUMNLIMIT do
   begin
@@ -326,6 +332,14 @@ begin
     UGSTNName[COLUMNLIMIT + 1] := str;
     if Length(str) > 0 then
       IsGSTNDefined[COLUMNLIMIT + 1] := True;
+  end;
+
+  xCfg := Cfg.SearchForTag(nil, UGroupName);
+  if Assigned(xCfg) then
+  begin
+    str := xCfg.GetChildContent('Alias');
+    if Length(str) > 0 then
+    UGroupName := str;
   end;
 
   xCfg := Cfg.SearchForTag(nil, UDateName);
@@ -562,7 +576,6 @@ passing Windows Exception as it is }
     kadb := TADoTable.Create(nil);
     kadb.Connection := dm.AdoConnection;
     kadb.TableName := '['+ Filename+ '$]';
-    kadb.ReadOnly := True;
     Kadb.Active := True;
     if Assigned(FUpdate) then
       FUpdate('Reading '+ FileName);
@@ -611,7 +624,7 @@ passing Windows Exception as it is }
     kadb := TADoTable.Create(nil);
     kadb.Connection := dm.AdoConnection;
     kadb.TableName := fileName;
-    kadb.ReadOnly := True;
+//    kadb.ReadOnly := True;
     Kadb.Active := True;
   end;
 {$ENDIF}
@@ -670,6 +683,15 @@ begin
 *)
   RefreshMstLists;
   kadb.First;
+  if IsMultiRowVoucher then
+  begin
+  while (not kadb.Eof)  do
+  begin
+    CreateRowLedgers;
+    kadb.Next;
+  end;
+  kadb.First;
+  end;
   NewIdLine;
   while (not kadb.Eof)  do
   begin
@@ -686,6 +708,7 @@ begin
     if IsIdOnly then
       Continue;
     linecount := linecount + 1;
+Exceeded; Restart the Application');
     kadb.Next;
     if not kadb.Eof then
       notoskip := notoskip + 1;
@@ -797,8 +820,8 @@ begin
     if col.Name = 'TALLYID' then
       IstALLYiDDefined := True;
   end;
-  if IsTallyIdDefined then
-    kadb.ReadOnly := False;
+//  if not IsTallyIdDefined then
+//    kadb.ReadOnly := True;
 
 { Fill IsAmtDefined array
   Needed for Default Amount }
@@ -897,6 +920,7 @@ begin
     if IsGSTNDefined[COLUMNLIMIT+1] then
     if Length(RoundOffCol) > 0 then
        NewParty(pChar(kadb.FieldByName(RoundOffCol).AsString), pChar(RoundOffGroup), pChar(kadb.FieldByName(UGSTNName[COLUMNLIMIT+1]).AsString));
+
   for i := 1 to COLUMNLIMIT do
     if (Length(LedgerGroup[i]) > 0) then
 //      if Length(ULedgerName[i]) > 0 then
@@ -904,10 +928,24 @@ begin
         NewLedger(pchar(kadb.FieldByName(ULedgerName[i]).AsString), pchar(LedgerGroup[i]), 0);
 end;
 
+procedure TbjMrMc.CreateRowLedgers;
+begin
+  if kadb.FindField(UGroupName) <> nil then
+    if Length(kadb.FieldByName(UGroupName).AsString) > 0 then
+    if IsGSTNDefined[1] then
+    NewParty(pchar(kadb.FieldByName(ULedgerName[1]).AsString),
+        pchar(kadb.FieldByName(UGroupName).AsString),
+        pChar(kadb.FieldByName(UGSTNName[COLUMNLIMIT+1]).AsString))
+    else
+    NewLedger(pchar(kadb.FieldByName(ULedgerName[1]).AsString),
+        pchar(kadb.FieldByName(UGroupName).AsString), 0);
+//ShowMessage(kadb.FieldByName(UGroupName).AsString);
+end;
+
 procedure TbjMrMc.NewIdLine;
 var
   TId: string;
-  sint: integer;
+//  sint: integer;
 begin
   CreateColLedgers;
   if kadb.FindField(UIdName) <> nil then
@@ -915,15 +953,19 @@ begin
   UIdint := kadb.RecNo;
   GetDefaults;
   TID := '';
+
+{
+//  Alter is not an Option
   if IsTallyIdDefined then
-  if kadb.FindField('TALLYID') <> nil then
+//  if kadb.FindField('TALLYID') <> nil then
+  if Length(kadb.FieldByName('TALLYID').AsString) > 0 then
   begin
     TID := GetFieldstr(kadb.FieldByName('TALLYID'));
   vchAction := 'Alter';
     sint := StrtoInt(tid);
     TId := InttoHex(sint, 8);
   end;
-
+}
 { Let VchUpdate generate random id in case of no id }
 { Natural no as id would interfere will Tall's logic in some versions }
   StartVch(pchar(tid), pchar(DateColValue),
@@ -950,12 +992,19 @@ begin
     TypeColValue := GetFieldStr(kadb.FieldByName(UTypeName));
   if Length(TypeColValue) = 0 then
     TypeColValue := DiTypeValue;
+{
+  Bank has only two types
+  Daybook has all types
+  VchUpdate has defaults to Voucher Type Journal
+}
   if IsCrDrAmtColsDefined then
   begin
     if Length(kadb.FieldByName(CrAmtCol).AsString) > 0 then
-      TypeColValue := CrAmtColType;
+      if Length(CrAmtColType) > 0 then
+        TypeColValue := CrAmtColType;
     if Length(kadb.FieldByName(DrAmtCol).AsString) > 0 then
-      TypeColValue := DrAmtColType;
+      if Length(DrAmtColType) > 0 then
+        TypeColValue := DrAmtColType;
   end;
   if IsNarrationDefined then
   if kadb.FindField(UNarrationName) <> nil then
@@ -1151,7 +1200,9 @@ begin
   if isTallyIdDefined then
   begin
     kadb.Edit;
-    kadb.FieldByName('TALLYID').AsInteger := StatMsg;
+//    kadb.FieldByName('TALLYID').AsInteger := StatMsg;
+    if StatMsg = 0 then
+    kadb.FieldByName('TALLYID').AsString := 'Error';
     kadb.Post;
   end;
   for i := 1 to notoskip do
