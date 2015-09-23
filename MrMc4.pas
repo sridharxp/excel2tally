@@ -66,7 +66,7 @@ type
     cfg: IbjXml;
     xcfg: IbjXml;
     kadb: TADoTable;
-    IsIdOnly: boolean;
+    IsIdOnlyChecked: boolean;
 //    FDomain: string;
 { Default Values }
     DiDateValue: string;
@@ -128,6 +128,7 @@ type
     IsNarration3Defined: boolean;
     IsTallyIdDefined: boolean;
     notoskip: integer;
+    ProcessedCount: integer;
     IdName: string;
     UidName: string;
     VTotal: double;
@@ -203,6 +204,7 @@ begin
 {  UNarration := '';}
 {  Amt1 := '';}
   notoskip := 0;
+  ProcessedCount := 0;;
   IdName := 'ID';
   UIdName := IdName;
   LedgerName[1] := 'LEDGER';
@@ -409,6 +411,8 @@ begin
       UNarrationName  := str;
       IsNarrationDefined := True;
     end;
+{ Unused Feature }
+{ For Combining tow Narration Texts }
     xCfg := Cfg.SearchForTag(xCfg, 'Alias');
     if xCfg <> nil then
     begin
@@ -497,6 +501,11 @@ begin
         AmountType[i] := xxCfg.GetChildContent('Type');
         if (AmountType[i] <> 'Cr') and (AmountType[i] <> 'Dr') then
           AmountType[i] := 'Cr';
+{ Default Ledger Name thr user defined value in Xml }
+        IF xxCfg.GetChildContent('IsLedgerName') = 'Yes' then
+          DiLedgerValue[i] := str;
+{ Unused Feature }
+{ For Combining tow Column Amounts }
         if Assigned(xxCfg) then
         begin
           xxCfg := xcfg.SearchForTag(xxcfg, 'AmtCol');
@@ -651,12 +660,10 @@ passing Windows Exception as it is }
 end;
 
 procedure TbjMrMc.Execute;
-var
-linecount: integer;
 begin
 //  if not TestConnection(Host, 'Tally', '') then
 //    Exit;
-  linecount := 0;
+  ProcessedCount := 0;
   ReadColNames;
   OpenFile;
   CheckColNames;
@@ -705,10 +712,8 @@ begin
         if (Length(kadb.FieldByName(UDateName).AsString) = 0) then
           break;
     Process;
-    if IsIdOnly then
+    if IsIdOnlyChecked then
       Continue;
-    linecount := linecount + 1;
-Exceeded; Restart the Application');
     kadb.Next;
     if not kadb.Eof then
       notoskip := notoskip + 1;
@@ -750,7 +755,7 @@ begin
   end;
   if IsMultiColumnVoucher then
     ProcessCol(2);
-  IsIdOnly := False;
+  IsIdOnlyChecked := False;
 end;
 
 procedure TbjMrMc.ProcessCol(const level: integer);
@@ -759,7 +764,7 @@ var
   i: integer;
   LedgerColValue: string;
 begin
-  if not IsIdOnly then
+  if not IsIdOnlyChecked then
     Exit;
   if not IsLedgerDefined[level] then
       Exit;
@@ -972,7 +977,7 @@ begin
   pchar(typeColValue), pchar(NarrationColValue));
   RoundOffName := GetRoundOffName;
   notoskip := 0;
-  IsIdOnly := True;
+  IsIdOnlyChecked := True;
 end;
 
 {***}
@@ -1194,6 +1199,7 @@ begin
   VTotal := 0;
   if Assigned(FUpdate) then
       FUpdate('Processed ' + InttoStr(statmsg));
+  ProcessedCount := ProcessedCount + 1;
 
   for i := 1 to notoskip do
     kadb.Prior;
