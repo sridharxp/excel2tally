@@ -186,7 +186,7 @@ type
 
 function GetFieldStr(fld: TField): string;
 
-{$include \TL\ETSarath\VchUpdate.int}
+{$include \TL\ETS\VchUpdate.int}
 
 implementation
 
@@ -402,10 +402,10 @@ begin
 //    str := xCfg.GetChildContent('Alias');
 //    if Length(str) > 0 then
 //    UNarrationName  := str;
-  xCfg := Cfg.SearchForTag(xCfg, 'Alias');
-  if xCfg <> nil then
+  xxCfg := xCfg.SearchForTag(nil, 'Alias');
+  if xxCfg <> nil then
   begin
-    str := xCfg.GetContent;
+    str := xxCfg.GetContent;
     if Length(str) > 0 then
     begin
       UNarrationName  := str;
@@ -413,19 +413,19 @@ begin
     end;
 { Unused Feature }
 { For Combining tow Narration Texts }
-    xCfg := Cfg.SearchForTag(xCfg, 'Alias');
-    if xCfg <> nil then
+    xxCfg := xCfg.SearchForTag(xxCfg, 'Alias');
+    if xxCfg <> nil then
     begin
-      str := xCfg.GetContent;
+      str := xxCfg.GetContent;
       if Length(str) > 0 then
       begin
         UNarration2Name  := str;
         IsNarration2Defined := True;
       end;
-      xCfg := Cfg.SearchForTag(xCfg, 'Alias');
-      if xCfg <> nil then
+      xxCfg := xCfg.SearchForTag(xxCfg, 'Alias');
+      if xxCfg <> nil then
       begin
-        str := xCfg.GetContent;
+        str := xxCfg.GetContent;
         if Length(str) > 0 then
         begin
           UNarration3Name  := str;
@@ -502,10 +502,14 @@ begin
         if (AmountType[i] <> 'Cr') and (AmountType[i] <> 'Dr') then
           AmountType[i] := 'Cr';
 { Default Ledger Name thr user defined value in Xml }
-        IF xxCfg.GetChildContent('IsLedgerName') = 'Yes' then
+        if xxCfg.GetChildContent('IsLedgerName') = 'Yes' then
         begin
           IsLedgerDefined[i] := True;
           DiLedgerValue[i] := str;
+{ For Ledger without Alias }
+          str := xxCfg.GetChildContent('Group');
+          if Length(str) > 0 then
+            LedgerGroup[i] := str;
         end;
 { Unused Feature }
 { For Combining tow Column Amounts }
@@ -588,6 +592,7 @@ passing Windows Exception as it is }
     kadb := TADoTable.Create(nil);
     kadb.Connection := dm.AdoConnection;
     kadb.TableName := '['+ Filename+ '$]';
+    kadb.ReadOnly := True;
     Kadb.Active := True;
     if Assigned(FUpdate) then
       FUpdate('Reading '+ FileName);
@@ -764,7 +769,7 @@ end;
 procedure TbjMrMc.ProcessCol(const level: integer);
 var
 //  contraamt: double;
-  i: integer;
+//  i: integer;
   LedgerColValue: string;
 begin
   if not IsIdOnlyChecked then
@@ -950,7 +955,6 @@ begin
     else
     NewLedger(pchar(kadb.FieldByName(ULedgerName[1]).AsString),
         pchar(kadb.FieldByName(UGroupName).AsString), 0);
-//ShowMessage(kadb.FieldByName(UGroupName).AsString);
 end;
 
 procedure TbjMrMc.NewIdLine;
@@ -1027,13 +1031,16 @@ begin
   end;
   if IsNarrationDefined then
   if kadb.FindField(UNarrationName) <> nil then
-    NarrationColValue := GetFieldStr(kadb.FieldByName(UNarrationName));
+//    NarrationColValue := GetFieldStr(kadb.FieldByName(UNarrationName));
+    NarrationColValue := kadb.FieldByName(UNarrationName).AsString;
+
   if IsNarration2Defined then
   if kadb.FindField(UNarration2Name) <> nil then
-    NarrationColValue := NarrationColValue + GetFieldStr(kadb.FieldByName(UNarration2Name));
+    NarrationColValue := NarrationColValue + kadb.FieldByName(UNarration2Name).AsString;
   if IsNarration3Defined then
   if kadb.FindField(UNarration3Name) <> nil then
-    NarrationColValue := NarrationColValue + GetFieldStr(kadb.FieldByName(UNarration3Name));
+    NarrationColValue := NarrationColValue + kadb.FieldByName(UNarration3Name).AsString;
+
 end;
 
 {
