@@ -111,6 +111,7 @@ type
     UNarrationName: string;
     UNarration2Name: string;
     UNarration3Name: string;
+    UVchNoColName: string;
 
     IsAssessableDefined: array [1..COLUMNLIMIT] of boolean;
     UAssessableName: array [1..COLUMNLIMIT] of string;
@@ -169,7 +170,6 @@ type
     CCount: integer;
     FUpdate: TfnUpdate;
     DefGroup: string;
-    IsUnLocked: boolean;
     Host: string;
     constructor Create;
     destructor Destroy; override;
@@ -342,6 +342,15 @@ begin
     str := xCfg.GetChildContent('Alias');
     if Length(str) > 0 then
     UGroupName := str;
+  end;
+
+  xCfg := Cfg.SearchForTag(nil, 'VoucherNo');
+  if Assigned(xCfg) then
+  begin
+    str := xCfg.GetChildContent('Alias');
+    if Length(str) > 0 then
+    UVchNoColName := str;
+//    DiDateValue := xCfg.GetChildContent('Default');
   end;
 
   xCfg := Cfg.SearchForTag(nil, UDateName);
@@ -985,8 +994,11 @@ begin
 { Natural no as id would interfere will Tall's logic in some versions }
 //  StartVch(pchar(tid), pchar(DateColValue),
 //  pchar(typeColValue), pchar(NarrationColValue));
-  if kadb.FindField('Voucher No') <> nil then
-  SetVchNo(pChar(kadb.FieldByName('Voucher No').AsString));
+//  if kadb.FindField('Voucher No') <> nil then
+//    SetVchNo(pChar(kadb.FieldByName('Voucher No').AsString));
+  if Length(UVchNoColName) > 0 then
+  SetVchNo(pChar(kadb.FieldByName(UVchNoColName).AsString));
+
   if kadb.FindField('Voucher Ref') <> nil then
   SetVchRef(pChar(kadb.FieldByName('Voucher Ref').AsString));
   SetNarration(pchar(NarrationColValue));
