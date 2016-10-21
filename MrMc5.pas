@@ -590,7 +590,7 @@ begin
 { No try except ...
 passing Windows Exception as it is }
   if not FileExists(dbName) then
-    raise Exception.Create(dbname + ' not found');
+    raise Exception.Create('File ' + dbname + ' not found');
 {$IFDEF ADO}
   if FileFmt = 'Excel_80_Table' then
   begin
@@ -1024,7 +1024,8 @@ begin
   if Length(DateColValue) = 0 then
     DateColValue := DiDateValue;
   if kadb.FindField(UTypeName) <> nil then
-    TypeColValue := GetFieldStr(kadb.FieldByName(UTypeName));
+//    TypeColValue := GetFieldStr(kadb.FieldByName(UTypeName));
+    TypeColValue := kadb.FieldByName(UTypeName).AsString;
   if Length(TypeColValue) = 0 then
     TypeColValue := DiTypeValue;
 {
@@ -1241,7 +1242,9 @@ begin
     kadb.Edit;
 //    kadb.FieldByName('TALLYID').AsInteger := StatMsg;
     if StatMsg = 0 then
-    kadb.FieldByName('TALLYID').AsString := 'Error';
+    kadb.FieldByName('TALLYID').AsString := 'Error'
+    else
+    kadb.FieldByName('TALLYID').AsString := InttoStr(statmsg);
     kadb.Post;
   end;
   for i := 1 to notoskip do
