@@ -10,18 +10,29 @@ procedure StartVch(VChID, vchDate, VchName, VchNarration: pChar); stdcall; exter
 function AddLine(Ledger: pchar; Amount: double): double; stdcall; external 'vchupdate.dll';
 function AddCrLine(ledger: pchar; Amount:double): double; stdcall; external 'vchupdate.dll';
 function AddDrLine(ledger: pchar; Amount: double): double; stdcall; external 'vchupdate.dll';
-function AddLinewithRef(ledger: pchar; Amount: double; Ref, RefType: pChar): double; stdcall; external 'vchupdate.dll';
 function SetInvLine(Item: pchar; Qty, Rate, Amount: double): double; stdcall; external 'vchupdate.dll';
 function SetAssessable(Amount: double): double; stdcall; external 'vchupdate.dll';
 function PostVch(VchAction: pchar): integer; stdcall; external 'vchupdate.dll';
+function TryPost(VchAction: pchar): pChar; stdcall; external 'vchupdate.dll';
 
 function IsTLic(const authentication: pchar): integer; stdcall; external 'vchupdate.dll';
 procedure SetHost(host: string); stdcall; external 'vchupdate.dll';
+function GetCompany: pchar; stdcall; external 'vchupdate.dll';
 procedure SetCompany(Name: pchar); stdcall; external 'vchupdate.dll';
 procedure SetGUID(ID: pchar); stdcall; external 'vchupdate.dll';
+procedure SetDebugMode(OnOff: integer); stdcall; external 'vchupdate.dll';
+procedure SetUpdateMastersMode(OnOff: integer); stdcall; external 'vchupdate.dll';
 
 Procedure SetDefaultGroup(aName: pchar); stdcall; external 'vchupdate.dll';
 procedure RefreshMstLists; stdcall; external 'vchupdate.dll';
 
 procedure GetCompany(Name: pchar; Size: integer); stdcall; external 'vchupdate.dll';
 
+procedure SetNarration(VchNarration: pChar); stdcall; external 'vchupdate.dll';
+procedure SetVchType(VchName: pChar); stdcall; external 'vchupdate.dll';
+procedure SetVchNo(VchNo: pChar); stdcall; external 'vchupdate.dll';
+procedure SetVchRef(VchRef: pChar); stdcall; external 'vchupdate.dll';
+procedure SetVchDate(VchDate: pChar); stdcall; external 'vchupdate.dll';
+procedure SetVchID(VChId: pChar); stdcall; external 'vchupdate.dll';
+// Deprecated
+function AddLinewithRef(ledger: pchar; Amount: double; Ref, RefType: pChar): double; stdcall; external 'vchupdate.dll';
