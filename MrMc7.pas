@@ -183,7 +183,7 @@ type
 
 { Level refers to Ledger Column with this Suffix  or Related Amount Colunn }
   TDict = Record
-    Level: integer;
+    TokenCol: integer;
     Token: pChar;
     Value: pChar;
   end;
@@ -192,7 +192,7 @@ type
 function GetFldDt(fld: TField): string;
 function GetFldStr(fld: TField): string;
 
-{$include \TL\ETS\VchUpdate.int}
+{$include .\src\VchUpdate.int}
 
 implementation
 
@@ -318,7 +318,7 @@ begin
       while Assigned(dcfg) do
       begin
         ditem := new (pDict);
-        pDict(dItem)^.Level := StrtoInt(dcfg.GetChildContent('Level'));
+        pDict(dItem)^.TokenCol := StrtoInt(dcfg.GetChildContent('TokenCol'));
         str := dcfg.GetChildContent('Token');
         pDict(dItem)^.Token := StrNew(pchar(str));
         str := dcfg.GetChildContent('Value');
@@ -565,7 +565,7 @@ begin
         while Assigned(dcfg) do
         begin
           ditem := new (pDict);
-          pDict(dItem)^.Level := StrtoInt(dcfg.GetChildContent('Level'));
+          pDict(dItem)^.TokenCol := StrtoInt(dcfg.GetChildContent('TokenCol'));
           str := dcfg.GetChildContent('Token');
           pDict(dItem)^.Token := StrNew(pchar(str));
           str := dcfg.GetChildContent('Value');
@@ -573,6 +573,7 @@ begin
           LedgerDict[i].Add(Ditem);
           dCfg := xcfg.SearchForTag(dcfg, 'Dict');
         end;
+        IsLedgerDefined[i] := True;
       end;
     end;
   end;
@@ -923,8 +924,13 @@ begin
 }
   for i := 1 to COLUMNLIMIT do
     if (Length(LedgerGroup[i]) > 0) then
+    begin
         if kadb.FindField(ULedgerName[i]) <> nil then
           NewLedger(pchar(kadb.FieldByName(ULedgerName[i]).AsString), pchar(LedgerGroup[i]), 0);
+    end;
+  if Length(RoundOffGroup) > 0 then
+      if kadb.FindField(RoundOffCol) <> nil then
+       NewLedger(pChar(kadb.FieldByName(RoundOffCol)), pChar(RoundOffGroup), 0);
 end;
 
 procedure TbjMrMc.CreateRowLedgers;
@@ -1072,7 +1078,7 @@ Token code is exception to normal logic; Getout after executing this fragment
     for i := 0 to LedgerDict[level].Count-1 do
     begin
       Item := LedgerDict[level].Items[i];
-      if pDict(Item)^.Token = kadb.FieldByName(ULedgerName[pDict(Item)^.level]).AsString then
+      if pDict(Item)^.Token = kadb.FieldByName(ULedgerName[pDict(Item)^.TokenCol]).AsString then
       begin
         lstr := pDict(Item)^.Value;
         break;
@@ -1178,7 +1184,7 @@ Depending on token in one column 1 RoundOff ledger is derived
     for i := 0 to LedgerDict[COLUMNLIMIT+1].Count-1 do
     begin
       Item := LedgerDict[COLUMNLIMIT+1].Items[i];
-      if pDict(Item)^.Token = kadb.FieldByName(ULedgerName[pDict(Item)^.level]).AsString then
+      if pDict(Item)^.Token = kadb.FieldByName(ULedgerName[pDict(Item)^.TokenCol]).AsString then
       begin
         lStr := pDict(Item)^.Value;
         break;
