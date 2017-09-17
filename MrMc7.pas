@@ -43,7 +43,7 @@ uses
 {$DEFINE ADO}
 
 Const
-  PGLEN = 6;
+  PGLEN = 7;
   COLUMNLIMIT = 22;
   TallyAmtPicture = '############.##';
 
@@ -59,6 +59,8 @@ type
   TbjMrMc = class(TinterfacedObject, IbjXlExp, IbjMrMc)
   private
     { Private declarations }
+    FRefreshLedMaster: Boolean;
+    FToLog: boolean;
   protected
     UIdstr: string;
     UIdint: integer;
@@ -66,6 +68,7 @@ type
     cfg: IbjXml;
     xcfg: IbjXml;
     kadb: TADoTable;
+    Logdb: TADoTable;
     IsIdOnlyChecked: boolean;
 //    FDomain: string;
 { Default Values }
@@ -78,6 +81,7 @@ type
     NarrationCol3Value: string;
     DiRoundOff: string;
     RoundOffCol: string;
+    RoundToLimit: Integer;
     RoundOffGroup: string;
 
     Amt: array [1..COLUMNLIMIT] of double;
@@ -107,17 +111,29 @@ type
     LedgerDict: array [1..COLUMNLIMIT + 1] of TList;
     IsGroupDefined: array [1..COLUMNLIMIT + 1] of boolean;
     IsGSTNDefined: array [1..COLUMNLIMIT + 1] of boolean;
+    IsInvDefined: array [1..COLUMNLIMIT + 1] of boolean;
     UGSTNName: array [1..COLUMNLIMIT + 1] of string;
     UGroupName: array [1..COLUMNLIMIT + 1] of string;
+    IsIdDefined: boolean;
+    IsDateDefined: boolean;
+    IsVoucherRefDefined: boolean;
+    IsUnitDefined: boolean;
     UDateName: string;
     UTypeName: string;
     UNarrationName: string;
     UNarration2Name: string;
     UNarration3Name: string;
     UVchNoColName: string;
+    UVoucherRefName: string;
 
     IsAssessableDefined: array [1..COLUMNLIMIT] of boolean;
     UAssessableName: array [1..COLUMNLIMIT] of string;
+    UItemName: string;
+    UUnitName: string;
+    UQtyName: string;
+    URateName: string;
+    UItemAmtName: string;
+    ToCheckInvCols: boolean;
 
 { if exosts value if not di}
     DateColValue: string;
@@ -131,9 +147,10 @@ type
     IsNarration2Defined: boolean;
     IsNarration3Defined: boolean;
     IsTallyIdDefined: boolean;
+    IsLogDBDefined: boolean;
     notoskip: integer;
     ProcessedCount: integer;
-    IdName: string;
+//    IdName: string;
     UidName: string;
     VTotal: double;
     VchAction: string;
@@ -149,10 +166,12 @@ type
     procedure OpenFile;
     procedure CreateRowLedgers;
     procedure CreateColLedgers;
+    procedure CreateItem(const level: integer);
     procedure NewIdLine;
     procedure Process;
     procedure ProcessRow;
     procedure ProcessCol(const level: integer);
+    procedure ProcessItem(const level: integer);
     function IsIDChanged: boolean;
     procedure GetDefaults;
     procedure WriteStatus;
@@ -179,6 +198,9 @@ type
     constructor Create;
     destructor Destroy; override;
     procedure Execute;
+  published
+    property ToLog: boolean read FToLog write FToLog;
+    property RefreshLedMaster: Boolean read FRefreshLedMaster write FRefreshLedMaster;
   end;
 
 { Level refers to Ledger Column with this Suffix  or Related Amount Colunn }
@@ -204,14 +226,14 @@ var
   i: integer;
 begin
   Inherited;
+  SetDebugMode(0);
   xmlFile := copy(Application.ExeName, 1, Pos('.exe', Application.ExeName)-1) + '.xml';
   Cfgn := CreatebjXmlDocument;
 {  UNarration := '';}
 {  Amt1 := '';}
   notoskip := 0;
   ProcessedCount := 0;;
-  IdName := 'ID';
-  UIdName := IdName;
+  UIdName := 'ID';
   LedgerName[1] := 'LEDGER';
   ULedgerName[1] := 'LEDGER';
 
@@ -234,6 +256,14 @@ begin
   UDateName := 'DATE';
   UTypeName := 'VTYPE';
   UNarrationName := 'NARRATION';
+  UVoucherRefName := 'Voucher Ref';
+  UItemName := 'Item';
+  UUnitName := 'Jnit';
+  UQtyName := 'Qty';
+  URateName := 'Rate';
+  UItemAmtName := 'Value';
+  FRefreshLedMaster := True;
+  FToLog := True;
 end;
 
 destructor TbjMrMc.Destroy;
@@ -258,6 +288,7 @@ begin
   kadb.Close;
 
   kadb.Free;
+  LogDB.Free;
   dm.ADOConnection.Connected := False;
   Cfgn.Clear;
   inherited;
@@ -306,7 +337,8 @@ begin
   if Length(DefGroup) > 0 then
     SetDefaultGroup(pchar(DefGroup))
   else
-    SetDefaultGroup(pchar(''));
+//    SetDefaultGroup(pchar(''));
+    SetDefaultGroup('');
 
   xCfg := Cfg.SearchForTag(nil, 'RoundOff');
   if Assigned(xCfg) then
@@ -336,13 +368,9 @@ begin
       RoundOffGroup := str;
     DiRoundOff := xCfg.GetChildContent('Default');
 
-// Check
-{
-    str :=xCfg.GetChildContent('GSTN');
-    UGSTNName[COLUMNLIMIT + 1] := str;
+    str := xCfg.GetChildContent('RoundTo');
     if Length(str) > 0 then
-      IsGSTNDefined[COLUMNLIMIT + 1] := True;
-}
+      RoundToLimit := StrToInt(str);
   end;
 {
   xCfg := Cfg.SearchForTag(nil, UGroupName);
@@ -367,7 +395,9 @@ begin
   begin
     str := xCfg.GetChildContent('Alias');
     if Length(str) > 0 then
+    begin
     UDateName := str;
+    end;
     DiDateValue := xCfg.GetChildContent('Default');
   end;
 
@@ -454,12 +484,23 @@ begin
   end;
   end;
 
-  xCfg := Cfg.SearchForTag(nil, IdName);
+  xCfg := Cfg.SearchForTag(nil, UIdName);
   if Assigned(xCfg) then
   begin
     str := xCfg.GetChildContent('Alias');
     if Length(str) > 0 then
+    begin
       UIdName  := str;
+   end;
+  end;
+  xCfg := cfg.SearchForTag(nil, 'Voucher Ref');
+  if Assigned(xCfg) then
+  begin
+    str := xCfg.GetContent;
+    if Length(str) > 0 then
+    begin
+      UVoucherRefName := str;
+    end;
   end;
 
   for i := 1 to COLUMNLIMIT do
@@ -501,6 +542,15 @@ begin
         UGSTNName[i] := str;
         if Length(str) > 0 then
           IsGSTNDefined[i] := True;
+      end;
+      xxCfg := xcfg.SearchForTag(nil, 'IsInvCol');
+      if Assigned(xxCfg) then
+      begin
+        str := xxCfg.GetContent;
+        if str = 'Yes' then
+        begin
+          IsInvDefined[i] := True;
+          ToCheckInvCols := True;        end;
       end;
     end;
 
@@ -577,6 +627,43 @@ begin
       end;
     end;
   end;
+  xCfg := Cfg.SearchForTag(nil, UItemName);
+  if Assigned(xCfg) then
+  begin
+    str := xCfg.GetChildContent('Alias');
+    if Length(str) > 0 then
+      UItemName := str;
+  end;
+  xCfg := Cfg.SearchForTag(nil, UUnitName);
+  if Assigned(xCfg) then
+  begin
+    str := xCfg.GetChildContent('Alias');
+    if Length(str) > 0 then
+    begin
+    UUnitName := str;
+    end;
+  end;
+  xCfg := Cfg.SearchForTag(nil, UQtyName);
+  if Assigned(xCfg) then
+  begin
+    str := xCfg.GetChildContent('Alias');
+    if Length(str) > 0 then
+      UQtyName := str;
+  end;
+  xCfg := Cfg.SearchForTag(nil, URateName);
+  if Assigned(xCfg) then
+  begin
+    str := xCfg.GetChildContent('Alias');
+    if Length(str) > 0 then
+      URateName := str;
+  end;
+  xCfg := Cfg.SearchForTag(nil, UItemAmtName);
+  if Assigned(xCfg) then
+  begin
+    str := xCfg.GetChildContent('Alias');
+    if Length(str) > 0 then
+      UItemAmtName := str;
+  end;
 //Shifted from ChckcolNames as this is Xml file specific
 { If Ledger is definded corresponding amount column should be defined }
 { gaps should not exist }
@@ -626,6 +713,21 @@ passing Windows Exception as it is }
     kadb.Open;
     if Assigned(FUpdate) then
     FUpdate('Processing '+ FileName);
+    if FToLog then
+    begin
+      IsLogDBDefined := True;
+      Logdb := TADoTable.Create(nil);
+      try
+        Logdb.Connection := dm.AdoConnection;
+        Logdb.TableName := '['+ 'Log' + '$]';
+        Logdb.Active := True;
+        Logdb.ReadOnly := False;
+        Logdb.Open;
+      Except
+        IsLogDBDefined := False;
+        LogDB.Close;
+      end;
+    end;
   end;
 {$ENDIF}
 {$IFDEF DAO}
@@ -701,34 +803,41 @@ begin
   CheckColNames;
   if Length(Host) > 0 then
     SetHost(pchar(Host));
+  if FRefreshLedMaster then
   RefreshMstLists;
 
   kadb.First;
 //  if ToCreateMasters then
-    if IsMultiRowVoucher then
-    begin
       while (not kadb.Eof)  do
       begin
+    if IsMultiRowVoucher then
         CreateRowLedgers;
+    if IsMultiColumnVoucher then
+      CreateColLedgers;
         kadb.Next;
       end;
       kadb.First;
-    end;
   NewIdLine;
+  IsIdOnlyChecked := True;
   while (not kadb.Eof)  do
   begin
 { Make sure id is empty }
-    if kadb.FindField(UIdName) <> nil then
+    if IsIdDefined then
+    begin
 //    if (Length(kadb.FieldByName(UIdName).AsString) = 0) then
     if (Length(GetFldStr(kadb.FieldByName(UIdName))) = 0) then
 //    begin
       break;
-//    end;
+    end
+    else
+    begin
 { or Make sure date is empty }
     if not IsMultiRowVoucher then
-      if kadb.FindField(UDateName) <> nil then
+//        if kadb.FindField(UDateName) <> nil then
+        if IsDateDefined then
         if (Length(kadb.FieldByName(UDateName).AsString) = 0) then
           break;
+    end;
     Process;
     if IsIdOnlyChecked then
       Continue;
@@ -740,22 +849,24 @@ begin
   MessageDlg(InttoStr(ProcessedCount) + ' Vouchers processed',
       mtInformation, [mbOK], 0);
   FUpdate(InttoStr(ProcessedCount) + ' Vouchers processed; ' +
-    InttoStr(SCount) + ' Success');
+    InttoStr(SCount) + ' Success. Error detailss in  Log worksheet');
 end;
 
 procedure TbjMrMc.Process;
 var
-  FoundId: boolean;
+  FoundNewId: boolean;
 begin
-  FoundId :=  IsIDChanged;
-  if not FoundId then
+  FoundNewId :=  IsIDChanged;
+  if not FoundNewId then
   begin
     ProcessRow;
+    IsIdOnlyChecked := False;
   end;
-  if FoundId then
+  if FoundNewId then
   begin
     WriteStatus;
     NewIdline;
+    IsIdOnlyChecked := True
   end;
 end;
 
@@ -769,18 +880,16 @@ begin
     if IsAssessableDefined[1] then
       SetAssessable(kadb.FieldByName(UAssessableName[1]).AsFloat);
     VTotal := VTotal + StrtoFloat(FormatFloat(TallyAmtPicture, Amt[1]));
+    ProcessItem(1);
   end;
   if IsMultiColumnVoucher then
     ProcessCol(2);
-  IsIdOnlyChecked := False;
 end;
 
 procedure TbjMrMc.ProcessCol(const level: integer);
 var
   LedgerColValue: string;
 begin
-  if not IsIdOnlyChecked then
-    Exit;
   if not IsLedgerDefined[level] then
       Exit;
   LedgerColValue := GetLedger(level);
@@ -794,6 +903,7 @@ begin
     if IsAssessableDefined[level] then
       SetAssessable(kadb.FieldByName(UAssessableName[level]).AsFloat);
     VTotal := VTotal + StrtoFloat(FormatFloat(TallyAmtPicture, Amt[level]));
+    ProcessItem(level);
     ProcessCol(level+1);
   end;
   if Amt[level] = 0 then
@@ -804,6 +914,21 @@ begin
       exit;
     end;
   end;
+end;
+procedure TbjMrMc.ProcessItem(const level: integer);
+begin
+  if not  IsInvDefined[level] then
+    Exit;
+  if kadb.FindField(UitemName) = nil then
+    Exit; 
+  if Length(kadb.FieldByName(UItemName).AsString) = 0 then
+    Exit;
+  if Length(kadb.FieldByName(UQtyName).AsString) = 0 then
+    Exit;
+  SetInvLine(pChar(kadb.FieldByName(UItemName).AsString),
+    kadb.FieldByName(UQtyName).AsFloat,
+    kadb.FieldByName(URateName).AsFloat,
+    kadb.FieldByName(UItemAmtName).AsFloat);
 end;
 
 { Validation of Table Columns in Excel
@@ -816,6 +941,14 @@ var
   str: string;
   strMsg: string;
 begin
+  if kadb.FindField(UIdName) <> nil then
+    IsIdDefined := True;
+  if kadb.FindField(UDateName) <> nil then
+    IsDateDefined := True;
+  if kadb.FindField(UVoucherRefName) <> nil then
+    IsVoucherRefDefined := True;
+  if kadb.FindField(UUnitName) <> nil then
+    IsUnitDefined := True;
 { Check for TallyId }
   for i := 0 to kadb.FieldDefs.Count-1 do
   begin
@@ -868,7 +1001,13 @@ begin
     CheckColumn(UDateName);
   if Length(DiTypeValue) = 0 then
     CheckColumn(UTypeName);
-
+  if ToCheckInvCols then
+    if kadb.FindField(UItemName) <> nil then
+    begin
+      CheckColumn(UQtyName);
+      CheckColumn(URateName);
+      CheckColumn(UItemAmtName);
+    end;
 //Shifted from top
 // Ledger Creation should be done only when necessary
   SetLength(strMsg, 50);
@@ -906,6 +1045,8 @@ begin
       if (Length(RoundOffGroup) > 0) then
         NewLedger(pchar(pDict(dItem)^.Value), pchar(RoundOffGroup), 0);
     end;
+  if RoundToLimit > 0 then
+    NewLedger('RoujndOff', 'Indirect Expenses', 0);
 end;
 
 procedure TbjMrMc.CreateColLedgers;
@@ -924,13 +1065,33 @@ begin
 }
   for i := 1 to COLUMNLIMIT do
     if (Length(LedgerGroup[i]) > 0) then
-    begin
         if kadb.FindField(ULedgerName[i]) <> nil then
+      begin
           NewLedger(pchar(kadb.FieldByName(ULedgerName[i]).AsString), pchar(LedgerGroup[i]), 0);
+        CreateItem(i);
     end;
   if Length(RoundOffGroup) > 0 then
       if kadb.FindField(RoundOffCol) <> nil then
-       NewLedger(pChar(kadb.FieldByName(RoundOffCol)), pChar(RoundOffGroup), 0);
+       NewLedger(pChar(kadb.FieldByName(RoundOffCol).AsString), pChar(RoundOffGroup), 0);
+end;
+procedure TbjMrMc.CreateItem(const level: integer);
+begin
+  if not IsInvDefined[level] then
+    Exit;
+  if kadb.FindField(UItemName) = nil then
+    Exit;
+  if IsUnitDefined then
+  begin
+    NewUnit(pChar(kadb.FieldByName(UUnitName).AsString));
+    NewItem(pChar(kadb.FieldByName(UItemName).AsString),
+    pChar(kadb.FieldByName(UUnitName).AsString) , 0, 0);
+    Exit;
+  end
+  else
+  begin
+    NewUnit('NOs');
+    NewItem(pChar(kadb.FieldByName(UItemName).AsString), 'NOs', 0, 0);
+  end;
 end;
 
 procedure TbjMrMc.CreateRowLedgers;
@@ -948,6 +1109,7 @@ begin
     if Length(kadb.FieldByName(UOBDrName).AsString) > 0 then
       OB := OB - kadb.FieldByName(UOBDrName).AsFloat;
   if Length(kadb.FieldByName(UGroupName[1]).AsString) > 0 then
+  begin
     if IsGSTNDefined[1] then
       NewParty(pchar(kadb.FieldByName(ULedgerName[1]).AsString),
         pchar(kadb.FieldByName(UGroupName[1]).AsString),
@@ -956,6 +1118,7 @@ begin
     else
       NewLedger(pchar(kadb.FieldByName(ULedgerName[1]).AsString),
         pchar(kadb.FieldByName(UGroupName[1]).AsString), OB);
+  end;
 end;
 
 procedure TbjMrMc.NewIdLine;
@@ -963,8 +1126,9 @@ var
   TId: string;
 begin
 //  if ToCreateMasters then
-    CreateColLedgers;
-  if kadb.FindField(UIdName) <> nil then
+//    CreateColLedgers;
+//  if kadb.FindField(UIdName) <> nil then
+  if IsIdDefined then
     UIdstr := GetFldStr(kadb.FieldByName(UIdName));
   UIdint := kadb.RecNo;
   GetDefaults;
@@ -990,15 +1154,14 @@ begin
   if Length(UVchNoColName) > 0 then
   SetVchNo(pChar(kadb.FieldByName(UVchNoColName).AsString));
 
-  if kadb.FindField('Voucher Ref') <> nil then
-  SetVchRef(pChar(kadb.FieldByName('Voucher Ref').AsString));
+  if IsVoucherRefDefined then
+    SetVchRef(pChar(kadb.FieldByName(UVoucherRefName).AsString));
   SetNarration(pchar(NarrationColValue));
   SetVchDate(pchar(DateColValue));
   SetVchType(pchar(typeColValue));
   SetVchId(pchar(tid));
   RoundOffName := GetRoundOffName;
   notoskip := 0;
-  IsIdOnlyChecked := True;
 end;
 
 {***}
@@ -1006,7 +1169,8 @@ procedure TbjMrMc.GetDefaults;
 begin
 {  GetSingleValues; }
   DateColValue := '';
-  if kadb.FindField(UDateName) <> nil then
+//  if kadb.FindField(UDateName) <> nil then
+  if IsDateDefined then
     if Length(kadb.FieldByName(UDateName).AsString) > 0 then
     DateColValue := GetFldDt(kadb.FieldByName(UDateName));
   if Length(DateColValue) = 0 then
@@ -1050,7 +1214,8 @@ If there is demand...
 function TbjMrMc.IsIDChanged: boolean;
 begin
   Result := False;
-  if kadb.FindField(UIdName) <> nil then
+//  if kadb.FindField(UIdName) <> nil then
+  if IsIdDefined then
     if (GetFldStr(kadb.FieldByName(UIdName)) <> UIdstr) then
       Result  := True;
   if not IsMultiRowVoucher then
@@ -1208,15 +1373,32 @@ var
   i: integer;
   statmsg: string;
   CheckErrStr: string;
+  RoundOffAmount: Double;
+  IsErr: boolean;
 begin
+  IsErr := False;
+  RoundOffAmount := Round(Vtotal) - VTotal;
   CheckErrStr := '(FOR OBJECT: ';
   vchAction := 'Create';
   if Abs(VTotal) >= 0.01 then
+  begin
+    if RoundToLimit > 0 then
+    begin
+    AddLine(pChar(RoundOffName), - Round(VTotal));
+      AddLine('RoundOff', RoundOffAmount);
+    end
+    else
     AddLine(pChar(RoundOffName), - VTotal);
+  end;
 
   StatMsg := TryPost(pChar(VchAction));
+  if StatMsg = '0' then
+    IsErr := True;
   if Pos(CheckErrStr, StatMsg) > 0 then
+  begin
     StatMsg := Copy(StatMsg, 0, Pos(CheckErrStr, StatMsg)-1);
+    IsErr := True;
+  end;
   VTotal := 0;
   if Assigned(FUpdate) then
       FUpdate('Status: ' + Statmsg);
@@ -1232,10 +1414,23 @@ begin
       kadb.Post;
     except
       kadb.Cancel;
-      MessageDlg('Error Writing Status in TallyID' ,
-      mtInformation, [mbOK], 0);
+      if MessageDlg('Error Writing Status in TallyID, Try Posting anyway?' ,
+      mtInformation, [mbOK, mbCancel], 0) = mrCancel then
+        Abort;
       isTallyIdDefined := False;
     end;
+  end;
+  if IsErr then
+  if IsLogDBDefined then
+  begin
+    Logdb.Append;
+    IF isIDDefined then
+        Logdb.FieldByName('RECID').AsString := UIdstr
+    else
+      Logdb.FieldByName('RECID').AsString := IntToStr(kadb.RecNo);
+    Logdb.FieldByName('DATE').AsString := DateColValue;
+    Logdb.FieldByName('TALLYID').AsString := statmsg;
+    Logdb.Post;
   end;
   for i := 1 to notoskip do
     kadb.Next;
@@ -1256,10 +1451,10 @@ begin
   begin
     Colm := kadb.FieldDefs[i];
     if colm.Name = colname then
-      ColumnExists := True;
+      Exit;
   end;
   if not ColumnExists then
-    raise Exception.Create(Colname + ' column is Required');
+    raise Exception.Create(Colname + ' column is Required')
 end;
 
 function GetFldDt(fld: TField): string;
