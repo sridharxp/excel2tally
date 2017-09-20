@@ -87,8 +87,8 @@ type
     Amt: array [1..COLUMNLIMIT] of double;
 
 { COLUMNLIMIT - To limit looping  }
-    IsLedgerDefined: array [1..COLUMNLIMIT] of boolean;
-    IsAmtDefined: array [1..COLUMNLIMIT] of boolean;
+    IsLedgerDeclared: array [1..COLUMNLIMIT] of boolean;
+    IsAmtDeclared: array [1..COLUMNLIMIT] of boolean;
     IsCrAmtDefined: array [1..COLUMNLIMIT] of boolean;
     IsDrAmtDefined: array [1..COLUMNLIMIT] of boolean;
 { Colnumn Variables used in Xml }
@@ -109,25 +109,32 @@ type
     LedgerGroup: array [1..COLUMNLIMIT] of string;
 { +1 for RoundOff }
     LedgerDict: array [1..COLUMNLIMIT + 1] of TList;
-    IsGroupDefined: array [1..COLUMNLIMIT + 1] of boolean;
+    IsGroupDeclared: array [1..COLUMNLIMIT + 1] of boolean;
     IsGSTNDefined: array [1..COLUMNLIMIT + 1] of boolean;
     IsInvDefined: array [1..COLUMNLIMIT + 1] of boolean;
     UGSTNName: array [1..COLUMNLIMIT + 1] of string;
     UGroupName: array [1..COLUMNLIMIT + 1] of string;
     IsIdDefined: boolean;
     IsDateDefined: boolean;
+    IsVTypeDefined: boolean;
     IsVoucherRefDefined: boolean;
+    IsItemDefined: boolean;
     IsUnitDefined: boolean;
     UDateName: string;
-    UTypeName: string;
+    UVTypeName: string;
+    IsLedgerDefined: array [1..COLUMNLIMIT] of boolean;
+    IsGroupDefined: array [1..COLUMNLIMIT + 1] of boolean;
+    IsAmtDefined: array [1..COLUMNLIMIT] of boolean;
     UNarrationName: string;
     UNarration2Name: string;
     UNarration3Name: string;
     UVchNoColName: string;
     UVoucherRefName: string;
+    UTallyIDName: string;
 
     IsAssessableDefined: array [1..COLUMNLIMIT] of boolean;
     UAssessableName: array [1..COLUMNLIMIT] of string;
+    UInventoryName: string;
     UItemName: string;
     UUnitName: string;
     UQtyName: string;
@@ -161,7 +168,7 @@ type
     IsCrDrAmtColsDefined: Boolean;
     RoundOffName: string;
 
-    procedure ReadColNames;
+    procedure DeclareColNames;
     procedure CheckColNames;
     procedure OpenFile;
     procedure CreateRowLedgers;
@@ -254,14 +261,16 @@ begin
   for i:= 1 to COLUMNLIMIT do
     AmountType[i] := 'Dr';
   UDateName := 'DATE';
-  UTypeName := 'VTYPE';
+  UVTypeName := 'VTYPE';
   UNarrationName := 'NARRATION';
   UVoucherRefName := 'Voucher Ref';
+  UinventoryName := 'INVENTORY';
   UItemName := 'Item';
   UUnitName := 'Jnit';
   UQtyName := 'Qty';
   URateName := 'Rate';
   UItemAmtName := 'Value';
+  UTallyIDName := 'TALLYID';
   FRefreshLedMaster := True;
   FToLog := True;
 end;
@@ -294,7 +303,7 @@ begin
   inherited;
 end;
 
-procedure TbjMrMc.ReadColNames;
+procedure TbjMrMc.DeclareColNames;
 var
   DataFolder: string;
   Database: string;
@@ -401,12 +410,12 @@ begin
     DiDateValue := xCfg.GetChildContent('Default');
   end;
 
-  xCfg := Cfg.SearchForTag(nil, UTypeName);
+  xCfg := Cfg.SearchForTag(nil, UVTypeName);
   if Assigned(xCfg) then
   begin
     str := xCfg.GetChildContent('Alias');
     if Length(str) > 0 then
-      UTypeName := str;
+      UVTypeName := str;
     DiTypeValue := xcfg.GetChildContent('Default');
   end;
 
@@ -440,8 +449,8 @@ begin
 
   if IsCrDrAmtColsDefined  then
   begin
-    IsAmtDefined[1] := True;
-    IsAmtDefined[2] := True;
+    IsAmtDeclared[1] := True;
+    IsAmtDeclared[2] := True;
   end;
 
   xCfg := Cfg.SearchForTag(nil, UNarrationName);
@@ -457,7 +466,7 @@ begin
     if Length(str) > 0 then
     begin
       UNarrationName  := str;
-      IsNarrationDefined := True;
+//      IsNarrationDefined := True;
     end;
 { Unused Feature }
 { For Combining tow Narration Texts }
@@ -509,7 +518,7 @@ begin
     if Assigned(xCfg) then
       DiLedgerValue[i] := xcfg.GetChildContent('Default');
     if Length(DiLedgerValue[i]) > 0 then
-      IsLedgerDefined[i] := True;
+      IsLedgerDeclared[i] := True;
 
     str := '';
     xCfg := cfg.SearchForTag(nil, LedgerName[i]);
@@ -518,7 +527,7 @@ begin
     if Length(Str) > 0 then
     begin
       ULedgerName[i] := str;
-      IsLedgerDefined[i] := True;
+      IsLedgerDeclared[i] := True;
     end;
 
     xCfg := cfg.SearchForTag(nil, LedgerName[i]);
@@ -532,7 +541,7 @@ begin
         str := xxCfg.GetChildContent('Alias');
         UGroupName[i] := str;
         if Length(str) > 0 then
-          IsGroupDefined[i] := True;
+          IsGroupDeclared[i] := True;
       end;
 
       xxCfg := xcfg.SearchForTag(nil, 'GSTN');
@@ -572,7 +581,7 @@ begin
         UAmountName[i] := str;
         if Length(str) > 0 then
         begin
-          IsAmtDefined[i] := True;
+          IsAmtDeclared[i] := True;
           AmountCols[i] := AmountCols[i] + 1;
         end;
         AmountType[i] := xxCfg.GetChildContent('Type');
@@ -581,7 +590,7 @@ begin
 { Default Ledger Name thr user defined value in Xml }
         if xxCfg.GetChildContent('IsLedgerName') = 'Yes' then
         begin
-          IsLedgerDefined[i] := True;
+          IsLedgerDeclared[i] := True;
           DiLedgerValue[i] := str;
 { For Ledger without Alias }
           str := xxCfg.GetChildContent('Group');
@@ -623,56 +632,60 @@ begin
           LedgerDict[i].Add(Ditem);
           dCfg := xcfg.SearchForTag(dcfg, 'Dict');
         end;
-        IsLedgerDefined[i] := True;
+        IsLedgerDeclared[i] := True;
       end;
     end;
   end;
-  xCfg := Cfg.SearchForTag(nil, UItemName);
+  xCfg := Cfg.SearchForTag(nil, UInventoryName);
   if Assigned(xCfg) then
   begin
-    str := xCfg.GetChildContent('Alias');
+    xxCfg := xCfg.SearchForTag(nil, UItemName);
+    if Assigned(xxCfg) then
+    begin
+      str := xxCfg.GetChildContent('Alias');
     if Length(str) > 0 then
       UItemName := str;
   end;
-  xCfg := Cfg.SearchForTag(nil, UUnitName);
-  if Assigned(xCfg) then
+    xxCfg := xcfg.SearchForTag(nil, UUnitName);
+    if Assigned(xxCfg) then
   begin
-    str := xCfg.GetChildContent('Alias');
+      str := xxCfg.GetChildContent('Alias');
     if Length(str) > 0 then
     begin
     UUnitName := str;
     end;
   end;
-  xCfg := Cfg.SearchForTag(nil, UQtyName);
-  if Assigned(xCfg) then
+    xxCfg := xCfg.SearchForTag(nil, UQtyName);
+    if Assigned(xxCfg) then
   begin
-    str := xCfg.GetChildContent('Alias');
+      str := xxCfg.GetChildContent('Alias');
     if Length(str) > 0 then
       UQtyName := str;
   end;
-  xCfg := Cfg.SearchForTag(nil, URateName);
-  if Assigned(xCfg) then
+    xxCfg := xCfg.SearchForTag(nil, URateName);
+    if Assigned(xxCfg) then
   begin
-    str := xCfg.GetChildContent('Alias');
+      str := xxCfg.GetChildContent('Alias');
     if Length(str) > 0 then
       URateName := str;
   end;
-  xCfg := Cfg.SearchForTag(nil, UItemAmtName);
-  if Assigned(xCfg) then
+    xxCfg := xCfg.SearchForTag(nil, UItemAmtName);
+    if Assigned(xxCfg) then
   begin
-    str := xCfg.GetChildContent('Alias');
+      str := xxCfg.GetChildContent('Alias');
     if Length(str) > 0 then
       UItemAmtName := str;
+    end;
   end;
 //Shifted from ChckcolNames as this is Xml file specific
 { If Ledger is definded corresponding amount column should be defined }
 { gaps should not exist }
   for i := 1 to COLUMNLIMIT do
   begin
-    if IsLedgerDefined[i] then
+    if IsLedgerDeclared[i] then
     begin
-      if IsLedgerDefined[i+1] then
-         if not IsAmtDefined[i] then
+      if IsLedgerDeclared[i+1] then
+         if not IsAmtDeclared[i] then
            raise Exception.Create(UAmountName[i] + ' Column is required');
     end
     else
@@ -683,9 +696,9 @@ begin
   end;
 
 { Mandtory Minimum Columns }
-  if not IsLedgerDefined[1] then
+  if not IsLedgerDeclared[1] then
     raise Exception.Create(ULedgerName[1] + ' Column is required');
-  if not IsAmtDefined[1] then
+  if not IsAmtDeclared[1] then
     raise Exception.Create(UAmountName[2] + ' Column is required');
 end;
 
@@ -798,7 +811,7 @@ end;
 procedure TbjMrMc.Execute;
 begin
   ProcessedCount := 0;
-  ReadColNames;
+  DeclareColNames;
   OpenFile;
   CheckColNames;
   if Length(Host) > 0 then
@@ -890,7 +903,7 @@ procedure TbjMrMc.ProcessCol(const level: integer);
 var
   LedgerColValue: string;
 begin
-  if not IsLedgerDefined[level] then
+  if not IsLedgerDeclared[level] then
       Exit;
   LedgerColValue := GetLedger(level);
   if Length(LedgerColValue) = 0 then
@@ -919,7 +932,8 @@ procedure TbjMrMc.ProcessItem(const level: integer);
 begin
   if not  IsInvDefined[level] then
     Exit;
-  if kadb.FindField(UitemName) = nil then
+//  if kadb.FindField(UitemName) = nil then
+  if IsItemDefined then
     Exit; 
   if Length(kadb.FieldByName(UItemName).AsString) = 0 then
     Exit;
@@ -945,8 +959,14 @@ begin
     IsIdDefined := True;
   if kadb.FindField(UDateName) <> nil then
     IsDateDefined := True;
+  if kadb.FindField(UVTypeName) <> nil then
+    IsVTypeDefined := True;
   if kadb.FindField(UVoucherRefName) <> nil then
     IsVoucherRefDefined := True;
+  if kadb.FindField(UNarrationName) <> nil then
+    IsNarrationDefined := True;
+  if kadb.FindField(UItemName) <> nil then
+    IsItemDefined := True;
   if kadb.FindField(UUnitName) <> nil then
     IsUnitDefined := True;
 { Check for TallyId }
@@ -954,8 +974,8 @@ begin
   begin
     Col := kadb.FieldDefs[i];
     if col.Name = 'TALLYID' then
+  if kadb.FindField(UTallyIDName) <> nil then
       IstALLYiDDefined := True;
-  end;
 
 { Fill IsAmtDefined array
   Needed for Default Amount }
@@ -965,7 +985,7 @@ begin
       Col := kadb.FieldDefs[i];
       if col.Name = UAmountName[j] then
       begin
-        IsAmtDefined[j] := True;
+        IsAmtDeclared[j] := True;
         break;
       end;
     end;
@@ -980,7 +1000,7 @@ begin
       str := Col.Name;
       if col.Name = ULedgerName[j] then
       begin
-        IsLedgerDefined[j] := True;
+        IsLedgerDeclared[j] := True;
         break;
       end;
     end;
@@ -1000,9 +1020,11 @@ begin
   if Length(DiDateValue) = 0 then
     CheckColumn(UDateName);
   if Length(DiTypeValue) = 0 then
-    CheckColumn(UTypeName);
+  if not IsVtypeDefined then
+    CheckColumn(UVTypeName);
   if ToCheckInvCols then
-    if kadb.FindField(UItemName) <> nil then
+//    if kadb.FindField(UItemName) <> nil then
+    if IsItemDefined then
     begin
       CheckColumn(UQtyName);
       CheckColumn(URateName);
@@ -1078,7 +1100,8 @@ procedure TbjMrMc.CreateItem(const level: integer);
 begin
   if not IsInvDefined[level] then
     Exit;
-  if kadb.FindField(UItemName) = nil then
+//  if kadb.FindField(UItemName) = nil then
+  if IsItemDefined then
     Exit;
   if IsUnitDefined then
   begin
@@ -1100,7 +1123,7 @@ var
 begin
   OB := 0;
 //  if kadb.FindField(UGroupName[1]) = nil then
-  if not IsGroupDefined[1] then
+  if not IsGroupDeclared[1] then
     Exit;
   if kadb.FindField(UOBCrName) <> nil then
     if Length(kadb.FieldByName(UOBCrName).AsString) > 0 then
@@ -1175,9 +1198,10 @@ begin
     DateColValue := GetFldDt(kadb.FieldByName(UDateName));
   if Length(DateColValue) = 0 then
     DateColValue := DiDateValue;
-  if kadb.FindField(UTypeName) <> nil then
+//  if kadb.FindField(UTypeName) <> nil then
+  if IsVtypeDefined then
 //    TypeColValue := GetFieldStr(kadb.FieldByName(UTypeName));
-    TypeColValue := kadb.FieldByName(UTypeName).AsString;
+    TypeColValue := kadb.FieldByName(UVTypeName).AsString;
   if Length(TypeColValue) = 0 then
     TypeColValue := DiTypeValue;
 {
@@ -1195,7 +1219,7 @@ begin
         TypeColValue := DrAmtColType;
   end;
   if IsNarrationDefined then
-  if kadb.FindField(UNarrationName) <> nil then
+//  if kadb.FindField(UNarrationName) <> nil then
     NarrationColValue := kadb.FieldByName(UNarrationName).AsString;
 
   if IsNarration2Defined then
@@ -1296,7 +1320,7 @@ begin
     Exit;
   end;
 { IsMultiCol }
-  if IsAmtDefined[level] then
+  if IsAmtDeclared[level] then
   begin
     if Length(kadb.FieldByName(UAmountName[level]).AsString) > 0 then
     begin
@@ -1327,7 +1351,7 @@ i: integer;
 begin
   Result := False;
   for i := level to COLUMNLIMIT-1 do
-  if IsLedgerDefined[i+1] then
+  if IsLedgerDeclared[i+1] then
   begin
     Result := True;
     break;
