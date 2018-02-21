@@ -62,6 +62,7 @@ type
     { Private declarations }
     FRefreshLedMaster: Boolean;
     FToLog: boolean;
+    FToAutoCreateMst: boolean;
     FdynPgLen: integer;
   protected
     UIdstr: string;
@@ -215,12 +216,13 @@ type
     procedure Execute;
   published
     property ToLog: boolean read FToLog write FToLog;
+    property ToAutoCreateMst: boolean read FToAutoCreateMst write FToAutoCreateMst;
     property RefreshLedMaster: Boolean read FRefreshLedMaster write FRefreshLedMaster;
   end;
 
 { Level refers to Ledger Column with this Suffix  or Related Amount Colunn }
   TDict = Record
-    TokenCol: integer;
+    TokenCol: string;
     Token: pChar;
     Value: pChar;
   end;
@@ -281,6 +283,7 @@ begin
   UTallyIDName := 'TALLYID';
   FRefreshLedMaster := True;
   FToLog := True;
+  FToAutoCreateMst := True;
 end;
 
 destructor TbjMrMc.Destroy;
@@ -374,7 +377,8 @@ begin
       while Assigned(dcfg) do
       begin
         ditem := new (pDict);
-        pDict(dItem)^.TokenCol := StrtoInt(dcfg.GetChildContent('TokenCol'));
+//        pDict(dItem)^.TokenCol := StrtoInt(dcfg.GetChildContent('TokenCol'));
+        pDict(dItem)^.TokenCol := dcfg.GetChildContent('TokenCol');
         str := dcfg.GetChildContent('Token');
         pDict(dItem)^.Token := StrNew(pchar(str));
         str := dcfg.GetChildContent('Value');
@@ -640,7 +644,7 @@ begin
         while Assigned(dcfg) do
         begin
           ditem := new (pDict);
-          pDict(dItem)^.TokenCol := StrtoInt(dcfg.GetChildContent('TokenCol'));
+          pDict(dItem)^.TokenCol := dcfg.GetChildContent('TokenCol');
           str := dcfg.GetChildContent('Token');
           pDict(dItem)^.Token := StrNew(pchar(str));
           str := dcfg.GetChildContent('Value');
@@ -736,7 +740,8 @@ passing Windows Exception as it is }
     kadb := TADoTable.Create(nil);
     kadb.Connection := dm.AdoConnection;
     kadb.TableName := '['+ Filename+ '$]';
-{   kadb.ReadOnly := True; }
+    if not FToLog then
+      kadb.ReadOnly := True;
     Kadb.Active := True;
     if Assigned(FUpdate) then
       FUpdate('Reading '+ FileName);
@@ -1119,17 +1124,22 @@ procedure TbjMrMc.CreateColLedgers;
 var
   i: integer;
 begin
+  if not FToAutoCreateMst then
+    Exit;
   for i:= 1 to COLUMNLIMIT do
-    if IsGSTNDefined[i] then
+    if (Length(LedgerGroup[i]) > 0) then
     begin
-      NewParty(pchar(kadb.FieldByName(ULedgerName[I]).AsString), pchar(LedgerGroup[i]), pChar(kadb.FieldByName(UGSTNName[i]).AsString));
-
-
+    if IsGSTNDefined[i] then
+        NewParty(pchar(kadb.FieldByName(ULedgerName[I]).AsString), pchar(LedgerGroup[i]), pChar(kadb.FieldByName(UGSTNName[i]).AsString))
+      else if IsLedgerDefined[i] then
+        NewLedger(pchar(kadb.FieldByName(ULedgerName[I]).AsString), pchar(LedgerGroup[i]), 0);
     end;
 
   for i := 1 to COLUMNLIMIT do
     if (Length(LedgerGroup[i]) > 0) then
     begin
+      if Assigned(LedgerDict[i]) then
+        Continue;
       if IsLedgerDefined[i] then
         NewLedger(pchar(kadb.FieldByName(ULedgerName[i]).AsString), pchar(LedgerGroup[i]), 0);
   end;
@@ -1182,6 +1192,8 @@ begin
   if kadb.FindField(UOBDrName) <> nil then
     if Length(kadb.FieldByName(UOBDrName).AsString) > 0 then
       OB := OB - kadb.FieldByName(UOBDrName).AsFloat;
+  if not FToAutoCreateMst then
+    Exit;
   if (Length(kadb.FieldByName(UGroupName[1]).AsString) > 0) then
   begin
     if IsGSTNDefined[1] then
@@ -1308,6 +1320,16 @@ var
   i: integer;
   Item: pDict;
 begin
+  if IsLedgerDefined[level] then
+  begin
+    if (Length(kadb.FieldByName(ULedgerName[level]).AsString) > 0) then
+      lstr := kadb.FieldByName(ULedgerName[level]).AsString;
+    if Length(lstr) > 0 then
+    begin
+      Result := lstr;
+      Exit;
+    end;
+  end;
 {
 {
 Depending on token in one column 1 Ledger 1 is derived
@@ -1318,7 +1340,8 @@ Token code is exception to normal logic; Getout after executing this fragment
     for i := 0 to LedgerDict[level].Count-1 do
     begin
       Item := LedgerDict[level].Items[i];
-      if pDict(Item)^.Token = kadb.FieldByName(ULedgerName[pDict(Item)^.TokenCol]).AsString then
+//      if pDict(Item)^.Token = kadb.FieldByName(ULedgerName[pDict(Item)^.TokenCol]).AsString then
+      if pDict(Item)^.Token = kadb.FieldByName(pDict(Item)^.TokenCol).AsString then
       begin
         lstr := pDict(Item)^.Value;
         break;
@@ -1331,18 +1354,9 @@ Token code is exception to normal logic; Getout after executing this fragment
     end;
   end;
 //  if kadb.FindField(ULedgerName[level]) <> nil then
-  if IsLedgerDefined[level] then
-  if (Length(kadb.FieldByName(ULedgerName[level]).AsString) > 0) then
-  begin
-    lstr := kadb.FieldByName(ULedgerName[level]).AsString;
-    Result := lstr;
-  end;
 
   if Length(lstr) = 0 then
-  begin
-    lstr := DiLedgerValue[level];
-    Result := lstr;
-  end;
+    Result := DiLedgerValue[level];
 end;
 
 { Modifies Amtount according to Voucher Types to +ve or -ve }
@@ -1418,6 +1432,16 @@ var
   lStr: string;
 begin
   Result := '';
+  if IsRoundOffColDefined then
+  begin
+    if (Length(kadb.FieldByName(RoundOffCol).AsString) > 0) then
+      lstr := kadb.FieldByName(RoundOffCol).AsString;
+    if Length(lstr) > 0 then
+    begin
+      Result := lstr;
+      Exit;
+    end;
+  end;
 {
 Depending on token in one column 1 RoundOff ledger is derived
 }
@@ -1426,23 +1450,21 @@ Depending on token in one column 1 RoundOff ledger is derived
     for i := 0 to LedgerDict[COLUMNLIMIT+1].Count-1 do
     begin
       Item := LedgerDict[COLUMNLIMIT+1].Items[i];
-      if pDict(Item)^.Token = kadb.FieldByName(ULedgerName[pDict(Item)^.TokenCol]).AsString then
+//      if pDict(Item)^.Token = kadb.FieldByName(ULedgerName[pDict(Item)^.TokenCol]).AsString then
+      if pDict(Item)^.Token = kadb.FieldByName(pDict(Item)^.TokenCol).AsString then
       begin
         lStr := pDict(Item)^.Value;
         break;
       end;
     end;
-  end;
   if Length(lstr) > 0 then
   begin
     Result := lstr;
     Exit;
   end;
 //  if Length(RoundOffCol) > 0 then
-  if IsRoundOffColDefined then
-    Result := kadb.FieldByName(RoundOffCol).AsString
-  else
-    if Length(DiRoundOff) <> 0 then
+  end;
+  if Length(DiRoundOff) > 0 then
     Result := DiRoundOff;
 end;
 
@@ -1471,6 +1493,7 @@ begin
   end;
 
   StatMsg := TryPost(pChar(VchAction));
+  UniqueString(statmsg);
   if StatMsg = '0' then
     IsErr := True;
   if Pos(CheckErrStr, StatMsg) > 0 then
