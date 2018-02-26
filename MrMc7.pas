@@ -222,7 +222,7 @@ type
 
 { Level refers to Ledger Column with this Suffix  or Related Amount Colunn }
   TDict = Record
-    TokenCol: string;
+    TokenCol: pChar;
     Token: pChar;
     Value: pChar;
   end;
@@ -231,7 +231,7 @@ type
 function GetFldDt(fld: TField): string;
 function GetFldStr(fld: TField): string;
 
-{$include .\src\VchUpdate.int}
+{$include \TL\ETGST\src\VchUpdate.int}
 
 implementation
 
@@ -299,6 +299,7 @@ begin
     for j := 0 to LedgerDict[i].Count-1 do
     begin
       ditem := LedgerDict[i].Items[j];
+      StrDispose(ditem^.TokenCol);
       StrDispose(ditem^.Token);
       StrDispose(ditem^.Value);
     end;
@@ -378,7 +379,7 @@ begin
       begin
         ditem := new (pDict);
 //        pDict(dItem)^.TokenCol := StrtoInt(dcfg.GetChildContent('TokenCol'));
-        pDict(dItem)^.TokenCol := dcfg.GetChildContent('TokenCol');
+        pDict(dItem)^.TokenCol := StrNew(PChar(dcfg.GetChildContent('TokenCol')));
         str := dcfg.GetChildContent('Token');
         pDict(dItem)^.Token := StrNew(pchar(str));
         str := dcfg.GetChildContent('Value');
@@ -644,7 +645,7 @@ begin
         while Assigned(dcfg) do
         begin
           ditem := new (pDict);
-          pDict(dItem)^.TokenCol := dcfg.GetChildContent('TokenCol');
+          pDict(dItem)^.TokenCol := StrNew(pChar(dcfg.GetChildContent('TokenCol')));
           str := dcfg.GetChildContent('Token');
           pDict(dItem)^.Token := StrNew(pchar(str));
           str := dcfg.GetChildContent('Value');
@@ -889,6 +890,7 @@ begin
     Process;
     if IsIdOnlyChecked then
       Continue;
+    if  not IsUnLocked then
     kadb.Next;
     if not kadb.Eof then
       notoskip := notoskip + 1;
@@ -1471,6 +1473,7 @@ end;
 procedure TbjMrMc.WriteStatus;
 var
   i: integer;
+  TempStr: pChar;
   statmsg: string;
   CheckErrStr: string;
   RoundOffAmount: Double;
@@ -1492,8 +1495,11 @@ begin
 
   end;
 
-  StatMsg := TryPost(pChar(VchAction));
-  UniqueString(statmsg);
+  TempStr := TryPost(pChar(VchAction));
+  SetLength(statmsg, Length(TempStr)+1);
+  StrCopy(PChar(StatMsg), TempStr);
+//  UniqueString(statmsg);
+  dllClean(TempStr);
   if StatMsg = '0' then
     IsErr := True;
   if Pos(CheckErrStr, StatMsg) > 0 then
