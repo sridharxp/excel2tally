@@ -43,7 +43,7 @@ uses
 {$DEFINE ADO}
 
 Const
-  PGLEN = 5;
+  PGLEN = 7;
 //COLUMNLIMIT = 22;
   COLUMNLIMIT = 44;
   TallyAmtPicture = '############.##';
@@ -874,7 +874,8 @@ begin
     if IsIdDefined then
     begin
 //    if (Length(kadb.FieldByName(UIdName).AsString) = 0) then
-      if (Length(GetFldStr(kadb.FieldByName(UIdName))) = 0) then
+//      if (Length(GetFldStr(kadb.FieldByName(UIdName))) = 0) then
+      if (Length(kadb.FieldByName(UIdName).AsString) = 0) then
 //    begin
       break;
     end
@@ -1217,7 +1218,8 @@ begin
 //    CreateColLedgers;
 //  if kadb.FindField(UIdName) <> nil then
   if IsIdDefined then
-    UIdstr := GetFldStr(kadb.FieldByName(UIdName));
+//    UIdstr := GetFldStr(kadb.FieldByName(UIdName));
+    UIdstr := kadb.FieldByName(UIdName).AsString;
   UIdint := kadb.RecNo;
   GetDefaults;
   TID := '';
@@ -1305,7 +1307,8 @@ begin
   Result := False;
 //  if kadb.FindField(UIdName) <> nil then
   if IsIdDefined then
-    if (GetFldStr(kadb.FieldByName(UIdName)) <> UIdstr) then
+//    if (GetFldStr(kadb.FieldByName(UIdName)) <> UIdstr) then
+    if (kadb.FieldByName(UIdName).AsString <> UIdstr) then
       Result  := True;
   if not IsMultiRowVoucher then
     if kadb.RecNo <> uidint then
