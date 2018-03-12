@@ -64,6 +64,7 @@ type
     FToLog: boolean;
     FToAutoCreateMst: boolean;
     FdynPgLen: integer;
+    FVchType: string;
   protected
     UIdstr: string;
     UIdint: integer;
@@ -168,6 +169,7 @@ type
     ProcessedCount: integer;
 //    IdName: string;
     UidName: string;
+    IsIDGenerated: Boolean;
     VTotal: double;
     VchAction: string;
     DrAmtCol: string;
@@ -180,6 +182,7 @@ type
     procedure DeclareColNames;
     procedure CheckColNames;
     procedure OpenFile;
+    procedure GenerateID;
     procedure CreateRowLedgers;
     procedure CreateColLedgers;
     procedure CreateItem(const level: integer);
@@ -218,6 +221,7 @@ type
     property ToLog: boolean read FToLog write FToLog;
     property ToAutoCreateMst: boolean read FToAutoCreateMst write FToAutoCreateMst;
     property RefreshLedMaster: Boolean read FRefreshLedMaster write FRefreshLedMaster;
+    property Vchtype: string read FVchType write FVchType;
   end;
 
 { Level refers to Ledger Column with this Suffix  or Related Amount Colunn }
@@ -353,6 +357,7 @@ begin
   if Length(Vlist) <> 0 then
   if Length(FileName) = 0 then
     FileName := VList;
+  if FToAutoCreateMst  then
   DefGroup := xcfg.GetChildContent('DefaultGroup');
 { Round of tag moved from Ledger to Data }
   str := xcfg.GetChildContent('IsMultiRow');
@@ -362,7 +367,7 @@ begin
   if  str = 'Yes' then
     IsMultiColumnVoucher := True;
 
-  if Length(DefGroup) > 0 then
+  if (Length(DefGroup) > 0) then
     SetDefaultGroup(pchar(DefGroup))
   else
 //    SetDefaultGroup(pchar(''));
@@ -521,6 +526,11 @@ begin
     if Length(str) > 0 then
     begin
       UIdName  := str;
+   end;
+    str := xCfg.GetChildContent('Generated');
+    if str = 'Yes' then
+    begin
+      IsIDGenerated  := True;
    end;
   end;
   xCfg := cfg.SearchForTag(nil, 'Voucher Ref');
@@ -845,14 +855,20 @@ begin
   RefreshMstLists;
 
   kadb.First;
+  UIdstr := '';
+  vTotal := 0;
   while (not kadb.Eof)  do
   begin
+    if IsIDGenerated then
+      GenerateID;
     if IsMultiRowVoucher then
         CreateRowLedgers;
     if IsMultiColumnVoucher then
       CreateColLedgers;
     kadb.Next;
   end;
+  kadb.First;
+  UIdstr := '';
 {
   if FToLog then
   begin
@@ -866,6 +882,7 @@ begin
   end;
 }
   kadb.First;
+  vTotal := 0;
   NewIdLine;
   IsIdOnlyChecked := True;
   while (not kadb.Eof)  do
@@ -1180,6 +1197,19 @@ begin
     NewItem(pChar(kadb.FieldByName(UItemName).AsString), 'NOs', 0, 0);
   end;
 end;
+procedure TbjMrMc.GenerateID;
+begin
+      if vTotal = 0 then
+        uIdstr :=  IntToStr(kadb.RecNo);
+      if Length(kadb.FieldByName('ID').AsString) = 0 then
+      begin
+        kadb.Edit;
+        kadb.FieldByName('ID').AsString :=  uidStr;
+        kadb.Post;
+      end;
+      vTotal := vTotal + kadb.FieldByName(CrAmtCol).AsFloat -
+                  kadb.FieldByName(DrAmtCol).AsFloat;
+end;
 
 procedure TbjMrMc.CreateRowLedgers;
 var
@@ -1269,6 +1299,8 @@ begin
   if IsVtypeDefined then
 //    TypeColValue := GetFieldStr(kadb.FieldByName(UTypeName));
     TypeColValue := kadb.FieldByName(UVTypeName).AsString;
+  if Length(TypeColValue) = 0 then
+    TypeColValue := FVchType;
   if Length(TypeColValue) = 0 then
     TypeColValue := DiTypeValue;
 {
