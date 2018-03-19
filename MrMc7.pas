@@ -66,6 +66,7 @@ type
     FdynPgLen: integer;
     FVchType: string;
   protected
+    missingledgers: Integer;
     UIdstr: string;
     UIdint: integer;
     cfgn: IbjXml;
@@ -87,7 +88,6 @@ type
     RoundOffCol: string;
     RoundToLimit: Integer;
     RoundOffGroup: string;
-    RoundOffGSTN: string;
 
     Amt: array [1..COLUMNLIMIT] of double;
 
@@ -117,9 +117,13 @@ type
 { +1 for RoundOff }
     LedgerDict: array [1..COLUMNLIMIT + 1] of TList;
     IsGroupDeclared: array [1..COLUMNLIMIT + 1] of boolean;
+    IsGSTNDeclared: array [1..COLUMNLIMIT + 1] of boolean;
     IsGSTNDefined: array [1..COLUMNLIMIT + 1] of boolean;
+    IsStateDeclared: array [1..COLUMNLIMIT + 1] of boolean;
+    IsStateDefined: array [1..COLUMNLIMIT + 1] of boolean;
     IsInvDefined: array [1..COLUMNLIMIT + 1] of boolean;
-    UGSTNName: array [1..COLUMNLIMIT] of string;
+    UGSTNName: array [1..COLUMNLIMIT + 1] of string;
+    UStateName: array [1..COLUMNLIMIT+1] of string;
     UGroupName: array [1..COLUMNLIMIT ] of string;
     IsIdDefined: boolean;
     IsDateDefined: boolean;
@@ -235,7 +239,7 @@ type
 function GetFldDt(fld: TField): string;
 function GetFldStr(fld: TField): string;
 
-{$include \TL\ETGST\src\VchUpdate.int}
+{$include \TL\ET\src\VchUpdate.int}
 
 implementation
 
@@ -409,11 +413,19 @@ begin
     if Assigned(xxCfg) then
     begin
       str := xxCfg.GetContent;
-      RoundOffGSTN := str;
+//      RoundOffGSTN := str;
+      UGSTNName[COLUMNLIMIT+1] := str;
       if Length(str) > 0 then
-        IsGSTNDefined[COLUMNLIMIT+1] := True;
+        IsGSTNDeclared[COLUMNLIMIT+1] := True;
   end;
-
+    xxCfg := xcfg.SearchForTag(nil, 'State');
+    if Assigned(xxCfg) then
+    begin
+      str := xxCfg.GetContent;
+      UStateName[COLUMNLIMIT+1] := str;
+      if Length(str) > 0 then
+        IsStateDeclared[COLUMNLIMIT+1] := True;
+    end;
   end;
 
   xCfg := Cfg.SearchForTag(nil, 'VoucherNo');
@@ -482,9 +494,11 @@ begin
   xCfg := Cfg.SearchForTag(nil, UNarrationName);
   if Assigned(xCfg) then
   begin
-//    str := xCfg.GetChildContent('Alias');
-//    if Length(str) > 0 then
-//    UNarrationName  := str;
+(*
+    str := xCfg.GetChildContent('Alias');
+    if Length(str) > 0 then
+    UNarrationName  := str;
+*)
   xxCfg := xCfg.SearchForTag(nil, 'Alias');
   if xxCfg <> nil then
   begin
@@ -526,13 +540,12 @@ begin
     if Length(str) > 0 then
     begin
       UIdName  := str;
-   end;
-    str := xCfg.GetChildContent('Generated');
+    end;
+    str := xCfg.GetChildContent('IsGenerated');
     if str = 'Yes' then
-    begin
       IsIDGenerated  := True;
-   end;
   end;
+
   xCfg := cfg.SearchForTag(nil, 'Voucher Ref');
   if Assigned(xCfg) then
   begin
@@ -581,7 +594,15 @@ begin
         str := xxCfg.GetContent;
         UGSTNName[i] := str;
         if Length(str) > 0 then
-          IsGSTNDefined[i] := True;
+          IsGSTNDeclared[i] := True;
+      end;
+      xxCfg := xcfg.SearchForTag(nil, 'State');
+      if Assigned(xxCfg) then
+      begin
+        str := xxCfg.GetContent;
+        UStateName[i] := str;
+        if Length(str) > 0 then
+          IsStateDeclared[i] := True;
       end;
       xxCfg := xcfg.SearchForTag(nil, 'IsInvCol');
       if Assigned(xxCfg) then
@@ -629,7 +650,7 @@ begin
             LedgerGroup[i] := str;
         end;
 { Unused Feature }
-{ For Combining tow Column Amounts }
+{ For Combining two Column Amounts }
         if Assigned(xxCfg) then
         begin
           xxCfg := xcfg.SearchForTag(xxcfg, 'AmtCol');
@@ -751,8 +772,9 @@ passing Windows Exception as it is }
     kadb := TADoTable.Create(nil);
     kadb.Connection := dm.AdoConnection;
     kadb.TableName := '['+ Filename+ '$]';
-    if not FToLog then
-      kadb.ReadOnly := True;
+    kadb.ReadOnly := False;
+//    if not FToLog then
+//      kadb.ReadOnly := True;
     Kadb.Active := True;
     if Assigned(FUpdate) then
       FUpdate('Reading '+ FileName);
@@ -867,6 +889,11 @@ begin
       CreateColLedgers;
     kadb.Next;
   end;
+  if missingledgers > 0 then
+  begin
+    MessageDlg(IntToStr(missingledgers)+ ' Ledgers Missing in Tally', mtInformation, [mbOK], 0);
+    Exit;
+  end;
   kadb.First;
   UIdstr := '';
 {
@@ -908,7 +935,7 @@ begin
     Process;
     if IsIdOnlyChecked then
       Continue;
-    if  not IsUnLocked then
+
     kadb.Next;
     if not kadb.Eof then
       notoskip := notoskip + 1;
@@ -990,7 +1017,6 @@ var
 begin
   if not  IsInvDefined[level] then
     Exit;
-//  if kadb.FindField(UitemName) = nil then
   if not IsItemDefined then
     Exit;
   if Length(kadb.FieldByName(UItemName).AsString) = 0 then
@@ -998,6 +1024,7 @@ begin
   if Length(kadb.FieldByName(UQtyName).AsString) = 0 then
     Exit;
     invamt := kadb.FieldByName(UItemAmtName).AsFloat;
+{ InvAmt for Purchase }
   if AmountType[level] = 'Dr' then
     invamt := -invamt;
   SetInvLine(pChar(kadb.FieldByName(UItemName).AsString),
@@ -1098,6 +1125,15 @@ begin
       CheckColumn(URateName);
       CheckColumn(UItemAmtName);
     end;
+  for i := 1 to COLUMNLIMIT do
+  begin
+        if IsGSTNDeclared[i] then
+          if kadb.FindField(UGSTNName[i]) <> nil then
+            IsGSTNDefined[i] := True;
+        if IsStateDeclared[i] then
+          if kadb.FindField(UStateName[i]) <> nil then
+            IsStateDefined[i] := True;
+  end;
 //Shifted from top
 // Ledger Creation should be done only when necessary
   SetLength(strMsg, 50);
@@ -1143,14 +1179,21 @@ end;
 procedure TbjMrMc.CreateColLedgers;
 var
   i: integer;
+  aState: string;
 begin
-  if not FToAutoCreateMst then
-    Exit;
+{
+AutoCreateMst does not affect explicit group or roundoff group
+}
   for i:= 1 to COLUMNLIMIT do
     if (Length(LedgerGroup[i]) > 0) then
     begin
-    if IsGSTNDefined[i] then
-        NewParty(pchar(kadb.FieldByName(ULedgerName[I]).AsString), pchar(LedgerGroup[i]), pChar(kadb.FieldByName(UGSTNName[i]).AsString))
+      if IsStateDefined[i] then
+        aState := kadb.FieldByName(UStateName[i]).AsString
+      else
+        aState := '';
+      if IsGSTNDefined[i] then
+        NewParty(pchar(kadb.FieldByName(ULedgerName[I]).AsString), pchar(LedgerGroup[i]), pChar(kadb.FieldByName(UGSTNName[i]).AsString),
+        pChar(aState))
       else if IsLedgerDefined[i] then
         NewLedger(pchar(kadb.FieldByName(ULedgerName[I]).AsString), pchar(LedgerGroup[i]), 0);
     end;
@@ -1171,8 +1214,14 @@ begin
 //      if kadb.FindField(RoundOffCol) <> nil then
     if IsRoundOffColDefined then
     begin
+      if IsStateDefined[COLUMNLIMIT + 1] then
+        aState := kadb.FieldByName(UStateName[COLUMNLIMIT+1]).AsString
+      else
+        aState := '';
       if IsGSTNDefined[COLUMNLIMIT + 1] then
-        NewParty(pchar(kadb.FieldByName(RoundOffCol).AsString), pchar(RoundOffGroup), pChar(kadb.FieldByName(RoundOffGSTN).AsString))
+//        NewParty(pchar(kadb.FieldByName(RoundOffCol).AsString), pchar(RoundOffGroup), pChar(kadb.FieldByName(RoundOffGSTN).AsString),'')
+        NewParty(pchar(kadb.FieldByName(RoundOffCol).AsString), pchar(RoundOffGroup), pChar(kadb.FieldByName(UGSTNName[COLUMNLIMIT+1]).AsString),
+        PChar(aState))
       else
         NewLedger(pChar(kadb.FieldByName(RoundOffCol).AsString), pChar(RoundOffGroup), 0);
     end;
@@ -1181,7 +1230,6 @@ procedure TbjMrMc.CreateItem(const level: integer);
 begin
   if not IsInvDefined[level] then
     Exit;
-//  if kadb.FindField(UItemName) = nil then
   if not IsItemDefined then
     Exit;
   if IsUnitDefined then
@@ -1198,8 +1246,12 @@ begin
   end;
 end;
 procedure TbjMrMc.GenerateID;
+var
+  dbkLed: string;
+  IsThere: Integer;
 begin
-      if vTotal = 0 then
+      if (vTotal = 0) and (kadb.FieldByName(CrAmtCol).AsFloat +
+                  kadb.FieldByName(DrAmtCol).AsFloat > 0) then
         uIdstr :=  IntToStr(kadb.RecNo);
       if Length(kadb.FieldByName('ID').AsString) = 0 then
       begin
@@ -1209,31 +1261,56 @@ begin
       end;
       vTotal := vTotal + kadb.FieldByName(CrAmtCol).AsFloat -
                   kadb.FieldByName(DrAmtCol).AsFloat;
+  IsThere := 1;
+  if ToAutoCreateMst then
+    Exit;
+  if kadb.FindField('Ledger') <> nil then
+  dbkLed := kadb.FieldByName('Ledger').AsString;
+  if Length(dbkLed) = 0 then
+    Exit;
+  IsThere := IsLedger(pChar(dbkLed));
+  if IsThere = 0 then
+  begin
+    kadb.Edit;
+    kadb.FieldByName('TALLYID').AsString :=  dbkLed;
+    kadb.Post;
+    missingledgers := missingledgers + 1;
+  end;
 end;
 
 procedure TbjMrMc.CreateRowLedgers;
 var
   OB: double;
+  aState: string;
 begin
   OB := 0;
-//  if kadb.FindField(UGroupName[1]) = nil then
   if not IsGroupDeclared[1] then
     Exit;
+{
+// Removing OB
   if kadb.FindField(UOBCrName) <> nil then
     if Length(kadb.FieldByName(UOBCrName).AsString) > 0 then
       OB := kadb.FieldByName(UOBCrName).AsFloat;
   if kadb.FindField(UOBDrName) <> nil then
     if Length(kadb.FieldByName(UOBDrName).AsString) > 0 then
       OB := OB - kadb.FieldByName(UOBDrName).AsFloat;
-  if not FToAutoCreateMst then
-    Exit;
+}
+{
+AutoCreateMst does not affect explicit group or roundoff group
+}
   if (Length(kadb.FieldByName(UGroupName[1]).AsString) > 0) then
   begin
     if IsGSTNDefined[1] then
+    begin
+      if IsStateDefined[1] then
+        aState := kadb.FieldByName(UStateName[1]).AsString
+      else
+        aState := '';
       NewParty(pchar(kadb.FieldByName(ULedgerName[1]).AsString),
         pchar(kadb.FieldByName(UGroupName[1]).AsString),
-        pChar(kadb.FieldByName(UGSTNName[1]).AsString))
-//        pChar(kadb.FieldByName(UGSTNName[COLUMNLIMIT+1]).AsString))
+        pChar(kadb.FieldByName(UGSTNName[1]).AsString),
+        PChar(aState))
+    end
     else
       NewLedger(pchar(kadb.FieldByName(ULedgerName[1]).AsString),
         pchar(kadb.FieldByName(UGroupName[1]).AsString), OB);
@@ -1246,7 +1323,6 @@ var
 begin
 //  if ToCreateMasters then
 //    CreateColLedgers;
-//  if kadb.FindField(UIdName) <> nil then
   if IsIdDefined then
 //    UIdstr := GetFldStr(kadb.FieldByName(UIdName));
     UIdstr := kadb.FieldByName(UIdName).AsString;
@@ -1289,18 +1365,18 @@ procedure TbjMrMc.GetDefaults;
 begin
 {  GetSingleValues; }
   DateColValue := '';
-//  if kadb.FindField(UDateName) <> nil then
   if IsDateDefined then
     if Length(kadb.FieldByName(UDateName).AsString) > 0 then
     DateColValue := GetFldDt(kadb.FieldByName(UDateName));
   if Length(DateColValue) = 0 then
     DateColValue := DiDateValue;
-//  if kadb.FindField(UTypeName) <> nil then
   if IsVtypeDefined then
-//    TypeColValue := GetFieldStr(kadb.FieldByName(UTypeName));
+{ Find if user set has Voucher type }
     TypeColValue := kadb.FieldByName(UVTypeName).AsString;
+{ For reusing Templates }
   if Length(TypeColValue) = 0 then
     TypeColValue := FVchType;
+{ With VchType this should not be needed }
   if Length(TypeColValue) = 0 then
     TypeColValue := DiTypeValue;
 {
@@ -1318,7 +1394,6 @@ begin
         TypeColValue := DrAmtColType;
   end;
   if IsNarrationDefined then
-//  if kadb.FindField(UNarrationName) <> nil then
     NarrationColValue := kadb.FieldByName(UNarrationName).AsString;
 
   if IsNarration2Defined then
@@ -1337,9 +1412,7 @@ If there is demand...
 function TbjMrMc.IsIDChanged: boolean;
 begin
   Result := False;
-//  if kadb.FindField(UIdName) <> nil then
   if IsIdDefined then
-//    if (GetFldStr(kadb.FieldByName(UIdName)) <> UIdstr) then
     if (kadb.FieldByName(UIdName).AsString <> UIdstr) then
       Result  := True;
   if not IsMultiRowVoucher then
@@ -1390,8 +1463,6 @@ Token code is exception to normal logic; Getout after executing this fragment
       Exit;
     end;
   end;
-//  if kadb.FindField(ULedgerName[level]) <> nil then
-
   if Length(lstr) = 0 then
     Result := DiLedgerValue[level];
 end;
@@ -1494,12 +1565,11 @@ Depending on token in one column 1 RoundOff ledger is derived
         break;
       end;
     end;
-  if Length(lstr) > 0 then
-  begin
-    Result := lstr;
-    Exit;
-  end;
-//  if Length(RoundOffCol) > 0 then
+    if Length(lstr) > 0 then
+    begin
+      Result := lstr;
+      Exit;
+    end;
   end;
   if Length(DiRoundOff) > 0 then
     Result := DiRoundOff;
@@ -1598,7 +1668,10 @@ begin
     if StatMsg <> '0' then
       SCount := Scount + 1;
 end;
-
+{
+Amount column is mandatory Where Ledger is defined
+Other Columns when not defined relevent code is skipped
+}
 procedure TbjMrMc.CheckColumn(const colname: string);
 Var
   ColumnExists: boolean;
@@ -1618,14 +1691,13 @@ if not ColumnExists then
     raise Exception.Create(Colname + ' column is Required')
 end;
 
+{    'yyyymmdd' 'dd-mmm-yyyy'}
 function GetFldDt(fld: TField): string;
 var
   newvar: string;
 begin
   if fld.DataType = ftDateTime then
   begin
-//    newvar := FormatDateTime('dd-mm-yy', fld.AsDateTime);
-{    'yyyymmdd' 'dd-mmm-yyyy'}
     newvar := FormatDateTime('dd-mmm-yyyy', fld.AsDateTime);
     Result := pchar(NewVar);
     exit;
