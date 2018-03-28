@@ -1,14 +1,8 @@
 Excel to Tally
-Copyright (C) 2013, Sridharan S, 
-+91 98656 82910,
-aurosridhar@ gmail.com 
-
-Free Software. Free to use and redistribute.
-Redistribute the entire archive.
 
 What it does
-Exports data (Accounting vouchers) from Excel and Jet (mdb) to Tally.
-Easy to use.
+Exports data (Accounting vouchers) from Excel  to Tally.
+
 Works in 'Create' mode.
 
 How it does
@@ -33,7 +27,7 @@ Who needs this software
 
 Requirement
 	MS Office (Excel) or MS ADO library (free)
-ADO Library = Microsoft Access Database Engine 2010 Redistributable.
+ADO Library = Microsoft Access Database Engine 2016 Redistributable.
 Windows 7 users are encouraged to install Microsoft Access Database Engine 2016 Redistributable
 
 Known Incompatibility
