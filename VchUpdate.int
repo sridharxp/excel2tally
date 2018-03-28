@@ -1,38 +1,88 @@
-Const
-  TallyAmtPicture = '############.##';
-
+{ Delphi Interface Declarations }
+{
+Voucher Type: 'Receipt', 'Payment', 'Sales', 'Purchase', 'Journal', 'Contra',
+'Sales Order', 'Purchase Order'
+Action: 'Create', 'Alter', 'Delete' 
+}
+{ 
+A voucher at the minimum needs 4 function calls
+StartVch, AddLine for Dr/Cr, 
+another AddLine to balance
+and finally TryPost or PostVch
+}
+{ Tip: Function Names are CASE SENSITIVE. }
+{ Master Creation Functions }
+function IsLedger(Ledger: pChar): Integer; stdcall; external 'vchupdate.dll';
 procedure NewLedger(Ledger, Parent: PChar; OpBal: double); stdcall; external 'vchupdate.dll';
-procedure NewParty(Ledger, Parent, GSTN: PChar); stdcall; external 'vchupdate.dll';
+procedure NewParty(Ledger, Parent, GSTN, State: PChar); stdcall; external 'vchupdate.dll';
 procedure NewItem(Item, BaseUnit: pChar; OpBal, OpRate: double); stdcall; external 'vchupdate.dll';
 procedure NewUnit(ItemUnit: pChar); stdcall; external 'vchupdate.dll';
 
+{ Voucher Creation Functions }
+{ Call first }
 procedure StartVch(VChID, vchDate, VchName, VchNarration: pChar); stdcall; external 'vchupdate.dll';
+//function AddLine(Ledger: pchar; Amount: double): double; stdcall; external 'vchupdate.dll';
+{ Call for each Dr or Cr Amount }
+{ +v Ant fir Credit and -ve Amt for Debit }
 function AddLine(Ledger: pchar; Amount: double): double; stdcall; external 'vchupdate.dll';
+{ AddCrLine and AddDrLine are substitutes for AddLine }
 function AddCrLine(ledger: pchar; Amount:double): double; stdcall; external 'vchupdate.dll';
 function AddDrLine(ledger: pchar; Amount: double): double; stdcall; external 'vchupdate.dll';
+{ Call after Sales Account, Purchase Account etc }
 function SetInvLine(Item: pchar; Qty, Rate, Amount: double): double; stdcall; external 'vchupdate.dll';
 function SetAssessable(Amount: double): double; stdcall; external 'vchupdate.dll';
+{ Call last }
 function PostVch(VchAction: pchar): integer; stdcall; external 'vchupdate.dll';
+{ TryPost should be used with dllClean }
 function TryPost(VchAction: pchar): pChar; stdcall; external 'vchupdate.dll';
 
+{ Utility Functions }
+{ Authentication of Tally Licence }
 function IsTLic(const authentication: pchar): integer; stdcall; external 'vchupdate.dll';
+{ Tally ip and port; defauilt is http://127.0.0.1:9000 }
 procedure SetHost(host: string); stdcall; external 'vchupdate.dll';
+{ Get Active company; should be used with dllClean }
 function GetCompany: pchar; stdcall; external 'vchupdate.dll';
+{ set which Company to receive data 
+It need not be active }
 procedure SetCompany(Name: pchar); stdcall; external 'vchupdate.dll';
+
+{ Expert Mode }
+{ When posting from multiple data sources }
 procedure SetGUID(ID: pchar); stdcall; external 'vchupdate.dll';
+{ To debug Xml format and content }
 procedure SetDebugMode(OnOff: integer); stdcall; external 'vchupdate.dll';
+{ Switch to override (default policy is no alteration of Masters) }
 procedure SetUpdateMastersMode(OnOff: integer); stdcall; external 'vchupdate.dll';
 
 Procedure SetDefaultGroup(aName: pchar); stdcall; external 'vchupdate.dll';
+{ Refresh Masters Cache when posting to another company }
 procedure RefreshMstLists; stdcall; external 'vchupdate.dll';
 
-procedure GetCompany(Name: pchar; Size: integer); stdcall; external 'vchupdate.dll';
 
+
+{ Internal Get functions }
 procedure SetNarration(VchNarration: pChar); stdcall; external 'vchupdate.dll';
 procedure SetVchType(VchName: pChar); stdcall; external 'vchupdate.dll';
 procedure SetVchNo(VchNo: pChar); stdcall; external 'vchupdate.dll';
 procedure SetVchRef(VchRef: pChar); stdcall; external 'vchupdate.dll';
 procedure SetVchDate(VchDate: pChar); stdcall; external 'vchupdate.dll';
 procedure SetVchID(VChId: pChar); stdcall; external 'vchupdate.dll';
-// Deprecated
-function AddLinewithRef(ledger: pchar; Amount: double; Ref, RefType: pChar): double; stdcall; external 'vchupdate.dll';
+function GetLedList: PChar; stdcall; external 'vchupdate.dll';
+function GetItemList: PChar; stdcall; external 'vchupdate.dll';
+procedure dllClean(var ptr: pChar); stdcall; external 'vchupdate.dll';
+//procedure dllClean; stdcall; external 'vchupdate.dll';
+
+{
+Important: Be careful about string returns.
+Two different Memory Managers are involved  here
+dll allocates memory and deallocates for large data like Ledger. Item lists.
+Deallocates pointer upon your call.
+So copy data first and free the pointer or 
+call with null pointer
+}
+// New... Functions check whether the value already exists in Tally and 
+// if so try not to modify it
+
+// TallyAmtPicture = '############.##' 
+// Date is yyyymmdd or dd-mm-yyyy
