@@ -17,6 +17,8 @@ You should have received a copy of the GNU General Public License version 3
 along with Excel to Tally. If not, see <http://www.gnu.org/licenses/>.
 *)
 {
+This version processes Inventory data
+
 IsMultiRow - id and single Ledger, Debit + Credit
 Optional - Default Ledger
 
@@ -25,6 +27,14 @@ Amount info is now nested within ledger node
 optional -  id,
             Default Ledger or
 Dr or Cr Col empty)  Single Ledger + Debit + Credit + Default Ledger Col or Name
+}
+{
+File Type (extension)                                             Extended Properties
+---------------------------------------------------------------------------------------------
+Excel 97-2003 Workbook (.xls)                                  "Excel 8.0"
+Excel Workbook (.xlsx)                             "Excel 12.0 Xml"
+Excel Macro-enabled workbook (.xlsm)      "Excel 12.0 Macro"
+Excel Non-XML binary workbook (.xlsb)      "Excel 12.0"
 }
 unit MrMc7;
 
@@ -57,7 +67,8 @@ XLSSTR = 'Provider=Microsoft.ACE.OLEDB.12.0;Data Source=%s;Extended Properties="
 type
   Tfnupdate = procedure(const msg: string);
 
-  TbjMrMc = class(TinterfacedObject, IbjXlExp, IbjMrMc)
+{ Declared refers to Xml rule; Defined refers to Template }
+TbjMrMc = class(TinterfacedObject, IbjXlExp, IbjMrMc)
   private
     { Private declarations }
     FRefreshLedMaster: Boolean;
@@ -222,13 +233,16 @@ type
     destructor Destroy; override;
     procedure Execute;
   published
+{ Logging is optional }
     property ToLog: boolean read FToLog write FToLog;
+{ Auto Create Master is optional }
     property ToAutoCreateMst: boolean read FToAutoCreateMst write FToAutoCreateMst;
     property RefreshLedMaster: Boolean read FRefreshLedMaster write FRefreshLedMaster;
     property Vchtype: string read FVchType write FVchType;
   end;
 
-{ Level refers to Ledger Column with this Suffix  or Related Amount Colunn }
+{ Level refers to TokenCol }
+{ Token Column can be separate from any Ledger column }
   TDict = Record
     TokenCol: pChar;
     Token: pChar;
@@ -251,6 +265,7 @@ var
   i: integer;
 begin
   Inherited;
+{  SetDebugMode(0); }
   SetDebugMode(0);
   xmlFile := copy(Application.ExeName, 1, Pos('.exe', Application.ExeName)-1) + '.xml';
   Cfgn := CreatebjXmlDocument;
@@ -361,8 +376,11 @@ begin
   if Length(Vlist) <> 0 then
   if Length(FileName) = 0 then
     FileName := VList;
+{
+AutoCreateMst affects default group only
+}
   if FToAutoCreateMst  then
-  DefGroup := xcfg.GetChildContent('DefaultGroup');
+    DefGroup := xcfg.GetChildContent('DefaultGroup');
 { Round of tag moved from Ledger to Data }
   str := xcfg.GetChildContent('IsMultiRow');
    if  str = 'Yes' then
@@ -443,7 +461,7 @@ begin
     str := xCfg.GetChildContent('Alias');
     if Length(str) > 0 then
     begin
-    UDateName := str;
+      UDateName := str;
     end;
     DiDateValue := xCfg.GetChildContent('Default');
   end;
@@ -689,44 +707,48 @@ begin
     end;
   end;
   xCfg := Cfg.SearchForTag(nil, UInventoryName);
-  if Assigned(xCfg) then
+  if Assigned(xcfg) then
   begin
     xxCfg := xCfg.SearchForTag(nil, UItemName);
     if Assigned(xxCfg) then
     begin
       str := xxCfg.GetChildContent('Alias');
-    if Length(str) > 0 then
-      UItemName := str;
-  end;
+      if Length(str) > 0 then
+        UItemName := str;
+    end;
+
     xxCfg := xcfg.SearchForTag(nil, UUnitName);
     if Assigned(xxCfg) then
   begin
       str := xxCfg.GetChildContent('Alias');
-    if Length(str) > 0 then
-    begin
-    UUnitName := str;
+      if Length(str) > 0 then
+      begin
+        UUnitName := str;
+      end;
     end;
-  end;
+
     xxCfg := xCfg.SearchForTag(nil, UQtyName);
     if Assigned(xxCfg) then
   begin
       str := xxCfg.GetChildContent('Alias');
-    if Length(str) > 0 then
-      UQtyName := str;
-  end;
+      if Length(str) > 0 then
+        UQtyName := str;
+    end;
+
     xxCfg := xCfg.SearchForTag(nil, URateName);
     if Assigned(xxCfg) then
   begin
       str := xxCfg.GetChildContent('Alias');
-    if Length(str) > 0 then
-      URateName := str;
-  end;
+      if Length(str) > 0 then
+        URateName := str;
+    end;
+
     xxCfg := xCfg.SearchForTag(nil, UItemAmtName);
     if Assigned(xxCfg) then
   begin
       str := xxCfg.GetChildContent('Alias');
-    if Length(str) > 0 then
-      UItemAmtName := str;
+      if Length(str) > 0 then
+        UItemAmtName := str;
     end;
   end;
 //Shifted from ChckcolNames as this is Xml file specific
@@ -763,7 +785,7 @@ passing Windows Exception as it is }
   if not FileExists(dbName) then
     raise Exception.Create('File ' + dbname + ' not found');
 {$IFDEF ADO}
-  if FileFmt = 'Excel_80_Table' then
+  if FileFmt = 'Excel_Table' then
   begin
     DM.AdoConnection.LoginPrompt:=False;//dont ask for the login parameters
 //    DM.ADOConnection.ConnectionString := Format(XLSSTR, [dbName+'.xls']);
@@ -798,66 +820,6 @@ passing Windows Exception as it is }
     end;
   end;
 {$ENDIF}
-{$IFDEF DAO}
-//  DAO stuff
-  if FileFmt = 'Excel_120_BinaryTable' then
-  begin
-    kaTalywdb := TKADaoDatabase.Create(nil);
-    kaTalywdb.DatabaseType:='Excel 12.0';
-    kaTalywdb.RecreateCore;
-    kaTalywdb.Database:='.\Data\Talywdb.xls';
-    KATalywdb.Connected := True;
-    kadb := TKADaoTable.Create(nil);
-    kadb.Database := kaTalywdb;
-    kadb.TableName := VList + '$';
-{  kadb.TableType := DbOpenDynaset; }
-    Kadb.Active := True;
-  end;
-  if FileFmt = 'Excel_120_Table' then
-  begin
-    kaTalywdb := TKADaoDatabase.Create(nil);
-    kaTalywdb.DatabaseType:='Excel 12.0 xml';
-    kaTalywdb.RecreateCore;
-    kaTalywdb.Database:='.\Data\Talywdb.xls';
-    KATalywdb.Connected := True;
-    kadb := TKADaoTable.Create(nil);
-    kadb.Database := kaTalywdb;
-    kadb.TableName := VList + '$';
-{  kadb.TableType := DbOpenDynaset; }
-    Kadb.Active := True;
-  end;
-{$ENDIF}
-{$IFDEF ADO}
-  if FileFmt = 'Jet_3x_Table' then
-  begin
-    DM.AdoConnection.LoginPrompt:=False;//dont ask for the login parameters
-//    DM.ADOConnection.ConnectionString := Format(MDBSTR, [dbName+'.mdb']);
-    DM.ADOConnection.ConnectionString := Format(MDBSTR, [dbName]);
-    DM.AdoConnection.Connected:=True; //open the connection
-    dm.ADOConnection.Connected := True;
-    kadb := TADoTable.Create(nil);
-    kadb.Connection := dm.AdoConnection;
-    kadb.TableName := fileName;
-    Kadb.Active := True;
-  end;
-{$ENDIF}
-//  if frmSetting.FileFmt = 'FoxPro_26_Table' then
-{$IFDEF DAO}
-  DAO stuff
-  if FileFmt = 'dBase III' then
-  begin
-    kaTalywdb := TKADaoDatabase.Create(nil);
-    kaTalywdb.DatabaseType:='dBase III';
-    kaTalywdb.RecreateCore;
-    kaTalywdb.Database:='.\Data\';
-    KATalywdb.Connected := True;
-    kadb := TKADaoTable.Create(nil);
-    kadb.Database := kaTalywdb;
-    kadb.TableName := VList;
-{  kadb.TableType := DbOpenDynaset; }
-    Kadb.Active := True;
-  end;
-{$ENDIF}
   kadb.First;
   if kadb.Eof then
     raise Exception.Create('Table is Empty');;
@@ -874,7 +836,7 @@ begin
   if Length(Host) > 0 then
     SetHost(pchar(Host));
   if FRefreshLedMaster then
-  RefreshMstLists;
+    RefreshMstLists;
 
   kadb.First;
   UIdstr := '';
@@ -884,7 +846,7 @@ begin
     if IsIDGenerated then
       GenerateID;
     if IsMultiRowVoucher then
-        CreateRowLedgers;
+      CreateRowLedgers;
     if IsMultiColumnVoucher then
       CreateColLedgers;
     kadb.Next;
@@ -920,8 +882,7 @@ begin
 //    if (Length(kadb.FieldByName(UIdName).AsString) = 0) then
 //      if (Length(GetFldStr(kadb.FieldByName(UIdName))) = 0) then
       if (Length(kadb.FieldByName(UIdName).AsString) = 0) then
-//    begin
-      break;
+        break;
     end
     else
     begin
@@ -1205,7 +1166,7 @@ AutoCreateMst does not affect explicit group or roundoff group
         Continue;
       if IsLedgerDefined[i] then
         NewLedger(pchar(kadb.FieldByName(ULedgerName[i]).AsString), pchar(LedgerGroup[i]), 0);
-  end;
+    end;
   for i := 1 to COLUMNLIMIT do
     if (Length(LedgerGroup[i]) > 0) then
       if IsLedgerDefined[i] then
@@ -1698,7 +1659,8 @@ var
 begin
   if fld.DataType = ftDateTime then
   begin
-    newvar := FormatDateTime('dd-mmm-yyyy', fld.AsDateTime);
+//    newvar := FormatDateTime('dd-MMM-yy', fld.AsDateTime);
+    newvar := FormatDateTime('yyyymmdd', fld.AsDateTime);
     Result := pchar(NewVar);
     exit;
   end;
