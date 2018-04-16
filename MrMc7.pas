@@ -343,6 +343,7 @@ var
   DataFolder: string;
   Database: string;
   VList: string;
+  MList: string;
   str: string;
   i: integer;
   dcfg, xxcfg: IbjXml;
@@ -357,12 +358,14 @@ begin
 //      raise Exception.Create('Configuration file not found');
 //    cfgn.loadXmlFile(XmlFile);
 //  end;
+{
   if XmlStr = 'MySale' then
   if FileExists('.\Data\MySale.xml') then
     cfgn.loadXmlFile('.\Data\MySale.xml');
   if XmlStr = 'MyPurc' then
   if FileExists('.\Data\MyPurc.xml') then
     cfgn.loadXmlFile('.\Data\MyPurc.xml');
+}
   cfg := Cfgn.SearchForTag(nil, 'Voucher');
   if not Assigned(cfg) then
     raise Exception.Create('Voucher Configuration not Found');
@@ -373,9 +376,13 @@ begin
   if Length(dbName) = 0 then
     dbName := DataFolder + Database;
   VList  := xcfg.GetChildContent('VoucherList');
-  if Length(Vlist) <> 0 then
+  if (Length(Vlist) > 0) then
   if Length(FileName) = 0 then
     FileName := VList;
+  MList  := xcfg.GetChildContent('MasterList');
+  if (Length(MList) > 0) then
+  if Length(FileName) = 0 then
+    FileName := MList;
 {
 AutoCreateMst affects default group only
 }
@@ -772,8 +779,8 @@ AutoCreateMst affects default group only
 { Mandtory Minimum Columns }
   if not IsLedgerDeclared[1] then
     raise Exception.Create(ULedgerName[1] + ' Column is required');
-  if not IsAmtDeclared[1] then
-    raise Exception.Create(UAmountName[2] + ' Column is required');
+//  if not IsAmtDeclared[1] then
+//    raise Exception.Create(UAmountName[2] + ' Column is required');
 end;
 
 procedure TbjMrMc.OpenFile;
