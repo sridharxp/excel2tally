@@ -198,6 +198,7 @@ TbjMrMc = class(TinterfacedObject, IbjXlExp, IbjMrMc)
     procedure CheckColNames;
     procedure OpenFile;
     procedure GenerateID;
+    procedure WriteMstStatus;
     procedure CreateRowLedgers;
     procedure CreateColLedgers;
     procedure CreateItem(const level: integer);
@@ -229,6 +230,7 @@ TbjMrMc = class(TinterfacedObject, IbjXlExp, IbjMrMc)
     DefGroup: string;
     Host: string;
 //    ToCreateMasters: boolean;
+    IsMListDeclared: Boolean;
     constructor Create;
     destructor Destroy; override;
     procedure Execute;
@@ -381,8 +383,11 @@ begin
     FileName := VList;
   MList  := xcfg.GetChildContent('MasterList');
   if (Length(MList) > 0) then
+  begin
   if Length(FileName) = 0 then
     FileName := MList;
+    IsMListDeclared := True;
+  end;
 {
 AutoCreateMst affects default group only
 }
@@ -850,8 +855,8 @@ begin
   vTotal := 0;
   while (not kadb.Eof)  do
   begin
-    if IsIDGenerated then
       GenerateID;
+    WriteMstStatus;
     if IsMultiRowVoucher then
       CreateRowLedgers;
     if IsMultiColumnVoucher then
@@ -861,6 +866,9 @@ begin
   if missingledgers > 0 then
   begin
     MessageDlg(IntToStr(missingledgers)+ ' Ledgers Missing in Tally', mtInformation, [mbOK], 0);
+  end;
+  if IsMListDeclared then
+  begin
     Exit;
   end;
   kadb.First;
@@ -1080,11 +1088,14 @@ begin
     CheckColumn(UIdName);
   if Length(DiLedgerValue[1]) = 0 then
   CheckColumn(ULedgerName[1]);
+  if not IsMListDeclared then
+  begin
   if Length(DiDateValue) = 0 then
     CheckColumn(UDateName);
   if Length(DiTypeValue) = 0 then
   if not IsVtypeDefined then
     CheckColumn(UVTypeName);
+  end;    
   if ToCheckInvCols then
 //    if kadb.FindField(UItemName) <> nil then
     if IsItemDefined then
@@ -1214,10 +1225,9 @@ begin
   end;
 end;
 procedure TbjMrMc.GenerateID;
-var
-  dbkLed: string;
-  IsThere: Integer;
 begin
+  if not IsIDGenerated then
+    Exit;
       if (vTotal = 0) and (kadb.FieldByName(CrAmtCol).AsFloat +
                   kadb.FieldByName(DrAmtCol).AsFloat > 0) then
         uIdstr :=  IntToStr(kadb.RecNo);
@@ -1229,13 +1239,18 @@ begin
       end;
       vTotal := vTotal + kadb.FieldByName(CrAmtCol).AsFloat -
                   kadb.FieldByName(DrAmtCol).AsFloat;
-  IsThere := 1;
-  if ToAutoCreateMst then
+end;
+procedure TbjMrMc.WriteMstStatus;
+var
+  dbkLed, dbUnit, dbItem: string;
+  IsThere: Integer;
+begin
+  if not IsMListDeclared then
     Exit;
   if kadb.FindField('Ledger') <> nil then
   dbkLed := kadb.FieldByName('Ledger').AsString;
-  if Length(dbkLed) = 0 then
-    Exit;
+  if Length(dbkLed) > 0 then
+  begin
   IsThere := IsLedger(pChar(dbkLed));
   if IsThere = 0 then
   begin
@@ -1243,6 +1258,17 @@ begin
     kadb.FieldByName('TALLYID').AsString :=  dbkLed;
     kadb.Post;
     missingledgers := missingledgers + 1;
+  end;
+  end;
+  dbUnit := kadb.FieldByName('Unit').AsString;
+  if Length(dbunit) > 0 then
+  begin
+    NewUnit(PChar(dbUnit));
+    dbItem := kadb.FieldByName('Item').AsString;
+    if Length(dbItem) > 0 then
+    begin
+      NewItem(PChar(dbItem), PChar(dbUnit), 0, 0);
+    end;
   end;
 end;
 
