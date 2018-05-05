@@ -76,6 +76,10 @@ TbjMrMc = class(TinterfacedObject, IbjXlExp, IbjMrMc)
     FToAutoCreateMst: boolean;
     FdynPgLen: integer;
     FVchType: string;
+    FIsMListDeclared: Boolean;
+    FIsVListDeclared: Boolean;
+    FIsExpItemMst: Boolean;
+    FIsCheckLedMst: Boolean;
   protected
     missingledgers: Integer;
     UIdstr: string;
@@ -136,12 +140,19 @@ TbjMrMc = class(TinterfacedObject, IbjXlExp, IbjMrMc)
     UGSTNName: array [1..COLUMNLIMIT + 1] of string;
     UStateName: array [1..COLUMNLIMIT+1] of string;
     UGroupName: array [1..COLUMNLIMIT ] of string;
+    UAliasName: string;
+    UGodownName: string;
+    USubGroupName: string;
     IsIdDefined: boolean;
     IsDateDefined: boolean;
     IsVTypeDefined: boolean;
     IsVoucherRefDefined: boolean;
     IsItemDefined: boolean;
     IsUnitDefined: boolean;
+    IsAliasDefined: Boolean;
+    IsGodownDefined: Boolean;
+    IsGroupDefined: Boolean;
+    IsSubGroupDefined: Boolean;
     UDateName: string;
     UVTypeName: string;
     IsLedgerDefined: array [1..COLUMNLIMIT] of boolean;
@@ -198,7 +209,8 @@ TbjMrMc = class(TinterfacedObject, IbjXlExp, IbjMrMc)
     procedure CheckColNames;
     procedure OpenFile;
     procedure GenerateID;
-    procedure WriteMstStatus;
+    procedure CheckLedMst;
+    procedure ExpItemMst;
     procedure CreateRowLedgers;
     procedure CreateColLedgers;
     procedure CreateItem(const level: integer);
@@ -230,7 +242,6 @@ TbjMrMc = class(TinterfacedObject, IbjXlExp, IbjMrMc)
     DefGroup: string;
     Host: string;
 //    ToCreateMasters: boolean;
-    IsMListDeclared: Boolean;
     constructor Create;
     destructor Destroy; override;
     procedure Execute;
@@ -241,6 +252,10 @@ TbjMrMc = class(TinterfacedObject, IbjXlExp, IbjMrMc)
     property ToAutoCreateMst: boolean read FToAutoCreateMst write FToAutoCreateMst;
     property RefreshLedMaster: Boolean read FRefreshLedMaster write FRefreshLedMaster;
     property Vchtype: string read FVchType write FVchType;
+    property IsMListDeclared: Boolean read FIsMListDeclared write FIsMListDeclared;
+    property IsVListDeclared: Boolean read FIsVListDeclared write FIsVListDeclared;
+    property IsCheckLedMst: Boolean read FIsCheckLedMst write FIsCheckLedMst;
+    property IsExpItemMst: Boolean read FIsExpItemMst write FIsExpItemMst;
   end;
 
 { Level refers to TokenCol }
@@ -301,9 +316,12 @@ begin
   UVoucherRefName := 'Voucher Ref';
   UinventoryName := 'INVENTORY';
   UItemName := 'Item';
-  UUnitName := 'Jnit';
+  UUnitName := 'Unit';
   UQtyName := 'Qty';
   URateName := 'Rate';
+  UAliasName := 'Alias';
+  UGodownName := 'Godown';
+  USubGroupName := 'SubGroup';
   UItemAmtName := 'Value';
   UTallyIDName := 'TALLYID';
   FRefreshLedMaster := True;
@@ -379,8 +397,11 @@ begin
     dbName := DataFolder + Database;
   VList  := xcfg.GetChildContent('VoucherList');
   if (Length(Vlist) > 0) then
+  begin
   if Length(FileName) = 0 then
     FileName := VList;
+    IsVListDeclared := True;
+  end;
   MList  := xcfg.GetChildContent('MasterList');
   if (Length(MList) > 0) then
   begin
@@ -856,19 +877,25 @@ begin
   while (not kadb.Eof)  do
   begin
       GenerateID;
-    WriteMstStatus;
+    CheckLedMst;
+    ExpItemMst;
     if IsMultiRowVoucher then
       CreateRowLedgers;
     if IsMultiColumnVoucher then
       CreateColLedgers;
     kadb.Next;
   end;
-  if missingledgers > 0 then
-  begin
-    MessageDlg(IntToStr(missingledgers)+ ' Ledgers Missing in Tally', mtInformation, [mbOK], 0);
-  end;
   if IsMListDeclared then
   begin
+    if IsCheckLedMst then
+    begin
+  if missingledgers > 0 then
+      MessageDlg(IntToStr(missingledgers)+ ' Ledgers Missing in Tally', mtInformation, [mbOK], 0)
+    else
+      MessageDlg('Ledgers exist in Tally', mtInformation, [mbOK], 0);
+  end;
+    if IsExpItemMst then
+      MessageDlg('Done', mtInformation, [mbOK], 0);
     Exit;
   end;
   kadb.First;
@@ -919,9 +946,20 @@ begin
   WriteStatus;
   MessageDlg(InttoStr(ProcessedCount) + ' Vouchers processed',
       mtInformation, [mbOK], 0);
-  FUpdate(InttoStr(ProcessedCount) + ' Vouchers processed; ' +
-    InttoStr(SCount) + ' Success. Error detailss in  Log worksheet');
+    StatusMsg := InttoStr(ProcessedCount) + ' Vouchers processed; ' +
+    InttoStr(SCount) + ' Success. Error detailss in  Log worksheet'
 
+
+
+
+  FUpdate(StatusMsg);
+  if IsLogDBDefined then
+    if ProcessedCount - SCount > 0 then
+    begin
+      Logdb.Append;
+      Logdb.FieldByName('RECID').AsString := '...';
+      Logdb.Post;
+    end;
 end;
 
 procedure TbjMrMc.Process;
@@ -1033,6 +1071,14 @@ begin
     IsItemDefined := True;
   if kadb.FindField(UUnitName) <> nil then
     IsUnitDefined := True;
+  if kadb.FindField(UAliasName) <> nil then
+    IsAliasDefined := True;
+  if kadb.FindField(UGodownName) <> nil then
+    IsGodownDefined := True;
+  if kadb.FindField(UGroupName[1]) <> nil then
+    IsGroupDefined := True;
+  if kadb.FindField(USubGroupName) <> nil then
+    IsSubGroupDefined := True;
 { Check for TallyId }
 {
   for i := 0 to kadb.FieldDefs.Count-1 do
@@ -1240,14 +1286,16 @@ begin
       vTotal := vTotal + kadb.FieldByName(CrAmtCol).AsFloat -
                   kadb.FieldByName(DrAmtCol).AsFloat;
 end;
-procedure TbjMrMc.WriteMstStatus;
+procedure TbjMrMc.CheckLedMst;
 var
-  dbkLed, dbUnit, dbItem: string;
+  dbkLed: string;
   IsThere: Integer;
 begin
   if not IsMListDeclared then
     Exit;
-  if kadb.FindField('Ledger') <> nil then
+  if not IsCheckLedMst then
+    Exit;
+  if IsLedgerdefined[1] then
   dbkLed := kadb.FieldByName('Ledger').AsString;
   if Length(dbkLed) > 0 then
   begin
@@ -1260,15 +1308,64 @@ begin
     missingledgers := missingledgers + 1;
   end;
   end;
+{
   dbUnit := kadb.FieldByName('Unit').AsString;
   if Length(dbunit) > 0 then
+}
+end;
+procedure TbjMrMc.ExpItemMst;
+var
+  dbItem, dbUnit: string;
+  dbAlias, dbGodown, dbParent: string;
+  IsThere: Integer;
+  OBal, Rate: Double;
+begin
+  if not IsMListDeclared then
+    Exit;
+  if not IsExpItemMst then
+    Exit;
+  dbUnit := '';
+  if IsUnitDefined then
   begin
+    dbUnit := kadb.FieldByName('Unit').AsString;
     NewUnit(PChar(dbUnit));
+  end;
+  if IsAliasDefined then
+  begin
+    dbAlias := kadb.FieldByName('Alias').AsString;
+    if Length(dbAlias) > 0 then
+      SetAlias(PChar(dbAlias));
+  end;
+  if IsGodownDefined then
+  begin
+    dbGodown := kadb.FieldByName('Godown').AsString;
+    NewGodown(pChar(dbGodown),'');
+    if Length(dbGodown) > 0 then
+        SetGodown(PChar(dbGodown));
+  end;
+  if IsGroupDefined then
+  begin
+    dbParent := kadb.FieldByName('Group').AsString;
+    NewItemGroup(PChar(dbParent),'');
+    if Length(dbParent) > 0 then
+      SetGroup(PChar(dbParent));
+  end;
+  if IsSubGroupDefined then
+  begin
+    dbParent := kadb.FieldByName('SubGroup').AsString;
+    NewItemGroup(PChar(dbParent),
+      pChar(kadb.FieldByName('Group').AsString));
+    if Length(dbParent) > 0 then
+      SetGroup(PChar(dbParent));
+  end;
     dbItem := kadb.FieldByName('Item').AsString;
+  OBal := kadb.FieldByName('O_Balance').AsFloat;
+  Rate := kadb.FieldByName('O_Rate').AsFloat;
     if Length(dbItem) > 0 then
     begin
-      NewItem(PChar(dbItem), PChar(dbUnit), 0, 0);
-    end;
+    IsThere := IsItem(pChar(dbItem));
+    if IsThere = 0 then
+      NewItem(PChar(dbItem), PChar(dbUnit), OBal, Rate);
   end;
 end;
 
@@ -1598,7 +1695,7 @@ begin
   SetLength(statmsg, Length(TempStr)+1);
   StrCopy(PChar(StatMsg), TempStr);
 //  UniqueString(statmsg);
-  dllClean(TempStr);
+  dllRelease(TempStr);
   if StatMsg = '0' then
     IsErr := True;
   if Pos(CheckErrStr, StatMsg) > 0 then
