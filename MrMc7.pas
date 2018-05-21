@@ -80,6 +80,7 @@ TbjMrMc = class(TinterfacedObject, IbjXlExp, IbjMrMc)
     FIsVListDeclared: Boolean;
     FIsExpItemMst: Boolean;
     FIsCheckLedMst: Boolean;
+    FFirm: string;
   protected
     missingledgers: Integer;
     UIdstr: string;
@@ -227,6 +228,7 @@ TbjMrMc = class(TinterfacedObject, IbjXlExp, IbjMrMc)
     function GetAmt(const level: integer): double;
     function IsMoreColumn(const level: integer): boolean;
     procedure CheckColumn(const colname: string);
+    procedure SetFirm(const aFirm: string);
   public
     { Public declarations }
     dbName: string;
@@ -256,6 +258,7 @@ TbjMrMc = class(TinterfacedObject, IbjXlExp, IbjMrMc)
     property IsVListDeclared: Boolean read FIsVListDeclared write FIsVListDeclared;
     property IsCheckLedMst: Boolean read FIsCheckLedMst write FIsCheckLedMst;
     property IsExpItemMst: Boolean read FIsExpItemMst write FIsExpItemMst;
+    property Firm: string read FFirm write setFirm;
   end;
 
 { Level refers to TokenCol }
@@ -324,7 +327,8 @@ begin
   USubGroupName := 'SubGroup';
   UItemAmtName := 'Value';
   UTallyIDName := 'TALLYID';
-  FRefreshLedMaster := True;
+//  FRefreshLedMaster := True;
+  FRefreshLedMaster := False;
   FToLog := True;
   FToAutoCreateMst := True;
 end;
@@ -989,7 +993,8 @@ begin
     AddLine(pchar(LedgerColValue), Amt[1]);
     if IsAssessableDefined[1] then
       SetAssessable(kadb.FieldByName(UAssessableName[1]).AsFloat);
-    VTotal := VTotal + StrtoFloat(FormatFloat(TallyAmtPicture, Amt[1]));
+//    VTotal := VTotal + StrtoFloat(FormatFloat(TallyAmtPicture, Amt[1]));
+    VTotal := VTotal + RoundTo(Amt[1],-2);
     ProcessItem(1);
   end;
   if IsMultiColumnVoucher then
@@ -1012,7 +1017,8 @@ begin
     AddLine(pchar(LedgerColValue),Amt[level]);
     if IsAssessableDefined[level] then
       SetAssessable(kadb.FieldByName(UAssessableName[level]).AsFloat);
-    VTotal := VTotal + StrtoFloat(FormatFloat(TallyAmtPicture, Amt[level]));
+//    VTotal := VTotal + StrtoFloat(FormatFloat(TallyAmtPicture, Amt[level]));
+    VTotal := VTotal + RoundTo(Amt[level], -2);
     ProcessItem(level);
     ProcessCol(level+1);
   end;
@@ -1782,6 +1788,10 @@ if not ColumnExists then
     raise Exception.Create(Colname + ' column is Required')
 end;
 
+procedure TbjMrMc.SetFirm(const aFirm: string);
+begin
+  SetCompany(pChar(FFirm));
+end;
 {    'yyyymmdd' 'dd-mmm-yyyy'}
 function GetFldDt(fld: TField): string;
 var
