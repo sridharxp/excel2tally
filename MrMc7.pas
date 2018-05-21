@@ -1339,29 +1339,28 @@ begin
   if IsAliasDefined then
   begin
     dbAlias := kadb.FieldByName('Alias').AsString;
-    if Length(dbAlias) > 0 then
       SetAlias(PChar(dbAlias));
   end;
   if IsGodownDefined then
   begin
     dbGodown := kadb.FieldByName('Godown').AsString;
-    NewGodown(pChar(dbGodown),'');
     if Length(dbGodown) > 0 then
+      NewGodown(pChar(dbGodown),'');
         SetGodown(PChar(dbGodown));
   end;
   if IsGroupDefined then
   begin
     dbParent := kadb.FieldByName('Group').AsString;
-    NewItemGroup(PChar(dbParent),'');
     if Length(dbParent) > 0 then
+      NewItemGroup(PChar(dbParent),'');
       SetGroup(PChar(dbParent));
   end;
   if IsSubGroupDefined then
   begin
     dbParent := kadb.FieldByName('SubGroup').AsString;
+    if Length(dbParent) > 0 then
     NewItemGroup(PChar(dbParent),
       pChar(kadb.FieldByName('Group').AsString));
-    if Length(dbParent) > 0 then
       SetGroup(PChar(dbParent));
   end;
     dbItem := kadb.FieldByName('Item').AsString;
