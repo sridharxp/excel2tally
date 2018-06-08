@@ -271,7 +271,6 @@ TbjMrMc = class(TinterfacedObject, IbjXlExp, IbjMrMc)
   pDict = ^TDict;
 
 function GetFldDt(fld: TField): string;
-function GetFldStr(fld: TField): string;
 
 {$include \TL\ET\src\VchUpdate.int}
 
@@ -1595,9 +1594,11 @@ begin
   begin
     if Length(kadb.FieldByName(UAmountName[level]).AsString) > 0 then
     begin
-      Result := StrtoFloat(kadb.FieldByName(UAmountName[level]).AsString);
+//      Result := StrtoFloat(kadb.FieldByName(UAmountName[level]).AsString);
+      Result := kadb.FieldByName(UAmountName[level]).AsFloat;
       if AmountType[level] = 'Dr' then
-        Result := - StrtoFloat(kadb.FieldByName(UAmountName[level]).AsString);
+//        Result := - StrtoFloat(kadb.FieldByName(UAmountName[level]).AsString);
+        Result := - kadb.FieldByName(UAmountName[level]).AsFloat;
 {      Exit;}
     end;
     if AmountCols[level] > 1 then
@@ -1605,9 +1606,11 @@ begin
       if Length(kadb.FieldByName(UAmount2Name[level]).AsString) > 0 then
       begin
         if Amount2Type[level] = 'Cr' then
-          Result := Result + StrtoFloat(kadb.FieldByName(UAmount2Name[level]).AsString);
+//          Result := Result + StrtoFloat(kadb.FieldByName(UAmount2Name[level]).AsString);
+          Result := Result + kadb.FieldByName(UAmount2Name[level]).AsFloat;
         if Amount2Type[level] = 'Dr' then
-          Result := Result - StrtoFloat(kadb.FieldByName(UAmount2Name[level]).AsString);
+//          Result := Result - StrtoFloat(kadb.FieldByName(UAmount2Name[level]).AsString);
+          Result := Result - kadb.FieldByName(UAmount2Name[level]).AsFloat;
 {      Exit;}
       end;
     end;
@@ -1836,4 +1839,25 @@ begin
   Result := pchar(NewVar);
 end;
 
+function GetFldAmt(fld: TField): double;
+var
+  newvar: double;
+begin
+  if fld.DataType = ftFloat then
+  begin
+   Result := fld.AsFloat;
+   Exit
+  end;
+   if Length(fld.Text) = 0 then
+   begin
+     Result := 0;
+     Exit;
+  end;
+  try
+    newvar := fld.AsFloat;
+  except
+    NewVar := 0;
+  end;
+  Result :=NewVar;
+end;
 end.
