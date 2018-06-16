@@ -43,7 +43,6 @@ type
     FToDT: string;
     FItem: string;
     FDupItem: string;
-//    FLedger: string;
   protected
     rDB: string;
     xDB: string;
@@ -52,7 +51,6 @@ type
     aID: Ibjxml;
     vID: Ibjxml;
     lID: Ibjxml;
-//    plID: Ibjxml;
   public
     { Public declarations }
     ndups: Integer;
@@ -76,7 +74,6 @@ type
     property ToDt: string Read FToDt write FToDt;
     property Item: string Read FItem write FItem;
     property DupItem: string Read FDupItem write FDupItem;
-//    property Ledger: string Read FLedger write FLedger;
   end;
 
 implementation
@@ -134,7 +131,6 @@ begin
   FxReq := '<ENVELOPE><HEADER><TALLYREQUEST>Export Data</TALLYREQUEST></' +
     'HEADER>'+
   '<BODY><EXPORTDATA><REQUESTDESC>' +
-//  '<REPORTNAME>Ledger Vouchers</REPORTNAME>'
   '<REPORTNAME>Stock Vouchers</REPORTNAME>'
 //  '<REPORTNAME>All Stock Items</REPORTNAME>'
   +'<STATICVARIABLES>';
@@ -146,7 +142,6 @@ begin
     FxReq := FXReq + '<SVFROMDATE>' + FFrmDt + '</SVFROMDATE>';
     FxReq := FXReq + '<SVTODATE>' + FToDt + '</SVTODATE>';
   end;
-//  FxReq := FXReq + '<LEDGERNAME>' +  Ledger + '</LEDGERNAME>';
     FxReq := FXReq + '<STOCKITEMNAME>' +  DupItem + '</STOCKITEMNAME>';
   FxReq := FXReq +
   '</STATICVARIABLES>'+
@@ -257,7 +252,6 @@ begin
   if not Assigned(vID) then
     Exit;
   lID := vID.SearchForTag(nil, 'STOCKITEMNAME');
-//  plID := vID.SearchForTag(nil, 'PARTYLEDGERNAME');
   aID := vID.SearchForTag(nil, 'ALTERID');
   while Assigned(lID) do
   begin
@@ -285,7 +279,6 @@ begin
     if not Assigned(vID) then
       Exit;
     lID := vID.SearchForTag(nil, 'STOCKITEMNAME');
-///    plID := vID.SearchForTag(nil, 'PARTYLEDGERNAME');
     aID := vID.SearchForTag(nil, 'ALTERID');
     while Assigned(lID) do
     begin
@@ -294,7 +287,6 @@ begin
       lID := vID.SearchForTag(lID, 'STOCKITEMNAME');
     end;
   end;
-//  ydb := stringreplace (xDB, 'ACTION="Create"', 'ACTION="Delete"', [rfReplaceAll]);
 end;
 
 end.

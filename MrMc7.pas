@@ -1155,7 +1155,7 @@ begin
       CheckColumn(URateName);
       CheckColumn(UItemAmtName);
     end;
-  for i := 1 to COLUMNLIMIT do
+  for i := 1 to COLUMNLIMIT+1 do
   begin
         if IsGSTNDeclared[i] then
           if kadb.FindField(UGSTNName[i]) <> nil then

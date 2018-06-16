@@ -230,8 +230,6 @@ begin
   yDB := FXReq + yDB +
     '</TALLYMESSAGE></REQUESTDATA></IMPORTDATA></BODY></ENVELOPE>';
   VDoc := CreatebjXmlDocument;
-//  vDoc.LoadXML(yDB);
-//  vDoc.SaveXmlFile('Voucher.xml');
   Client.Host := FHost;
   Client.xmlRequestString := yDB;
   Client.post;
@@ -288,7 +286,6 @@ begin
       lID := vID.SearchForTag(lID, 'LEDGERNAME');
     end;
   end;
-//  ydb := stringreplace (xDB, 'ACTION="Create"', 'ACTION="Delete"', [rfReplaceAll]);
 end;
 
 end.
