@@ -81,6 +81,7 @@ TbjMrMc = class(TinterfacedObject, IbjXlExp, IbjMrMc)
     FIsExpItemMst: Boolean;
     FIsCheckLedMst: Boolean;
     FFirm: string;
+    FHost: string;
   protected
     missingledgers: Integer;
     UIdstr: string;
@@ -231,6 +232,7 @@ TbjMrMc = class(TinterfacedObject, IbjXlExp, IbjMrMc)
     function IsMoreColumn(const level: integer): boolean;
     procedure CheckColumn(const colname: string);
     procedure SetFirm(const aFirm: string);
+    procedure SetHost(const aHost: string);
   public
     { Public declarations }
     dbName: string;
@@ -244,7 +246,7 @@ TbjMrMc = class(TinterfacedObject, IbjXlExp, IbjMrMc)
     SCount: integer;
     FUpdate: TfnUpdate;
     DefGroup: string;
-    Host: string;
+ //   Host: string;
 //    ToCreateMasters: boolean;
     constructor Create;
     destructor Destroy; override;
@@ -261,6 +263,7 @@ TbjMrMc = class(TinterfacedObject, IbjXlExp, IbjMrMc)
     property IsCheckLedMst: Boolean read FIsCheckLedMst write FIsCheckLedMst;
     property IsExpItemMst: Boolean read FIsExpItemMst write FIsExpItemMst;
     property Firm: string read FFirm write setFirm;
+    PROPERTY Host: string read FHost write SetHost;
   end;
 
 { Level refers to TokenCol }
@@ -871,6 +874,8 @@ begin
   ProcessedCount := 0;
   DeclareColNames;
   OpenFile;
+  if Length(Host) > 0 then
+    bjEnv.Host := Host;
   CheckColNames;
   if Length(Host) > 0 then
     SetHost(pchar(Host));
@@ -1803,6 +1808,12 @@ end;
 procedure TbjMrMc.SetFirm(const aFirm: string);
 begin
   SetCompany(pChar(FFirm));
+procedure TbjMrMc.SetHost(const aHost: string);
+begin
+  FHost := aHost;
+  if not Assigned(ClientFns) then
+     ClientFns := TbjGSTClientFns.Create;
+  ClientFns.Host := Host;
 end;
 {    'yyyymmdd' 'dd-mmm-yyyy'}
 function GetFldDt(fld: TField): string;
