@@ -48,6 +48,8 @@ uses
   XlExp,
   Math,
   Client,
+  ZS71,
+  PClientFns,
   bjXml3_1;
 
 {$DEFINE ADO}
@@ -209,6 +211,9 @@ TbjMrMc = class(TinterfacedObject, IbjXlExp, IbjMrMc)
     IsCrDrAmtColsDefined: Boolean;
     RoundOffName: string;
 
+    bjEnv: TbjEnv;
+    bjMstExp: TbjMstExp;
+    bjVchExp: TbjVchExp;
     procedure DeclareColNames;
     procedure CheckColNames;
     procedure OpenFile;
@@ -290,7 +295,14 @@ var
 begin
   Inherited;
 {  SetDebugMode(0); }
-  SetDebugMode(0);
+    bjEnv := TbjEnv.Create;
+    bjMstExp := TbjMstExp.Create;
+    bjMstExp.bjEnv := bjEnv;
+    bjEnv.bjMstExp := bjMstExp;
+    bjVchExp := TbjVchExp.Create;
+    bjVchExp.bjEnv := bjEnv;
+    bjVchExp.bjMstExp := bjMstExp;
+  bjEnv.ToSaveXmlFile := False;
   xmlFile := copy(Application.ExeName, 1, Pos('.exe', Application.ExeName)-1) + '.xml';
   Cfgn := CreatebjXmlDocument;
 {  UNarration := '';}
@@ -343,6 +355,9 @@ var
   i, j: integer;
   ditem: pDict;
 begin
+  bjVchExp.Free;
+  bjMstExp.Free;
+  bjEnv.Free;
 { +1 for RoundOff }
   for i:= 1 to COLUMNLIMIT+1 do
     if Assigned(LedgerDict[i]) then
@@ -433,10 +448,10 @@ AutoCreateMst affects default group only
     IsMultiColumnVoucher := True;
 
   if (Length(DefGroup) > 0) then
-    SetDefaultGroup(pchar(DefGroup))
+    bjEnv.DefaultGroup := DefGroup
   else
 //    SetDefaultGroup(pchar(''));
-    SetDefaultGroup('');
+    bjEnv.DefaultGroup := '';
 
   xCfg := Cfg.SearchForTag(nil, 'RoundOff');
   if Assigned(xCfg) then
@@ -881,7 +896,7 @@ begin
   if Length(Host) > 0 then
     SetHost(pchar(Host));
   if FRefreshLedMaster then
-    RefreshMstLists;
+    bjMstExp.RefreshMstLists;
 
   kadb.First;
   UIdstr := '';
@@ -993,14 +1008,16 @@ begin
 end;
 
 procedure TbjMrMc.ProcessRow;
+var
+  LedgerColValue: string;
 begin
   LedgerColvalue := Getledger(1);
   Amt[1] := GetAmt(1);
   if Abs(Amt[1]) >= 0.01 then
   begin
-    AddLine(pchar(LedgerColValue), Amt[1]);
+    bjVchExp.AddLine(LedgerColValue, RoundTo(Amt[1], -2));
     if IsAssessableDefined[1] then
-      SetAssessable(kadb.FieldByName(UAssessableName[1]).AsFloat);
+      bjVchExp.SetAssessable(kadb.FieldByName(UAssessableName[1]).AsFloat);
 //    VTotal := VTotal + StrtoFloat(FormatFloat(TallyAmtPicture, Amt[1]));
     VTotal := VTotal + RoundTo(Amt[1],-2);
     ProcessItem(1);
@@ -1022,9 +1039,9 @@ begin
   amt[level] := GetAmt(level);
   if abs(Amt[level]) >= 0.01 then
   begin
-    AddLine(pchar(LedgerColValue),Amt[level]);
+    bjVchExp.AddLine(LedgerColValue, RoundTo(Amt[level], -2));
     if IsAssessableDefined[level] then
-      SetAssessable(kadb.FieldByName(UAssessableName[level]).AsFloat);
+      bjVchExp.SetAssessable(kadb.FieldByName(UAssessableName[level]).AsFloat);
 //    VTotal := VTotal + StrtoFloat(FormatFloat(TallyAmtPicture, Amt[level]));
     VTotal := VTotal + RoundTo(Amt[level], -2);
     ProcessItem(level);
@@ -1042,6 +1059,7 @@ end;
 procedure TbjMrMc.ProcessItem(const level: integer);
 var
   invamt: Double;
+  ItemColValue: string;
 begin
   if not  IsInvDefined[level] then
     Exit;
@@ -1055,9 +1073,14 @@ begin
 { InvAmt for Purchase }
   if AmountType[level] = 'Dr' then
     invamt := -invamt;
-  SetInvLine(pChar(kadb.FieldByName(UItemName).AsString),
-    kadb.FieldByName(UQtyName).AsFloat,
-    kadb.FieldByName(URateName).AsFloat,
+  ItemColValue := kadb.FieldByName(UItemName).AsString;
+  if (Length(ItemColValue) > 0) and
+    (Length(kadb.FieldByName(UQtyName).AsString) > 0) then
+    bjVchExp.SetInvLine(ItemColValue,
+//    kadb.FieldByName(UQtyName).AsFloat,
+//    kadb.FieldByName(URateName).AsFloat,
+    GetFldAmt(kadb.FieldByName(UQtyName)),
+    GetFldAmt(kadb.FieldByName(URateName)),
     invamt);
 end;
 
@@ -1070,6 +1093,7 @@ var
   dItem: pDict;
   str: string;
   strMsg: string;
+  LedgerColValue: string;
 begin
   if kadb.FindField(UIdName) <> nil then
     IsIdDefined := True;
@@ -1184,12 +1208,12 @@ begin
     if (Length(LedgerGroup[i]) > 0) then
 { Default Ledger with Amount Column }
       if (Length(DiLedgerValue[i]) > 0) then
-        NewLedger(pchar(DiLedgerValue[i]), pchar(LedgerGroup[i]), 0);
+        bjMstExp.NewLedger(DiLedgerValue[i], LedgerGroup[i], 0);
   end;
   if Length(RoundOffGroup) > 0 then
 {To fix Tin no bug with Round off col }
      if Length(DiRoundOff) > 0 then
-       NewLedger(pChar(DiRoundOff), pChar(RoundOffGroup), 0);
+       bjMstExp.NewLedger(DiRoundOff, RoundOffGroup, 0);
 
 { Create Dictionary Ledgers }
 { +1 for RoundOff }
@@ -1202,7 +1226,7 @@ begin
          if (Length(LedgerGroup[i]) > 0) then
          begin
            LedgerColValue := pDict(dItem)^.Value;
-           NewLedger(pchar(pDict(dItem)^.Value), pchar(LedgerGroup[i]), 0);
+           bjMstExp.NewLedger(LedgerColValue, LedgerGroup[i], 0);
          end;
        end;
    end;
@@ -1211,18 +1235,22 @@ begin
     begin
       ditem := LedgerDict[COLUMNLIMIT+1].Items[j];
       if (Length(RoundOffGroup) > 0) then
+      begin
         LedgerColValue := pDict(dItem)^.Value;
-        NewLedger(pchar(pDict(dItem)^.Value), pchar(RoundOffGroup), 0);
+        bjMstExp.NewLedger(LedgerColValue, RoundOffGroup, 0);
+      end;
     end;
 //  if RoundToLimit > 0 then
 
-    NewLedger('RoundOff', 'Indirect Expenses', 0);
+    bjMstExp.NewLedger('RoundOff', 'Indirect Expenses', 0);
 end;
 
 procedure TbjMrMc.CreateColLedgers;
 var
   i: integer;
-  aState: string;
+  StateColValue: string;
+  LedgerColValue: string;
+  GSTNColValue: string;
 begin
 {
 AutoCreateMst does not affect explicit group or roundoff group
@@ -1231,14 +1259,21 @@ AutoCreateMst does not affect explicit group or roundoff group
     if (Length(LedgerGroup[i]) > 0) then
     begin
       if IsStateDefined[i] then
-        aState := kadb.FieldByName(UStateName[i]).AsString
+        StateColValue := kadb.FieldByName(UStateName[i]).AsString
       else
-        aState := '';
+        StateColValue := '';
       if IsGSTNDefined[i] then
-        NewParty(pchar(kadb.FieldByName(ULedgerName[I]).AsString), pchar(LedgerGroup[i]), pChar(kadb.FieldByName(UGSTNName[i]).AsString),
-        pChar(aState))
+      begin
+        LedgerColValue := PChar(kadb.FieldByName(ULedgerName[i]).AsString);
+        GSTNColValue := kadb.FieldByName(UGSTNName[i]).AsString;
+        bjMstExp.NewParty(LedgerColValue, LedgerGroup[i], GSTNColValue,
+        StateColValue);
+      end
       else if IsLedgerDefined[i] then
-        NewLedger(pchar(kadb.FieldByName(ULedgerName[I]).AsString), pchar(LedgerGroup[i]), 0);
+      begin
+        LedgerColValue := PChar(kadb.FieldByName(ULedgerName[i]).AsString);
+        bjMstExp.NewLedger(LedgerColValue, LedgerGroup[i], 0);
+      end;
     end;
 
   for i := 1 to COLUMNLIMIT do
@@ -1247,7 +1282,10 @@ AutoCreateMst does not affect explicit group or roundoff group
       if Assigned(LedgerDict[i]) then
         Continue;
       if IsLedgerDefined[i] then
-        NewLedger(pchar(kadb.FieldByName(ULedgerName[i]).AsString), pchar(LedgerGroup[i]), 0);
+      begin
+        LedgerColValue := PChar(kadb.FieldByName(ULedgerName[i]).AsString);
+        bjMstExp.NewLedger(LedgerColValue, LedgerGroup[i], 0);
+      end;
     end;
   for i := 1 to COLUMNLIMIT do
     if (Length(LedgerGroup[i]) > 0) then
@@ -1258,34 +1296,44 @@ AutoCreateMst does not affect explicit group or roundoff group
     if IsRoundOffColDefined then
     begin
       if IsStateDefined[COLUMNLIMIT + 1] then
-        aState := kadb.FieldByName(UStateName[COLUMNLIMIT+1]).AsString
+        StateColValue := kadb.FieldByName(UStateName[COLUMNLIMIT+1]).AsString
       else
-        aState := '';
+        StateColValue := '';
+      LedgerColValue := PChar(kadb.FieldByName(RoundOffCol).AsString);
       if IsGSTNDefined[COLUMNLIMIT + 1] then
+      begin
 //        NewParty(pchar(kadb.FieldByName(RoundOffCol).AsString), pchar(RoundOffGroup), pChar(kadb.FieldByName(RoundOffGSTN).AsString),'')
-        NewParty(pchar(kadb.FieldByName(RoundOffCol).AsString), pchar(RoundOffGroup), pChar(kadb.FieldByName(UGSTNName[COLUMNLIMIT+1]).AsString),
-        PChar(aState))
+        GSTNColValue := kadb.FieldByName(UGSTNName[COLUMNLIMIT+1]).AsString;
+        bjMstExp.NewParty(LedgerColValue, RoundOffGroup, GSTNColValue,
+        StateColValue);
+      end
       else
-        NewLedger(pChar(kadb.FieldByName(RoundOffCol).AsString), pChar(RoundOffGroup), 0);
+        bjMstExp.NewLedger(LedgerColValue, RoundOffGroup, 0);
     end;
 end;
 procedure TbjMrMc.CreateItem(const level: integer);
+var
+  UnitColValue: string;
+  ItemColValue: string;
 begin
   if not IsInvDefined[level] then
     Exit;
   if not IsItemDefined then
     Exit;
+  ItemColValue := kadb.FieldByName(UItemName).AsString;
   if IsUnitDefined then
   begin
-    NewUnit(pChar(kadb.FieldByName(UUnitName).AsString));
-    NewItem(pChar(kadb.FieldByName(UItemName).AsString),
-    pChar(kadb.FieldByName(UUnitName).AsString) , 0, 0);
+    UnitColValue := kadb.FieldByName(UUnitName).AsString;
+    bjMstExp.NewUnit(UnitColValue);
+//    if Length(ItemColValue) > 0 then
+    bjMstExp.NewItem(ItemColValue,
+    UnitColValue , 0, 0);
     Exit;
   end
   else
   begin
-    NewUnit('NOs');
-    NewItem(pChar(kadb.FieldByName(UItemName).AsString), 'NOs', 0, 0);
+    bjMstExp.NewUnit('NOs');
+    bjMstExp.NewItem(ItemColValue, 'NOs', 0, 0);
   end;
 end;
 procedure TbjMrMc.GenerateID;
@@ -1306,8 +1354,8 @@ begin
 end;
 procedure TbjMrMc.CheckLedMst;
 var
-  dbkLed: string;
-  IsThere: Integer;
+  dbkLed, dbGSTN: string;
+  IsThere: boolean;
 begin
   if not IsMListDeclared then
     Exit;
@@ -1317,13 +1365,31 @@ begin
   dbkLed := kadb.FieldByName('Ledger').AsString;
   if Length(dbkLed) > 0 then
   begin
-  IsThere := IsLedger(pChar(dbkLed));
-  if IsThere = 0 then
+  IsThere := bjMstExp.IsLedger(dbkLed);
+  if not IsThere  then
   begin
     kadb.Edit;
     kadb.FieldByName('TALLYID').AsString :=  dbkLed;
     kadb.Post;
     missingledgers := missingledgers + 1;
+  end
+  else
+  if IsGSTNDefined[1] then
+  if Length(kadb.FieldByName('GSTN').AsString) > 0 then
+  begin
+    dbGSTN := GetLedgerGSTN(dbkLed);
+    if Length(dbGSTN) = 0 then
+    begin
+      kadb.Edit;
+      kadb.FieldByName('GSTN').AsString :=  'Empty GSTN';
+      kadb.Post;
+    end;
+    if kadb.FieldByName('GSTN').AsString <> dbGSTN then
+      kadb.Edit;
+      kadb.FieldByName('GSTN').AsString :=  'New GSTN';
+      kadb.Post;
+    begin
+    end;
   end;
   end;
 {
@@ -1345,19 +1411,18 @@ begin
   if IsUnitDefined then
   begin
     dbUnit := kadb.FieldByName('Unit').AsString;
-    NewUnit(PChar(dbUnit));
+    bjMstExp.NewUnit(dbUnit);
   end;
   if IsAliasDefined then
   begin
     dbAlias := kadb.FieldByName('Alias').AsString;
-      SetAlias(PChar(dbAlias));
+    bjMstExp.Alias := dbAlias;
   end;
   if IsGodownDefined then
   begin
     dbGodown := kadb.FieldByName('Godown').AsString;
-    if Length(dbGodown) > 0 then
-      NewGodown(pChar(dbGodown),'');
-        SetGodown(PChar(dbGodown));
+    bjMstExp.NewGodown(dbGodown,'');
+    bjMstExp.Godown := dbGodown;
   end;
   if IsCategoryDefined then
   begin
@@ -1368,33 +1433,30 @@ begin
   if IsGroupDefined then
   begin
     dbParent := kadb.FieldByName('Group').AsString;
-    if Length(dbParent) > 0 then
-      NewItemGroup(PChar(dbParent),'');
-      SetGroup(PChar(dbParent));
+    bjMstExp.NewItemGroup(dbParent,'');
+    bjMstExp.Group := dbParent;
   end;
   if IsSubGroupDefined then
   begin
     dbParent := kadb.FieldByName('SubGroup').AsString;
     if Length(dbParent) > 0 then
-    NewItemGroup(PChar(dbParent),
-      pChar(kadb.FieldByName('Group').AsString));
-      SetGroup(PChar(dbParent));
+      bjMstExp.NewItemGroup(dbParent,
+        kadb.FieldByName('Group').AsString);
+      bjMstExp.Group := dbParent;
   end;
     dbItem := kadb.FieldByName('Item').AsString;
   OBal := kadb.FieldByName('O_Balance').AsFloat;
   Rate := kadb.FieldByName('O_Rate').AsFloat;
-    if Length(dbItem) > 0 then
-    begin
-    IsThere := IsItem(pChar(dbItem));
-    if IsThere = 0 then
-      NewItem(PChar(dbItem), PChar(dbUnit), OBal, Rate);
-  end;
+  bjMstExp.NewItem(dbItem, dbUnit, OBal, Rate);
 end;
 
 procedure TbjMrMc.CreateRowLedgers;
 var
   OB: double;
-  aState: string;
+  StateColValue: string;
+  LedgerColValue: string;
+  GroupColValue: string;
+  GSTNColValue: string;
 begin
   OB := 0;
   if not IsGroupDeclared[1] then
@@ -1413,20 +1475,23 @@ AutoCreateMst does not affect explicit group or roundoff group
 }
   if (Length(kadb.FieldByName(UGroupName[1]).AsString) > 0) then
   begin
+    LedgerColValue := PChar(kadb.FieldByName(ULedgerName[1]).AsString);
     if IsGSTNDefined[1] then
     begin
       if IsStateDefined[1] then
-        aState := kadb.FieldByName(UStateName[1]).AsString
+        StateColValue := kadb.FieldByName(UStateName[1]).AsString
       else
-        aState := '';
-      NewParty(pchar(kadb.FieldByName(ULedgerName[1]).AsString),
-        pchar(kadb.FieldByName(UGroupName[1]).AsString),
-        pChar(kadb.FieldByName(UGSTNName[1]).AsString),
-        PChar(aState))
+        StateColValue := '';
+      GroupColValue := kadb.FieldByName(UGroupName[1]).AsString;
+      GSTNColValue := kadb.FieldByName(UGSTNName[1]).AsString;
+      bjMstExp.NewParty(LedgerColValue,
+        GroupColValue,
+        GSTNColValue,
+        StateColValue)
     end
     else
-      NewLedger(pchar(kadb.FieldByName(ULedgerName[1]).AsString),
-        pchar(kadb.FieldByName(UGroupName[1]).AsString), OB);
+      bjMstExp.NewLedger(LedgerColValue,
+        GroupColValue, OB);
   end;
 end;
 
@@ -1461,14 +1526,14 @@ begin
 //  if kadb.FindField('Voucher No') <> nil then
 //    SetVchNo(pChar(kadb.FieldByName('Voucher No').AsString));
   if Length(UVchNoColName) > 0 then
-  SetVchNo(pChar(kadb.FieldByName(UVchNoColName).AsString));
+  bjVchExp.VchNo := kadb.FieldByName(UVchNoColName).AsString;
 
   if IsVoucherRefDefined then
-    SetVchRef(pChar(kadb.FieldByName(UVoucherRefName).AsString));
-  SetNarration(pchar(NarrationColValue));
-  SetVchDate(pchar(DateColValue));
-  SetVchType(pchar(typeColValue));
-  SetVchId(pchar(tid));
+    bjVchExp.VchRef := kadb.FieldByName(UVoucherRefName).AsString;
+  bjVchExp.VchNarration := NarrationColValue;
+  bjVchExp.vchDate := DateColValue;
+  bjVchExp.VchType := typeColValue;
+  bjVchExp.VchID := tid;
   RoundOffName := GetRoundOffName;
   notoskip := 0;
 end;
@@ -1709,11 +1774,11 @@ begin
   begin
     if RoundToLimit > 0 then
     begin
-    AddLine(pChar(RoundOffName), - Round(VTotal));
-      AddLine('RoundOff', RoundOffAmount);
+    bjVchExp.AddLine(RoundOffName, - Round(VTotal));
+      bjVchExp.AddLine('RoundOff', RoundOffAmount);
     end
     else
-      AddLine(pChar(RoundOffName), - VTotal);
+      bjVchExp.AddLine(RoundOffName, - VTotal);
 
   end;
 
@@ -1722,6 +1787,7 @@ begin
   StrCopy(PChar(StatMsg), TempStr);
 //  UniqueString(statmsg);
   dllRelease(TempStr);
+  StatMsg := bjVchExp.Post(VchAction, True);
   if StatMsg = '0' then
     IsErr := True;
   if Pos(CheckErrStr, StatMsg) > 0 then
@@ -1810,7 +1876,9 @@ end;
 
 procedure TbjMrMc.SetFirm(const aFirm: string);
 begin
-  SetCompany(pChar(FFirm));
+  bjEnv.Firm := FFirm;
+end;
+
 procedure TbjMrMc.SetHost(const aHost: string);
 begin
   FHost := aHost;
@@ -1827,13 +1895,13 @@ begin
   begin
 //    newvar := FormatDateTime('dd-MMM-yy', fld.AsDateTime);
     newvar := FormatDateTime('yyyymmdd', fld.AsDateTime);
-    Result := pchar(NewVar);
+    Result := NewVar;
     exit;
   end;
   if (fld.DataType = ftString) then
   begin
     newvar := fld.AsString;
-    Result := pchar(NewVar);
+    Result := NewVar;
     Exit;
   end;
   try
@@ -1842,7 +1910,7 @@ begin
   except
     NewVar := '  -  -  ';
   end;
-  Result := pchar(NewVar);
+  Result := NewVar;
 end;
 
 function GetFldStr(fld: TField): string;
@@ -1858,6 +1926,7 @@ begin
 { ftUnknown }
     newvar := fld.Text;
   except
+    ShowMessage('Text in other format');
     NewVar := '';
   end;
   Result := pchar(NewVar);
