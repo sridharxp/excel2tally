@@ -50,6 +50,7 @@ uses
   Client,
   ZS71,
   PClientFns,
+  DateFns,
   bjXml3_1;
 
 {$DEFINE ADO}
@@ -118,7 +119,8 @@ TbjMrMc = class(TinterfacedObject, IbjXlExp, IbjMrMc)
     IsDrAmtDefined: array [1..COLUMNLIMIT] of boolean;
 }
 { Colnumn Variables used in Xml }
-    LedgerName: array [1..COLUMNLIMIT] of string;
+//    LedgerName: array [1..COLUMNLIMIT] of string;
+    LedgerName: string;
     AmountType: array [1..COLUMNLIMIT] of string;
     AmountCols: array [1..COLUMNLIMIT] of integer;
     Amount2Type: array [1..COLUMNLIMIT] of string;
@@ -185,7 +187,7 @@ TbjMrMc = class(TinterfacedObject, IbjXlExp, IbjMrMc)
 { if exosts value if not di}
     DateColValue: string;
     TypeColValue: string;
-    LedgerColValue: string;
+//    LedgerColValue: string;
 
     IsAmt1Defined: boolean;
 {
@@ -281,8 +283,7 @@ TbjMrMc = class(TinterfacedObject, IbjXlExp, IbjMrMc)
   pDict = ^TDict;
 
 function GetFldDt(fld: TField): string;
-
-{$include \TL\ET\src\VchUpdate.int}
+function GetFldAmt(fld: TField): double;
 
 implementation
 
@@ -296,13 +297,13 @@ begin
   Inherited;
 {  SetDebugMode(0); }
     bjEnv := TbjEnv.Create;
+    bjEnv.ToSaveXmlFile := False;
     bjMstExp := TbjMstExp.Create;
     bjMstExp.bjEnv := bjEnv;
     bjEnv.bjMstExp := bjMstExp;
     bjVchExp := TbjVchExp.Create;
     bjVchExp.bjEnv := bjEnv;
     bjVchExp.bjMstExp := bjMstExp;
-  bjEnv.ToSaveXmlFile := False;
   xmlFile := copy(Application.ExeName, 1, Pos('.exe', Application.ExeName)-1) + '.xml';
   Cfgn := CreatebjXmlDocument;
 {  UNarration := '';}
@@ -310,16 +311,16 @@ begin
   notoskip := 0;
   ProcessedCount := 0;;
   UIdName := 'ID';
-  LedgerName[1] := 'LEDGER';
+  LedgerName := 'LEDGER';
   ULedgerName[1] := 'LEDGER';
 
 //  UGroupName := 'GROUP';
   UOBDrName := 'O BAL Dr';
   UOBCrName := 'O BAL Cr';
 
+  LedgerName := 'LEDGER';
   for i:= 2 to COLUMNLIMIT do
   begin
-    LedgerName[i] := 'LEDGER' + InttoStr(i);
     ULedgerName[i] := 'LEDGER' + InttoStr(i);
   end;
   UAmountName[1] := 'AMOUNT';
@@ -632,25 +633,31 @@ AutoCreateMst affects default group only
     end;
   end;
 
+  xCfg := nil;
   for i := 1 to COLUMNLIMIT do
   begin
-    xCfg := Cfg.SearchForTag(nil, LedgerName[i]);
+    xCfg := Cfg.SearchForTag(xCfg, LedgerName);
+    if not Assigned(xCfg) then
+      break;
     if Assigned(xCfg) then
+    begin
       DiLedgerValue[i] := xcfg.GetChildContent('Default');
     if Length(DiLedgerValue[i]) > 0 then
       IsLedgerDeclared[i] := True;
+    end;
 
     str := '';
-    xCfg := cfg.SearchForTag(nil, LedgerName[i]);
+//    xCfg := cfg.SearchForTag(nil, LedgerName[i]);
     if Assigned(xCfg) then
+    begin
       str := xCfg.GetChildContent('Alias');
     if Length(Str) > 0 then
     begin
       ULedgerName[i] := str;
       IsLedgerDeclared[i] := True;
     end;
-
-    xCfg := cfg.SearchForTag(nil, LedgerName[i]);
+    end;
+//    xCfg := cfg.SearchForTag(nil, LedgerName[i]);
     if Assigned(xCfg) then
     begin
 //      LedgerGroup[i] := xCfg.GetChildContent('Group');
@@ -691,7 +698,7 @@ AutoCreateMst affects default group only
       end;
     end;
 
-    xCfg := cfg.SearchForTag(nil, LedgerName[i]);
+//    xCfg := cfg.SearchForTag(nil, LedgerName[i]);
     if Assigned(xCfg) then
     begin
       UAssessableName[i] := xCfg.GetChildContent('Assessable');
@@ -699,7 +706,7 @@ AutoCreateMst affects default group only
       IsAssessableDefined[i] := True;
     end;
 
-    xCfg := cfg.SearchForTag(nil, LedgerName[i]);
+//    xCfg := cfg.SearchForTag(nil, LedgerName[i]);
     if Assigned(xCfg) then
     begin
       xxCfg := xcfg.SearchForTag(nil, 'AmtCol');
@@ -742,7 +749,7 @@ AutoCreateMst affects default group only
       end;
     end;
 
-    xCfg := cfg.SearchForTag(nil, LedgerName[i]);
+//    xCfg := cfg.SearchForTag(nil, LedgerName[i]);
     if Assigned(xCfg) then
     begin
       dCfg := xcfg.SearchForTag(nil, 'Dict');
@@ -893,8 +900,6 @@ begin
   if Length(Host) > 0 then
     bjEnv.Host := Host;
   CheckColNames;
-  if Length(Host) > 0 then
-    SetHost(pchar(Host));
   if FRefreshLedMaster then
     bjMstExp.RefreshMstLists;
 
@@ -1162,11 +1167,11 @@ begin
     begin
       Continue;
     end;
-    if LedgerName[j] <> UledgerName[j] then
-      if Length(DiLedgerValue[j]) = 0 then
-      begin
-        Raise Exception.Create(ULedgerName[j] + ' Column is required');
-      end;
+//    if LedgerName[j] <> UledgerName[j] then
+//      if Length(DiLedgerValue[j]) = 0 then
+//      begin
+//        Raise Exception.Create(ULedgerName[j] + ' Column is required');
+//      end;
   end;
   if kadb.FindField(RoundOffCol) <> nil then
     IsRoundOffColDefined := True;
@@ -1369,7 +1374,7 @@ begin
   if not IsThere  then
   begin
     kadb.Edit;
-    kadb.FieldByName('TALLYID').AsString :=  dbkLed;
+    kadb.FieldByName('TALLYID').AsString :=  'New Ledger';
     kadb.Post;
     missingledgers := missingledgers + 1;
   end
@@ -1760,7 +1765,6 @@ end;
 procedure TbjMrMc.WriteStatus;
 var
   i: integer;
-  TempStr: pChar;
   statmsg: string;
   CheckErrStr: string;
   RoundOffAmount: Double;
@@ -1782,11 +1786,13 @@ begin
 
   end;
 
+{
   TempStr := TryPost(pChar(VchAction));
   SetLength(statmsg, Length(TempStr)+1);
   StrCopy(PChar(StatMsg), TempStr);
 //  UniqueString(statmsg);
   dllRelease(TempStr);
+}
   StatMsg := bjVchExp.Post(VchAction, True);
   if StatMsg = '0' then
     IsErr := True;
@@ -1904,12 +1910,9 @@ begin
     Result := NewVar;
     Exit;
   end;
-  try
+//    Abort;
 { ftUnknown }
     newvar := fld.Text;
-  except
-    NewVar := '  -  -  ';
-  end;
   Result := NewVar;
 end;
 
@@ -1922,14 +1925,10 @@ begin
     newvar := fld.AsString;
     Exit;
   end;
-  try
 { ftUnknown }
     newvar := fld.Text;
-  except
-    ShowMessage('Text in other format');
-    NewVar := '';
-  end;
-  Result := pchar(NewVar);
+//    ShowMessage('Text in other format');
+  Result := NewVar;
 end;
 
 function GetFldAmt(fld: TField): double;
