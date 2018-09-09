@@ -269,9 +269,9 @@ TbjMrMc = class(TinterfacedObject, IbjXlExp, IbjMrMc)
 { Level refers to TokenCol }
 { Token Column can be separate from any Ledger column }
   TDict = Record
-    TokenCol: pChar;
-    Token: pChar;
-    Value: pChar;
+    TokenCol: string;
+    Token: string;
+    Value: String;
   end;
   pDict = ^TDict;
 
@@ -351,9 +351,10 @@ begin
     for j := 0 to LedgerDict[i].Count-1 do
     begin
       ditem := LedgerDict[i].Items[j];
-      StrDispose(ditem^.TokenCol);
-      StrDispose(ditem^.Token);
-      StrDispose(ditem^.Value);
+      ditem^.TokenCol := '';
+      ditem^.Token := '';
+      ditem^.Value := '';
+      Dispose(ditem);
     end;
   LedgerDict[i].Clear;
   LedgerDict[i].Free;
@@ -448,11 +449,11 @@ AutoCreateMst affects default group only
       begin
         ditem := new (pDict);
 //        pDict(dItem)^.TokenCol := StrtoInt(dcfg.GetChildContent('TokenCol'));
-        pDict(dItem)^.TokenCol := StrNew(PChar(dcfg.GetChildContent('TokenCol')));
+        pDict(dItem)^.TokenCol := dcfg.GetChildContent('TokenCol');
         str := dcfg.GetChildContent('Token');
-        pDict(dItem)^.Token := StrNew(pchar(str));
+        pDict(dItem)^.Token := str;
         str := dcfg.GetChildContent('Value');
-        pDict(dItem)^.Value := StrNew(pchar(str));
+        pDict(dItem)^.Value := str;
         LedgerDict[COLUMNLIMIT+1].Add(Ditem);
         dCfg := xcfg.SearchForTag(dcfg, 'Dict');
       end;
@@ -736,11 +737,11 @@ AutoCreateMst affects default group only
         while Assigned(dcfg) do
         begin
           ditem := new (pDict);
-          pDict(dItem)^.TokenCol := StrNew(pChar(dcfg.GetChildContent('TokenCol')));
+          pDict(dItem)^.TokenCol := dcfg.GetChildContent('TokenCol');
           str := dcfg.GetChildContent('Token');
-          pDict(dItem)^.Token := StrNew(pchar(str));
+          pDict(dItem)^.Token := str;
           str := dcfg.GetChildContent('Value');
-          pDict(dItem)^.Value := StrNew(pchar(str));
+          pDict(dItem)^.Value := str;
           LedgerDict[i].Add(Ditem);
           dCfg := xcfg.SearchForTag(dcfg, 'Dict');
         end;
@@ -1200,6 +1201,7 @@ begin
          ditem := LedgerDict[i].Items[j];
          if (Length(LedgerGroup[i]) > 0) then
          begin
+           LedgerColValue := pDict(dItem)^.Value;
            NewLedger(pchar(pDict(dItem)^.Value), pchar(LedgerGroup[i]), 0);
          end;
        end;
@@ -1209,6 +1211,7 @@ begin
     begin
       ditem := LedgerDict[COLUMNLIMIT+1].Items[j];
       if (Length(RoundOffGroup) > 0) then
+        LedgerColValue := pDict(dItem)^.Value;
         NewLedger(pchar(pDict(dItem)^.Value), pchar(RoundOffGroup), 0);
     end;
 //  if RoundToLimit > 0 then
