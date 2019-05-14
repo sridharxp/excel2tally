@@ -22,7 +22,7 @@ interface
 
 type
   IbjxlExp = interface
-    procedure ReadColNames;
+    procedure DeclareColNames;
     procedure OpenFile;
     procedure Process;
     procedure GetDefaults;

@@ -213,7 +213,7 @@ TbjMrMc = class(TinterfacedObject, IbjXlExp, IbjMrMc)
     IsCrDrAmtColsDefined: Boolean;
     RoundOffName: string;
 
-    bjEnv: TbjEnv;
+//    bjEnv: TbjEnv;
     bjMstExp: TbjMstExp;
     bjVchExp: TbjVchExp;
     procedure DeclareColNames;
@@ -255,6 +255,7 @@ TbjMrMc = class(TinterfacedObject, IbjXlExp, IbjMrMc)
     DefGroup: string;
  //   Host: string;
 //    ToCreateMasters: boolean;
+    bjEnv: TbjEnv;
     constructor Create;
     destructor Destroy; override;
     procedure Execute;
@@ -318,11 +319,8 @@ begin
   UOBDrName := 'O BAL Dr';
   UOBCrName := 'O BAL Cr';
 
-  LedgerName := 'LEDGER';
   for i:= 2 to COLUMNLIMIT do
-  begin
     ULedgerName[i] := 'LEDGER' + InttoStr(i);
-  end;
   UAmountName[1] := 'AMOUNT';
   for i:= 2 to COLUMNLIMIT do
   begin
@@ -349,6 +347,7 @@ begin
   FRefreshLedMaster := False;
   FToLog := True;
   FToAutoCreateMst := True;
+  FdynPgLen := PgLen + Random(16);
 end;
 
 destructor TbjMrMc.Destroy;
@@ -826,11 +825,6 @@ AutoCreateMst affects default group only
       if IsLedgerDeclared[i+1] then
          if not IsAmtDeclared[i] then
            raise Exception.Create(UAmountName[i] + ' Column is required');
-    end
-    else
-    begin
-      if IsMoreColumn(i) then
-         raise Exception.Create(ULedgerName[i] + ' Column is required');
     end;
   end;
 
@@ -1269,14 +1263,14 @@ AutoCreateMst does not affect explicit group or roundoff group
         StateColValue := '';
       if IsGSTNDefined[i] then
       begin
-        LedgerColValue := PChar(kadb.FieldByName(ULedgerName[i]).AsString);
+        LedgerColValue := kadb.FieldByName(ULedgerName[i]).AsString;
         GSTNColValue := kadb.FieldByName(UGSTNName[i]).AsString;
         bjMstExp.NewParty(LedgerColValue, LedgerGroup[i], GSTNColValue,
         StateColValue);
       end
       else if IsLedgerDefined[i] then
       begin
-        LedgerColValue := PChar(kadb.FieldByName(ULedgerName[i]).AsString);
+        LedgerColValue := kadb.FieldByName(ULedgerName[i]).AsString;
         bjMstExp.NewLedger(LedgerColValue, LedgerGroup[i], 0);
       end;
     end;
@@ -1288,7 +1282,7 @@ AutoCreateMst does not affect explicit group or roundoff group
         Continue;
       if IsLedgerDefined[i] then
       begin
-        LedgerColValue := PChar(kadb.FieldByName(ULedgerName[i]).AsString);
+        LedgerColValue := kadb.FieldByName(ULedgerName[i]).AsString;
         bjMstExp.NewLedger(LedgerColValue, LedgerGroup[i], 0);
       end;
     end;
@@ -1304,7 +1298,7 @@ AutoCreateMst does not affect explicit group or roundoff group
         StateColValue := kadb.FieldByName(UStateName[COLUMNLIMIT+1]).AsString
       else
         StateColValue := '';
-      LedgerColValue := PChar(kadb.FieldByName(RoundOffCol).AsString);
+      LedgerColValue := kadb.FieldByName(RoundOffCol).AsString;
       if IsGSTNDefined[COLUMNLIMIT + 1] then
       begin
 //        NewParty(pchar(kadb.FieldByName(RoundOffCol).AsString), pchar(RoundOffGroup), pChar(kadb.FieldByName(RoundOffGSTN).AsString),'')
@@ -1480,14 +1474,14 @@ AutoCreateMst does not affect explicit group or roundoff group
 }
   if (Length(kadb.FieldByName(UGroupName[1]).AsString) > 0) then
   begin
-    LedgerColValue := PChar(kadb.FieldByName(ULedgerName[1]).AsString);
+    LedgerColValue := kadb.FieldByName(ULedgerName[1]).AsString;
+    GroupColValue := kadb.FieldByName(UGroupName[1]).AsString;
     if IsGSTNDefined[1] then
     begin
       if IsStateDefined[1] then
         StateColValue := kadb.FieldByName(UStateName[1]).AsString
       else
         StateColValue := '';
-      GroupColValue := kadb.FieldByName(UGroupName[1]).AsString;
       GSTNColValue := kadb.FieldByName(UGSTNName[1]).AsString;
       bjMstExp.NewParty(LedgerColValue,
         GroupColValue,
