@@ -170,6 +170,7 @@ type
   private
     { Private declarations }
     FvchDate: string;
+    Fvch_Date: string;
     FVchType: string;
     FVchNarration: string;
     FVchNo: string;
@@ -234,6 +235,7 @@ type
     { Published declarations }
     property VchID: string read FVchID write SetVchID;
     property vchDate: string read FVchDate write FVchDate;
+    property vch_Date: string read FVch_Date write FVch_Date;
     property VchType: string read FVchType write GetVchType;
     property VchNarration: string read FVchNarration write FVchNarration;
     property VchNo: string read FVchNo write FVchNo;
@@ -936,6 +938,9 @@ begin
   xvou.AddAttribute('REMOTEID', sid);
   xvou.AddAttribute('VCHTYPE', vchType);
   xvou.AddAttribute('ACTION', vchAction);
+  if Length(Vch_Date) > 0 then
+  xvou.NewChild2('DATE',vch_Date)
+  else
   xvou.NewChild2('DATE',vchDate);
   if Length(VchRefDate) > 0 then
   begin

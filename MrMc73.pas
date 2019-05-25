@@ -148,6 +148,7 @@ TbjMrMc = class(TinterfacedObject, IbjXlExp, IbjMrMc)
     IsVchNoDefined: boolean;
     IsVTypeDefined: boolean;
     IsVoucherRefDefined: boolean;
+    IsVoucherDateDefined: boolean;
     IsBillRefDefined: boolean;
     IsItemDefined: boolean;
     IsUnitDefined: boolean;
@@ -167,6 +168,7 @@ TbjMrMc = class(TinterfacedObject, IbjXlExp, IbjMrMc)
     UNarration3Name: string;
     UVchNoColName: string;
     UVoucherRefName: string;
+    UVoucherDateName: string;
     UBillRefName: string;
     UTallyIDName: string;
 
@@ -337,6 +339,7 @@ begin
   UVTypeName := 'VTYPE';
   UNarrationName := 'NARRATION';
   UVoucherRefName := 'Voucher Ref';
+  UVoucherDateName := 'Voucher Date';
   UBillRefName := 'Bill Ref';
   inventoryTag := 'INVENTORY';
   UItemName := 'Item';
@@ -1052,6 +1055,8 @@ begin
     IsVTypeDefined := True;
   if kadb.FindField(UVoucherRefName) <> nil then
     IsVoucherRefDefined := True;
+  if kadb.FindField(UVoucherDateName) <> nil then
+    IsVoucherDateDefined := True;
   if kadb.FindField(UBillRefName) <> nil then
     IsBillRefDefined := True;
   if kadb.FindField(UNarrationName) <> nil then
@@ -1497,6 +1502,11 @@ begin
 
   if IsVoucherRefDefined then
     bjVchExp.VchRef := kadb.GetFieldString(UVoucherRefName);
+  if IsVoucherDateDefined then
+  begin
+    bjVchExp.Vch_Date := kadb.GetFieldSDate(UVoucherDateName);
+    bjVchExp.VchRefDate := kadb.GetFieldSDate(UDateName);
+  end;
   if IsBillRefDefined then
     bjVchExp.BillRef := kadb.GetFieldString(UBillRefName);
   bjVchExp.VchNarration := NarrationColValue;
@@ -1838,10 +1848,18 @@ var
   idx: integer;
   str: string;
 begin
+  idx := 33;
   str := copy(aGSTN, 1, 2);
   if Length(Trim(str)) = 0 then
   Exit;
-  idx := StrtoInt(str);
+//  idx := StrtoInt(str);
+  if not tryStrtoInt(str, idx) then
+  begin
+    MessageDlg('Error in GSTN, Row: '+ IntToStr(kadb.CurrentRow+1) , mterror, [mbOK], 0);
+    kadb.SetFieldVal('TALLYID', 'GSTN');
+    Result := UDefStateName;
+    Exit;
+  end;
 Case idx of
         1: str := 'Jammu & Kashmir';
         2: str := 'Himachal Pradesh';
