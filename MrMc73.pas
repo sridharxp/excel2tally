@@ -151,6 +151,7 @@ TbjMrMc = class(TinterfacedObject, IbjXlExp, IbjMrMc)
     IsVoucherDateDefined: boolean;
     IsBillRefDefined: boolean;
     IsItemDefined: boolean;
+    IsHSNDefined: boolean;
     IsUnitDefined: boolean;
     IsAliasDefined: Boolean;
     IsGodownDefined: Boolean;
@@ -177,6 +178,7 @@ TbjMrMc = class(TinterfacedObject, IbjXlExp, IbjMrMc)
 
     InventoryTag: string;
     UItemName: string;
+    UHSNName: string;
     UUnitName: string;
     UQtyName: string;
     URateName: string;
@@ -343,6 +345,7 @@ begin
   UBillRefName := 'Bill Ref';
   inventoryTag := 'INVENTORY';
   UItemName := 'Item';
+  UHSNName := 'HSN';
   UUnitName := 'Unit';
   UQtyName := 'Qty';
   URateName := 'Rate';
@@ -1018,8 +1021,8 @@ begin
     Exit;
 //    invamt := kadb.GetFieldFloat(UItemAmtName);
 { InvAmt for Purchase }
-  if AmountType[level] = 'Dr' then
-    invamt := -invamt;
+//if AmountType[level] = 'Dr' then
+//  invamt := -invamt;
   ItemColValue := kadb.GetFieldString(UItemName);
   if (Length(ItemColValue) > 0) and
     (not kadb.IsEmptyField(UQtyName)) then
@@ -1062,9 +1065,9 @@ begin
   if kadb.FindField(UNarrationName) <> nil then
     IsNarrationDefined := True;
   if kadb.FindField(UItemName) <> nil then
-  begin
     IsItemDefined := True;
-  end;
+  if kadb.FindField(UHSNName) <> nil then
+    IsHSNDefined := True;
   if kadb.FindField(UUnitName) <> nil then
     IsUnitDefined := True;
   if kadb.FindField(UAliasName) <> nil then
@@ -1274,25 +1277,28 @@ procedure TbjMrMc.CreateItem(const level: integer);
 var
   UnitColValue: string;
   ItemColValue: string;
+  HSNColValue: string;
 begin
   if not IsInvDefined[level] then
     Exit;
   if not IsItemDefined then
     Exit;
   ItemColValue := kadb.GetFieldString(UItemName);
-  if IsUnitDefined then
-  begin
-    UnitColValue := kadb.GetFieldString(UUnitName);
-    bjMstExp.NewUnit(UnitColValue);
-    bjMstExp.NewItem(ItemColValue,
-    UnitColValue , 0, 0);
-    Exit;
-  end
-  else
+  if not IsUnitDefined then
   begin
     bjMstExp.NewUnit('NOs');
-    bjMstExp.NewItem(ItemColValue, 'NOs', 0, 0);
+    UnitColValue := 'Nos';
   end;
+    UnitColValue := kadb.GetFieldString(UUnitName);
+    bjMstExp.NewUnit(UnitColValue);
+  if IsHSNDefined then
+  begin
+    HSNColValue := kadb.GetFieldString('HSN');
+    bjMstExp.NewHSN(ItemColValue, UnitColValue, HSNColValue, 0);
+  end
+  else
+    bjMstExp.NewItem(ItemColValue,
+    UnitColValue , 0, 0);
 end;
 
 procedure TbjMrMc.GenerateID;
@@ -1378,6 +1384,7 @@ procedure TbjMrMc.ExpItemMst;
 var
   dbItem, dbUnit: string;
   dbAlias, dbGodown, dbParent, dbCategory: string;
+  dbHSN: string;
   OBal, Rate: Double;
 begin
   if not IsMListDeclared then
@@ -1424,6 +1431,12 @@ begin
   dbItem := kadb.GetFieldString('Item');
   OBal := kadb.GetFieldFloat('O_Balance');
   Rate := kadb.GetFieldFloat('O_Rate');
+  if IsHSNDefined then
+    begin
+    dbHSN := kadb.GetFieldString('HSN');
+  bjMstExp.NewHSN(dbItem, dbUnit, dbHSN, Rate);
+    end
+    else
   bjMstExp.NewItem(dbItem, dbUnit, OBal, Rate);
 end;
 

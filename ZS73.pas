@@ -122,6 +122,7 @@ type
     function CreateParty(const Ledger, Parent, GSTN, State: string ): boolean;
     function CreateGST(const Ledger, Parent: string; Const TaxRate: string ): boolean;
     function CreateItem(const Item, BaseUnit: string; const OBal, ORate: double): boolean;
+    function CreateHSN(const Item, BaseUnit, aHSN: string; const ORate: double): boolean;
 //    function CreateItem(const Item, BaseUnit: string; const OBal, ORate: double): boolean;
     function CreateUnit(const ItemUnit: string): boolean;
     function CreateItemGroup(const Grp, Parent: string): boolean;
@@ -145,6 +146,7 @@ type
     function GetHalfof(const TaxRate: string): string;
     function IsItem(const Item: string): boolean;
     procedure NewItem(const aItem, aBaseUnit: string; OpBal, ORate: double);
+    procedure NewHSN(const aItem, aBaseUnit, aHSN: string; const ORate: double);
     function IsUnit(const aUnit: string): boolean;
     procedure NewUnit(const aUnit: string);
     procedure NewItemGroup(const aGrp, aParent: string);
@@ -467,8 +469,7 @@ begin
     end;
     if Pos('SGST', ledger) > 0 then
     begin
-//      xLdg.NewChild2('GSTDUTYHEAD', 'State Tax');
-      xLdg.NewChild2('GSTDUTYHEAD', 'UT Tax');
+      xLdg.NewChild2('GSTDUTYHEAD', 'State Tax');
       percentage := GetHalfof(TaxRate);
     end;
     if Pos('IGST', ledger) > 0 then
@@ -506,7 +507,7 @@ begin
     xLdg := xLdg.GetParent;
 *)
     xLdg := xLdg.NewChild('RATEDETAILS.LIST', '');
-    xLdg.NewChild2('GSTRATEDUTYHEAD', 'UT Tax');
+    xLdg.NewChild2('GSTRATEDUTYHEAD', 'State Tax');
     xLdg.NewChild2('GSTRATE', GetHalfof(TaxRate));
   { RATEDETAILS.LIST }
     xLdg := xLdg.GetParent;
@@ -694,13 +695,13 @@ begin
     xLdg.NewChild2('OPENINGRATE', FormatFloat(TallyAmtPicture,ORate)+'/'+BaseUnit);;
   If Length(Godown) > 0 then
   begin
-  xLdg := xLdg.NewChild('BATCHALLOCATIONS.LIST','');
-  xLdg.NewChild2('GODOWNNAME', Godown );
-  xLdg.NewChild2('BATCHNAME', 'Primary Batch');
-  xLdg.NewChild2('BATCHNAME', 'Primary Batch');
-  xLdg.NewChild2('OPENINGBALANCE', FormatFloat(TallyAmtPicture, OBal)+' '+BaseUnit);
+    xLdg := xLdg.NewChild('BATCHALLOCATIONS.LIST','');
+    xLdg.NewChild2('GODOWNNAME', Godown );
+    xLdg.NewChild2('BATCHNAME', 'Primary Batch');
+    xLdg.NewChild2('BATCHNAME', 'Primary Batch');
+    xLdg.NewChild2('OPENINGBALANCE', FormatFloat(TallyAmtPicture, OBal)+' '+BaseUnit);
   { BATCHALLOCATIONS }
-  xLdg := xLdg.GetParent;
+    xLdg := xLdg.GetParent;
   end;
   { STOCKITEM }
   xLdg := xLdg.GetParent;
@@ -714,6 +715,60 @@ begin
   Result := True;
 end;
 
+{ Function to replace CreateItem }
+function TbjMstExp.CreateHSN(const Item, BaseUnit, aHSN: string; const ORate: double): boolean;
+begin
+  xmlHeader('L');
+  xLdg := xLdg.NewChild('TALLYMESSAGE','');
+  xLdg := xLdg.NewChild('STOCKITEM','');
+  xLdg.AddAttribute('NAME', Item);
+  xLdg.AddAttribute('ACTION','Create');
+  If Length(Group) > 0 then
+  xLdg.NewChild2('PARENT', Group );
+  If Length(category) > 0 then
+    xLdg.NewChild2('CATEGORY', Category );
+  If Length(aHSN) > 0 then
+  begin
+    xLdg.NewChild2('GSTAPPLICABLE', #4 +' Applicable' );
+    xLdg.NewChild2('GSTTYPEOFSUPPLY', 'Goods');
+  end;
+  xLdg := xLdg.NewChild('NAME.LIST','');
+  xLdg.NewChild2('NAME', Item );
+  If Length(Alias) > 0 then
+  xLdg.NewChild2('NAME', Alias );
+  { NAME.LIST }
+  xLdg := xLdg.GetParent;
+  xLdg.NewChild2('BASEUNITS', BaseUnit );
+  xLdg.NewChild2('OPENINGBALANCE', FormatFloat(TallyAmtPicture, 0)+' '+BaseUnit);
+  if ORate > 0 then
+    xLdg.NewChild2('OPENINGRATE', FormatFloat(TallyAmtPicture,ORate)+'/'+BaseUnit);;
+  If Length(Godown) > 0 then
+  begin
+  xLdg := xLdg.NewChild('BATCHALLOCATIONS.LIST','');
+  xLdg.NewChild2('GODOWNNAME', Godown );
+  xLdg.NewChild2('BATCHNAME', 'Primary Batch');
+  xLdg.NewChild2('BATCHNAME', 'Primary Batch');
+  xLdg.NewChild2('OPENINGBALANCE', FormatFloat(TallyAmtPicture, 0)+' '+BaseUnit);
+  { BATCHALLOCATIONS }
+  xLdg := xLdg.GetParent;
+  end;
+  If Length(aHSN) > 0 then
+  begin
+    xLdg := xLdg.NewChild('GSTDETAILS.LIST', '');
+    xLdg.NewChild2('APPLICABLEFROM', '20180701');
+    xLdg.NewChild2('HSNCODE', aHSN);
+    xLdg.NewChild2('TAXABILITY', 'Taxable');
+  xLdg := xLdg.GetParent;
+  end;
+  { STOCKITEM }
+  xLdg := xLdg.GetParent;
+
+  { TALLYMESSAGE }
+  xLdg := xLdg.GetParent;
+  XMLFooter('L');
+  LPost;
+  Result := True;
+end;
 function TbjMstExp.CreateUnit(const ItemUnit: string): boolean;
 begin
 {  Result := False; }
@@ -1628,6 +1683,24 @@ begin
   end;
 end;
 
+procedure TbjMstExp.NewHSN(const aItem, aBaseUnit, aHSN: string; const ORate: double);
+var
+  Found: boolean;
+begin
+  If Length(aItem) = 0 then
+    Exit;
+  If Length(aBaseUnit) = 0 then
+    Exit;
+  Found := IsItem(aItem);
+  if Found then
+    if bjEnv.ToUpdateMasters then
+      CreateHSN(aItem, aBaseUnit, aHSN, ORate);
+  if not found then
+  begin
+    CreateHSN(aItem, aBaseUnit, aHSN, ORate);
+    ItemPList.Add(PackStr(aItem));
+  end;
+end;
 procedure TbjMstExp.NewUnit(const aUnit: string);
 var
   Found: boolean;
