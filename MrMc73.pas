@@ -54,7 +54,7 @@ uses
   XLSWorkbook,
   bjXml3_1;
 
-{$DEFINE ADO}
+{$DEFINE xlstbl}
 
 Const
   PGLEN = 12;
@@ -389,6 +389,7 @@ begin
   LedgerDict[i].Clear;
   LedgerDict[i].Free;
   end;
+  if Assigned(kadb) then
   if kadb.ToSaveFile then
     if Length(ReportFileName) > 0 then
       kadb.Save(ReportFileName);
@@ -823,7 +824,7 @@ end;
 procedure TbjMrMc.OpenFile;
 var
   flds: TStringList;
-//  DtCol: TColumn;
+  idx: Integer;
 begin
 //  if Length(Host) > 0 then
 //    SetHost(pchar(Host));
@@ -831,7 +832,7 @@ begin
 passing Windows Exception as it is }
   if not FileExists(dbName) then
     raise Exception.Create('File ' + dbname + ' not found');
-{$IFDEF ADO}
+{$IFDEF xlstbl}
   if FileFmt = 'Excel_Table' then
   begin
     kadb := TbjXLSTable.Create;
@@ -845,6 +846,7 @@ passing Windows Exception as it is }
     FUpdate('Processing '+ FileName);
     flds := TStringList.Create;
     kadb.ParseXml(Cfgn, flds);
+    if not flds.Find('ID', idx) then
     flds.Add('ID');
     flds.Add('TALLYID');
 //    flds.Add('Tax_rate');
@@ -1288,9 +1290,12 @@ begin
   begin
     bjMstExp.NewUnit('NOs');
     UnitColValue := 'Nos';
-  end;
+  end
+  else
+  begin
     UnitColValue := kadb.GetFieldString(UUnitName);
     bjMstExp.NewUnit(UnitColValue);
+  end;
   if IsHSNDefined then
   begin
     HSNColValue := kadb.GetFieldString('HSN');

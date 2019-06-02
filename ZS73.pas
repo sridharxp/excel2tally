@@ -1030,6 +1030,9 @@ begin
   else
     xvou.NewChild2('REFERENCE',VchNo);
 { Effective Date is crucial; Without which dll crashes }
+  if Length(Vch_Date) > 0 then
+  xvou.NewChild2('EFFECTIVEDATE',vch_Date)
+  else
   xvou.NewChild2('EFFECTIVEDATE',vchDate);
   IsVchTypeMatched := False;
   DrCrTotal := 0;
@@ -1132,6 +1135,12 @@ begin
     if Amount >= 0 then
       IsVchTypeMatched := False;
   if  (VchType = 'Contra') then
+    if Amount <= 0 then
+      IsVchTypeMatched := False;
+  if  (VchType = 'Debit Note') then
+    if Amount >= 0 then
+      IsVchTypeMatched := False;
+  if  (VchType = 'Credit Note') then
     if Amount <= 0 then
       IsVchTypeMatched := False;
 end;
