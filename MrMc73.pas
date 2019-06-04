@@ -1326,6 +1326,7 @@ procedure TbjMrMc.CheckLedMst;
 var
   dbkLed, wLed, dbGSTN, wGSTN: string;
   IsThere: boolean;
+  dbAlias: string;
 begin
   if not IsMListDeclared then
     Exit;
@@ -1334,6 +1335,11 @@ begin
   kadb.SetFieldVal('TALLYID', ' - ');
   if IsLedgerdefined[1] then
   dbkLed := kadb.GetFieldString('Ledger');
+  if IsAliasDefined then
+  begin
+    dbAlias := kadb.GetFieldString(UAliasName);
+    bjMstExp.Alias := dbAlias;
+  end;
   if Length(dbkLed) > 0 then
   begin
   IsThere := bjMstExp.IsLedger(dbkLed);
@@ -1404,7 +1410,7 @@ begin
   end;
   if IsAliasDefined then
   begin
-    dbAlias := kadb.GetFieldString('Alias');
+    dbAlias := kadb.GetFieldString(UAliasName);
     bjMstExp.Alias := dbAlias;
   end;
   if IsGodownDefined then

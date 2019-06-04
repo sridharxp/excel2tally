@@ -418,6 +418,8 @@ begin
   xLdg.AddAttribute('ACTION','Create');
   xLdg := xLdg.NewChild('NAME.LIST','');
   xLdg.NewChild2('NAME', ledger );
+  If Length(Alias) > 0 then
+  xLdg.NewChild2('NAME', Alias );
   { NAME.LIST }
   xLdg := xLdg.GetParent;
   xLdg.NewChild2('PARENT', parent );
@@ -456,6 +458,8 @@ begin
   xLdg.AddAttribute('ACTION','Create');
   xLdg := xLdg.NewChild('NAME.LIST','');
   xLdg.NewChild2('NAME', ledger );
+  If Length(Alias) > 0 then
+  xLdg.NewChild2('NAME', Alias );
   { NAME.LIST }
   xLdg := xLdg.GetParent;
   xLdg.NewChild2('PARENT', parent );
@@ -641,6 +645,8 @@ begin
   xLdg.AddAttribute('ACTION','Create');
   xLdg := xLdg.NewChild('NAME.LIST','');
   xLdg.NewChild2('NAME', ledger );
+  If Length(Alias) > 0 then
+  xLdg.NewChild2('NAME', Alias );
   { NAME.LIST }
   xLdg := xLdg.GetParent;
   xLdg.NewChild2('SALESTAXNUMBER', GSTN);
