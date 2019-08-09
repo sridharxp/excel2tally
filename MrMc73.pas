@@ -58,7 +58,7 @@ uses
 
 Const
   PGLEN = 12;
-  COLUMNLIMIT = 56;
+  COLUMNLIMIT = 64;
   TallyAmtPicture = '############.##';
 
 type
@@ -74,6 +74,7 @@ TbjMrMc = class(TinterfacedObject, IbjXlExp, IbjMrMc)
     FToAutoCreateMst: boolean;
     FdynPgLen: integer;
     FVchType: string;
+    FRoundOfftoNext: boolean;
     FIsMListDeclared: Boolean;
     FIsVListDeclared: Boolean;
     FIsExpItemMst: Boolean;
@@ -282,6 +283,7 @@ TbjMrMc = class(TinterfacedObject, IbjXlExp, IbjMrMc)
     property IsExpItemMst: Boolean read FIsExpItemMst write FIsExpItemMst;
     property Firm: string read FFirm write setFirm;
     PROPERTY Host: string read FHost write SetHost;
+    property RoundOfftoNext: boolean read FRoundOfftoNext write FRoundOfftoNext;
   end;
 
   TbjDSLParser = class
@@ -342,6 +344,7 @@ begin
   UNarrationName := 'NARRATION';
   UVoucherRefName := 'Voucher Ref';
   UVoucherDateName := 'Voucher Date';
+  UVchNoColName := 'VoucherNo';
   UBillRefName := 'Bill Ref';
   inventoryTag := 'INVENTORY';
   UItemName := 'Item';
@@ -498,7 +501,7 @@ AutoCreateMst affects default group only
     end;
   end;
 
-  xCfg := Cfg.SearchForTag(nil, 'VoucherNo');
+  xCfg := Cfg.SearchForTag(nil, UVchNoColName);
   if Assigned(xCfg) then
   begin
     str := xCfg.GetChildContent('Alias');
@@ -1033,6 +1036,8 @@ begin
     kadb.GetFieldFloat(URateName),
     invamt);
   IsInventoryAssigned := True;
+  bjVchExp.InvVch := True;
+  RoundOfftoNext := True;
 end;
 
 { Validation of Table Columns in Excel
@@ -1044,9 +1049,9 @@ var
   str: string;
   strMsg: string;
   LedgerColValue: string;
-  DefinedLedgers: integer;
+  DeclaredLedgers: integer;
 begin
-  DefinedLedgers := 0;
+  DeclaredLedgers := 0;
   if kadb.FindField(UIdName) <> nil then
   begin
     IsIdDefined := True;
@@ -1100,10 +1105,11 @@ begin
 
 { if a Column is defined it should exist in Table }
   for j := 1 to COLUMNLIMIT do
+  begin
       if kadb.FindField(ULedgerName[j]) <> nil then
-      begin
         IsLedgerDefined[j] := True;
-        DefinedLedgers := j;
+      if IsLedgerDeclared[j] then
+        DeclaredLedgers := j;
       end;
   if kadb.FindField(RoundOffCol) <> nil then
     IsRoundOffColDefined := True;
@@ -1113,21 +1119,23 @@ begin
     str := kadb.FieldList[i];
     if copy(str, 1,3) = 'Cr_' then
     begin
-      DefinedLedgers := DefinedLedgers +1;
-      IsLedgerDeclared[DefinedLedgers] := True;
-      DiLedgerValue[DefinedLedgers] := copy(str, 4, Length(str)-3);
-      IsAmtDefined[DefinedLedgers] := True;
-      UAmountName[DefinedLedgers] := str;
-      AmountType[DefinedLedgers] := 'Cr';
+      DeclaredLedgers := DeclaredLedgers + 1;
+      IsLedgerDeclared[DeclaredLedgers] := True;
+      DiLedgerValue[DeclaredLedgers] := copy(str, 4, Length(str)-3);
+      IsAmtDefined[DeclaredLedgers] := True;
+      UAmountName[DeclaredLedgers] := str;
+      AmountType[DeclaredLedgers] := 'Cr';
+      bjMstExp.NewLedger(DiLedgerValue[DeclaredLedgers], 'Indirect Incomes', 0);
     end;
     if copy(str, 1,3) = 'Dr_' then
     begin
-      DefinedLedgers := DefinedLedgers +1;
-      IsLedgerDeclared[DefinedLedgers] := True;
-      DiLedgerValue[DefinedLedgers] := copy(str, 4, Length(str)-3);
-      IsAmtDefined[DefinedLedgers] := True;
-      UAmountName[DefinedLedgers] := str;
-      AmountType[DefinedLedgers] := 'Dr';
+      DeclaredLedgers := DeclaredLedgers + 1;
+      IsLedgerDeclared[DeclaredLedgers] := True;
+      DiLedgerValue[DeclaredLedgers] := copy(str, 4, Length(str)-3);
+      IsAmtDefined[DeclaredLedgers] := True;
+      UAmountName[DeclaredLedgers] := str;
+      AmountType[DeclaredLedgers] := 'Dr';
+      bjMstExp.NewLedger(DiLedgerValue[DeclaredLedgers], 'Indirect Expenses', 0);
     end;
   end;
 //  if IsMultiRowVoucher then
@@ -1784,6 +1792,13 @@ var
   RoundOffAmount: Double;
 begin
   RoundOffAmount := Round(Vtotal) - VTotal;
+  if RoundOffAmount < 0 then
+  if (VchType = 'Sales') or (VchType = 'Purchase') then
+  if RoundOfftoNext then
+  begin
+    RoundOffAmount := RoundOffAmount + 1;
+    VTotal := VTotal + RoundOffAmount;
+  end;
 //  CheckErrStr := '(FOR OBJECT: ';
   vchAction := 'Create';
   if Abs(VTotal) >= 0.01 then
@@ -1875,8 +1890,10 @@ begin
   idx := 33;
   str := copy(aGSTN, 1, 2);
   if Length(Trim(str)) = 0 then
+  begin
+  Result := UdefStateName;
   Exit;
-//  idx := StrtoInt(str);
+  end;
   if not tryStrtoInt(str, idx) then
   begin
     MessageDlg('Error in GSTN, Row: '+ IntToStr(kadb.CurrentRow+1) , mterror, [mbOK], 0);

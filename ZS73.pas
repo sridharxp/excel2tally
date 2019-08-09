@@ -141,7 +141,8 @@ type
     destructor Destroy; override;
     function IsLedger(Const Ledger: string): boolean;
     procedure NewLedger(const aLedger, aParent: string; OpBal: double);
-    procedure NewParty(const aLedger, aParent, aGSTN: string; aState: string = 'Tamil Nadu');
+//    procedure NewParty(const aLedger, aParent, aGSTN: string; aState: string = 'Tamil Nadu');
+    procedure NewParty(const aLedger, aParent, aGSTN: string; aState: string);
     procedure NewGST(const aLedger, aParent: string; const TaxRate: string);
     function GetHalfof(const TaxRate: string): string;
     function IsItem(const Item: string): boolean;
@@ -174,6 +175,7 @@ type
     FvchDate: string;
     Fvch_Date: string;
     FVchType: string;
+    FInvVch: boolean;
     FVchNarration: string;
     FVchNo: string;
     FVchRef: string;
@@ -200,6 +202,7 @@ type
     DrCrTotal: double;
     RefLedger: string;
 //    ToSaveXMLFile: boolean;
+    CrLine, DrLine: integer;
     TallyVersion: string;
     Error: string;
     procedure GetVchType(const aName: string);
@@ -239,6 +242,7 @@ type
     property vchDate: string read FVchDate write FVchDate;
     property vch_Date: string read FVch_Date write FVch_Date;
     property VchType: string read FVchType write GetVchType;
+    property InvVch: boolean read FInvVch write FInvVch;
     property VchNarration: string read FVchNarration write FVchNarration;
     property VchNo: string read FVchNo write FVchNo;
     property VchRef: string read FVchRef write FVchRef;
@@ -307,6 +311,7 @@ begin
   FTLic := '711031608';
   ToSaveXMLFile := False;
   FToUpdate := False;
+  FDefaultGSTState := 'Tamil Nadu';
 end;
 
 destructor TbjEnv.Destroy;
@@ -357,6 +362,7 @@ begin
 { No Default Group;
   It should be defined by Callinf functions
   For simple usage, that is}
+  FInvVch := False;
 end;
 
 destructor TbjVchExp.Destroy;
@@ -1026,6 +1032,11 @@ begin
   if (VchType = 'Purchase')  or (VchType = 'Sales') then
   begin
 {    xvou.NewChild2('PERSISTEDVIEW','Invoice Voucher View'); }
+    if (VchType = 'Sales')  and (DrLine > 1) then
+      InvVch := False;
+    if (VchType = 'Purchase')  and (CrLine > 1) then
+      InvVch := False;
+    if InvVch then
     xvou.NewChild2('ISINVOICE','Yes');
   end;
   if Length(VchRef) > 0 then
@@ -1307,6 +1318,16 @@ begin
       AddInDirect(i);
     end;
     IsVchTypeMatched := True;
+  end;
+  CrLine := 0;
+  DrLine := 0;
+  for i := 0 to Lines.Count-1 do
+  begin
+    Item := Lines.Items[i];
+    if Item^.Amount > 0 then
+      CrLine := CrLine + 1;
+    if Item^.Amount < 0 then
+      DrLine := DrLine + 1;
   end;
   ClearLines;
   partyidx := -1;
@@ -1784,7 +1805,7 @@ begin
   end;
 end;
 
-procedure TbjMstExp.NewParty(const aLedger, aParent, aGSTN: string; aState: string = 'Tamil Nadu');
+procedure TbjMstExp.NewParty(const aLedger, aParent, aGSTN: string; aState: string);
 var
   Found: boolean;
 begin
@@ -1793,8 +1814,6 @@ begin
   Found := IsLedger(aLedger);
   if Length(aState) = 0 then
     aState := bjEnv.DefaultGSTState;
-  if Length(aState) = 0 then
-    aState := 'Tamil Nadu';
   if not Found then
   begin
      CreateParty(aLedger, aParent, aGSTN, aState);
@@ -1817,15 +1836,20 @@ begin
 end;
 
 function TbjMstExp.GetHalfof(const TaxRate: string): string;
+var
+  ntr: Integer;
 begin
-  if TaxRate = '28' then
+  ntr := StrToInt(TaxRate);
+  if (TaxRate = '28') or (ntr = 28) then
     Result := '14';
-  if TaxRate = '18' then
+  if (TaxRate = '18') or (ntr = 18) then
     Result := '9';
-  if TaxRate = '12' then
+  if (TaxRate = '12') or (ntr = 12) then
     Result := '6';
-  if TaxRate = '5' then
+  if (TaxRate = '5') or (ntr = 5) then
     Result := '2.5';
+  if (TaxRate = '3') or (ntr = 3) then
+    Result := '1.5';
 end;
 
 {

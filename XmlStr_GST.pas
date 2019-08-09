@@ -1,3 +1,7 @@
+{
+Column Names are Case Sensitive
+Avoid dot in Column Name
+}
 unit XmlStr_GST;
 
 interface
@@ -5,27 +9,27 @@ interface
 const
 CONTRA = '<Voucher>'+
 '<Data>'+
-'<VoucherList>Ne</VoucherList>'+
+'<VoucherList>Contra</VoucherList>'+
 '<DefaultGroup>Bank Accounts</DefaultGroup>'+
 '<IsMultiColumn>Yes</IsMultiColumn>'+
 '</Data>'+
 '<DATE>'+
 '<Alias>DATE</Alias>'+
 '</DATE>'+
-'<LEDGER2>'+
+'<LEDGER>'+
 '<Default>Cash</Default>'+
 '<Alias>CREDIT LEDGER</Alias>'+
 '<AmtCol>'+
-'<Alias>CREDIT AMOUNT</Alias>'+
+'<Alias>AMOUNT</Alias>'+
 '<Type>Cr</Type>'+
 '</AmtCol>'+
  '<Group>Bank Accounts</Group>'+
-'</LEDGER2>'+
+'</LEDGER>'+
 '<LEDGER>'+
 '<Default>Cash</Default>'+
 '<Alias>DEBIT LEDGER</Alias>'+
 '<AmtCol>'+
-'<Alias>DEBIT AMOUNT</Alias>'+
+'<Alias>AMOUNT</Alias>'+
 '<Type>Dr</Type>'+
 '</AmtCol>'+
  '<Group>Bank Accounts</Group>'+
@@ -40,28 +44,27 @@ CONTRA = '<Voucher>'+
 
 RCPT ='<Voucher>'+
 '<Data>'+
-'<VoucherList>Ne</VoucherList>'+
+'<VoucherList>Receipt</VoucherList>'+
 '<DefaultGroup>Sundry Debtors</DefaultGroup>'+
 '<IsMultiColumn>Yes</IsMultiColumn>'+
 '</Data>'+
 '<DATE>'+
 '<Alias>DATE</Alias>'+
 '</DATE>'+
-'<LEDGER>'+
+'<BillRef>'+
+'<Alias>Bill Ref</Alias>'+
+'</BillRef>'+
+'<RoundOff>'+
 '<Alias>PARTY LEDGER</Alias>'+
-'<AmtCol>'+
-'<Alias>PARTY AMOUNT</Alias>'+
-'<Type>Cr</Type>'+
-'</AmtCol>'+
-'</LEDGER>'+
-'+<LEDGER2>'+
+'</RoundOff>'+
+'+<LEDGER>'+
 '<Alias>RECEIPT LEDGER</Alias>'+
 '<Group>Bank Accounts</Group>'+
 '<AmtCol>'+
 '<Alias>RECEIPT AMOUNT</Alias>'+
 '<Type>Dr</Type>'+
 '</AmtCol>'+
-'</LEDGER2>'+
+'</LEDGER>'+
 '<VTYPE>>'+
 '<Default>Receipt</Default>'+
 '</VTYPE>'+
@@ -72,28 +75,27 @@ RCPT ='<Voucher>'+
 
 PYMT = '<Voucher>'+
 '<Data>'+
-'<VoucherList>Ne</VoucherList>'+
+'<VoucherList>Payment</VoucherList>'+
 '<DefaultGroup>Sundry Creditors</DefaultGroup>'+
 '<IsMultiColumn>Yes</IsMultiColumn>'+
 '</Data>'+
 '<DATE>'+
 '<Alias>DATE</Alias>'+
 '</DATE>'+
-'<LEDGER2>'+
+'<BillRef>'+
+'<Alias>Bill Ref</Alias>'+
+'</BillRef>'+
+'<LEDGER>'+
 '<Alias>PAYMENT LEDGER</Alias>'+
 '<Group>Bank Accounts</Group>'+
 '<AmtCol>'+
 '<Alias>PAYMENT AMOUNT</Alias>'+
 '<Type>Cr</Type>'+
 '</AmtCol>'+
-'</LEDGER2>'+
-'<LEDGER>'+
-'<Alias>PARTY LEDGER</Alias>'+
-'<AmtCol>'+
-'<Alias>PARTY AMOUNT</Alias>'+
-'<Type>Dr</Type>'+
-'</AmtCol>'+
 '</LEDGER>'+
+'<RoundOff>'+
+'<Alias>PARTY LEDGER</Alias>'+
+'</RoundOff>'+
 '<VTYPE>>'+
 '<Default>Payment</Default>'+
 '</VTYPE>'+
@@ -102,322 +104,34 @@ PYMT = '<Voucher>'+
 '</NARRATION>'+
 '</Voucher>';
 
-VATSALE = '<Voucher>'+
-'<Data>'+
-'<VoucherList>Annex_II</VoucherList>'+
-'<DefaultGroup>Sundry Debtors</DefaultGroup>'+
-'<IsMultiRow>No</IsMultiRow>'+
-'<IsMultiColumn>Yes</IsMultiColumn>'+
-'</Data>'+
-
-'<VoucherNo>'+
-'<Alias>Invoice_No</Alias>'+
-'</VoucherNo>'+
-
-'<RoundOff>'+
-'<Alias>Name_of_buyer</Alias>'+
-'<Group>Sundry Debtors</Group>'+
-'<GSTN>Buyer_TIN</GSTN>'+
-'</RoundOff>'+
-
-'<ID>'+
- '<Alias>Invoice_No</Alias>'+
-'</ID>'+
-'<DATE>'+
-'<Alias>Invoice_Date</Alias>'+
-'</DATE>'+
-'<NARRATION>>'+
-'<Alias>Invoice_No</Alias>'+
-'</NARRATION>'+
-
-'<LEDGER>'+
-'<Alias>Tax_rate</Alias>'+
-'<Group>Duties &amp; Taxes</Group>'+
-'<Dict>'+
-'<TokenCol>1</TokenCol>'+
-'<Token>1.5</Token>'+
-'<Value>Output Tax 1.5%</Value>'+
-'</Dict>'+
-'<Dict>'+
-'<TokenCol>1</TokenCol>'+
-'<Token>2</Token>'+
-'<Value>Output Tax 2%</Value>'+
-'</Dict>'+
-'<Dict>'+
-'<TokenCol>1</TokenCol>'+
-'<Token>4</Token>'+
-'<Value>Output Tax 4%</Value>'+
-'</Dict>'+
-'<Dict>'+
-'<TokenCol>1</TokenCol>'+
-'<Token>5</Token>'+
-'<Value>Output Tax 5%</Value>'+
-'</Dict>'+
-'<Dict>'+
-'<TokenCol>1</TokenCol>'+
-'<Token>5.5</Token>'+
-'<Value>Output Tax 5.5%</Value>'+
-'</Dict>'+
-'<Dict>'+
-'<TokenCol>1</TokenCol>'+
-'<Token>12.5</Token>'+
-'<Value>Output Tax 12.5%</Value>'+
-'</Dict>'+
-'<Dict>'+
-'<TokenCol>1</TokenCol>'+
-'<Token>14</Token>'+
-'<Value>Output Tax 14%</Value>'+
-'</Dict>'+
-'<Dict>'+
-'<TokenCol>1</TokenCol>'+
-'<Token>14.5</Token>'+
-'<Value>Output Tax 14.5%</Value>'+
-'</Dict>'+
-'<Dict>'+
-'<TokenCol>1</TokenCol>'+
-'<Token>15</Token>'+
-'<Value>Output Tax 15%</Value>'+
-'</Dict>'+
-'<AmtCol>'+
-'<Alias>VAT_CST_paid</Alias>'+
-'<Type>Cr</Type>'+
-'</AmtCol>'+
-'<Assessable>Sales_Value</Assessable>'+
-'</LEDGER>'+
-
-'<LEDGER2>'+
-'<Default>Sales Account</Default>'+
-'<Group>Sales Accounts</Group>'+
-'<Dict>'+
-'<TokenCol>1</TokenCol>'+
-'<Token>0</Token>'+
-'<Value>Sales Account</Value>'+
-'</Dict>'+
-'<Dict>'+
-'<TokenCol>1</TokenCol>'+
-'<Token>1.5</Token>'+
-'<Value>VAT Sales 1.5%</Value>'+
-'</Dict>'+
-'<Dict>'+
-'<TokenCol>1</TokenCol>'+
-'<Token>2</Token>'+
-'<Value>VAT Sales 2%</Value>'+
-'</Dict>'+
-'<Dict>'+
-'<TokenCol>1</TokenCol>'+
-'<Token>4</Token>'+
-'<Value>VAT Sales 4%</Value>'+
-'</Dict>'+
-'<Dict>'+
-'<TokenCol>1</TokenCol>'+
-'<Token>5</Token>'+
-'<Value>VAT Sales 5%</Value>'+
-'</Dict>'+
-'<Dict>'+
-'<TokenCol>1</TokenCol>'+
-'<Token>5.5</Token>'+
-'<Value>VAT Sales 5.5%</Value>'+
-'</Dict>'+
-'<Dict>'+
-'<TokenCol>1</TokenCol>'+
-'<Token>12.5</Token>'+
-'<Value>VAT Sales 12.5%</Value>'+
-'</Dict>'+
-'<Dict>'+
-'<TokenCol>1</TokenCol>'+
-'<Token>14</Token>'+
-'<Value>VAT Sales 14%</Value>'+
-'</Dict>'+
-'<Dict>'+
-'<TokenCol>1</TokenCol>'+
-'<Token>14.5</Token>'+
-'<Value>VAT Sales 14.5%</Value>'+
-'</Dict>'+
-'<Dict>'+
-'<TokenCol>1</TokenCol>'+
-'<Token>15</Token>'+
-'<Value>VAT Sales 15%</Value>'+
-'</Dict>'+
-'<AmtCol>'+
-'<Alias>Sales_Value</Alias>'+
-'<Type>Cr</Type>'+
-'</AmtCol>'+
-'</LEDGER2>'+
-
-'<VTYPE>>'+
-'<Default>Sales</Default>'+
-'</VTYPE>'+
-'</Voucher>';
-
-VATPURC = '<Voucher>'+
-'<Data>'+
-'<VoucherList>Annex_I</VoucherList>'+
-'<DefaultGroup>Sundry Creditors</DefaultGroup>'+
-'<IsMultiRow>No</IsMultiRow>'+
-'<IsMultiColumn>Yes</IsMultiColumn>'+
-'</Data>'+
-
-'<VoucherNo>'+
-'<Alias>Invoice_No</Alias>'+
-'</VoucherNo>'+
-
-'<RoundOff>'+
-'<Alias>Name_of_seller </Alias>'+
-'<Group>Sundry Creditors</Group>'+
-'<GSTN>Seller_TIN</GSTN>'+
-'</RoundOff>'+
-
-'<ID>'+
-'<Alias>Invoice_No</Alias>'+
-'</ID>'+
-'<DATE>'+
-'<Alias>Invoice_Date</Alias>'+
-'</DATE>'+
-'<NARRATION>>'+
-'<Alias>Invoice_No</Alias>'+
-'</NARRATION>'+
-
-'<LEDGER>'+
-'<Alias>Tax_rate</Alias>'+
-'<Group>Duties &amp; Taxes</Group>'+
-'<Dict>'+
-'<TokenCol>1</TokenCol>'+
-'<Token>1.5</Token>'+
-'<Value>Input Tax 1.5%</Value>'+
-'</Dict>'+
-'<Dict>'+
-'<TokenCol>1</TokenCol>'+
-'<Token>2</Token>'+
-'<Value>Input Tax 2%</Value>'+
-'</Dict>'+
-'<Dict>'+
-'<TokenCol>1</TokenCol>'+
-'<Token>4</Token>'+
-'<Value>Input Tax 4%</Value>'+
-'</Dict>'+
-'<Dict>'+
-'<TokenCol>1</TokenCol>'+
-'<Token>5</Token>'+
-'<Value>Input Tax 5%</Value>'+
-'</Dict>'+
-'<Dict>'+
-'<TokenCol>1</TokenCol>'+
-'<Token>5.5</Token>'+
-'<Value>Input Tax 5.5%</Value>'+
-'</Dict>'+
-'<Dict>'+
-'<TokenCol>1</TokenCol>'+
-'<Token>12.5</Token>'+
-'<Value>Input Tax 12.5%</Value>'+
-'</Dict>'+
-'<Dict>'+
-'<TokenCol>1</TokenCol>'+
-'<Token>14</Token>'+
-'<Value>Input Tax 14%</Value>'+
-'</Dict>'+
-'<Dict>'+
-'<TokenCol>1</TokenCol>'+
-'<Token>14.5</Token>'+
-'<Value>Input Tax 14.5%</Value>'+
-'</Dict>'+
-'<Dict>'+
-'<TokenCol>1</TokenCol>'+
-'<Token>15</Token>'+
-'<Value>Input Tax 15%</Value>'+
-'</Dict>'+
-'<AmtCol>'+
-'<Alias>VAT_CST_paid</Alias>'+
-'<Type>Dr</Type>'+
-'</AmtCol>'+
-'</LEDGER>'+
-
-'<LEDGER2>'+
-'<Default>Purchase Account</Default>'+
-'<Group>Purchase Accounts</Group>'+
-'<AmtCol>'+
-'<Alias>Purchase_Value</Alias>'+
-'<Type>Dr</Type>'+
-'</AmtCol>'+
-'<Dict>'+
-'<TokenCol>1</TokenCol>'+
-'<Token>0</Token>'+
-'<Value>Purchase Account</Value>'+
-'</Dict>'+
-'<Dict>'+
-'<TokenCol>1</TokenCol>'+
-'<Token>1.5</Token>'+
-'<Value>VAT Purchase 1.5%</Value>'+
-'</Dict>'+
-'<Dict>'+
-'<TokenCol>1</TokenCol>'+
-'<Token>2</Token>'+
-'<Value>VAT Purchase 2%</Value>'+
-'</Dict>'+
-'<Dict>'+
-'<TokenCol>1</TokenCol>'+
-'<Token>4</Token>'+
-'<Value>VAT Purchase 4%</Value>'+
-'</Dict>'+
-'<Dict>'+
-'<TokenCol>1</TokenCol>'+
-'<Token>5</Token>'+
-'<Value>VAT Purchase 5%</Value>'+
-'</Dict>'+
-'<Dict>'+
-'<TokenCol>1</TokenCol>'+
-'<Token>5.5</Token>'+
-'<Value>VAT Purchase 5.5%</Value>'+
-'</Dict>'+
-'<Dict>'+
-'<TokenCol>1</TokenCol>'+
-'<Token>12.5</Token>'+
-'<Value>VAT Purchase 12.5%</Value>'+
-'</Dict>'+
-'<Dict>'+
-'<TokenCol>1</TokenCol>'+
-'<Token>14</Token>'+
-'<Value>VAT Purchase 14%</Value>'+
-'</Dict>'+
-'<Dict>'+
-'<TokenCol>1</TokenCol>'+
-'<Token>14.5</Token>'+
-'<Value>VAT Purchase 14.5%</Value>'+
-'</Dict>'+
-'<Dict>'+
-'<TokenCol>1</TokenCol>'+
-'<Token>15</Token>'+
-'<Value>VAT Purchase 15%</Value>'+
-'</Dict>'+
-'</LEDGER2>'+
-'<VTYPE>>'+
-'<Default>Purchase</Default>'+
-'</VTYPE>'+
-'</Voucher>';
-
 JRNL = '<Voucher>'+
 '<Data>'+
-'<VoucherList>Ne</VoucherList>'+
+'<VoucherList>Journal</VoucherList>'+
 //'<DefaultGroup>Sundry Debtors</DefaultGroup>'+
 '<IsMultiColumn>Yes</IsMultiColumn>'+
 '</Data>'+
 '<DATE>'+
 '<Alias>DATE</Alias>'+
 '</DATE>'+
-'<LEDGER2>'+
+'<LEDGER>'+
 '<Alias>CREDIT LEDGER</Alias>'+
 '<AmtCol>'+
-'<Alias>CREDIT AMOUNT</Alias>'+
+'<Alias>AMOUNT</Alias>'+
 '<Type>Cr</Type>'+
 '</AmtCol>'+
-// '<Group>Sundry Creditors</Group>'+
-'</LEDGER2>'+
+'<Group>'+
+'<Alias>CREDIT GROUP</Alias>'+
+'</Group>'+
+'</LEDGER>'+
 '<LEDGER>'+
 '<Alias>DEBIT LEDGER</Alias>'+
 '<AmtCol>'+
-'<Alias>DEBIT AMOUNT</Alias>'+
+'<Alias>AMOUNT</Alias>'+
 '<Type>Dr</Type>'+
 '</AmtCol>'+
-// '<Group>Sundry Debtors</Group>'+
+'<Group>'+
+'<Alias>DEBIT GROUP</Alias>'+
+'</Group>'+
 '</LEDGER>'+
 '<VTYPE>>'+
 '<Default>Journal</Default>'+
@@ -429,17 +143,9 @@ JRNL = '<Voucher>'+
 
 BANK = '<Voucher>'+
 '<Data>'+
-'<VoucherList>Ne</VoucherList>'+
+'<VoucherList>Bank</VoucherList>'+
 '<IsMultiColumn>Yes</IsMultiColumn>'+
 '</Data>'+
-'<CrAmtCol>'+
-'<Alias>DEPOSITS</Alias>'+
-'<Type>Receipt</Type>'+
-'</CrAmtCol>'+
-'<DrAmtCol>'+
-'<Alias>WITHDRAWALS</Alias>'+
-'<Type>Payment</Type>'+
-'</DrAmtCol>'+
 '<DATE>'+
 '<Alias>DATE</Alias>'+
 '</DATE>'+
@@ -448,14 +154,24 @@ BANK = '<Voucher>'+
 '<Default>Party</Default>'+
 '<Group>Sundry Debtors</Group>'+
 '</LEDGER>'+
+'<CrAmtCol>'+
+'<Alias>DEPOSITS</Alias>'+
+'<Type>Receipt</Type>'+
+'</CrAmtCol>'+
+'<DrAmtCol>'+
+'<Alias>WITHDRAWALS</Alias>'+
+'<Type>Payment</Type>'+
+'</DrAmtCol>'+
+
 '<RoundOff>'+
 '<Alias>BANK</Alias>'+
 '<Default>Bank Account</Default>'+
 '<Group>Bank Accounts</Group>'+
 '</RoundOff>'+
+
 '<VTYPE>>'+
 '<Default>Receipt</Default>'+
-'<Alias>VCH TYPE</Alias>'+
+//'<Alias>VCH TYPE</Alias>'+
 '</VTYPE>'+
 '<NARRATION>>'+
 '<Alias>NARRATION</Alias>'+
@@ -464,10 +180,16 @@ BANK = '<Voucher>'+
 
 DAYBOOK = '<Voucher>'+
 '<Data>'+
-'<VoucherList>Ne</VoucherList>'+
-//'<DefaultGroup>Sundry Debtors</DefaultGroup>'+
+'<VoucherList>Daybook</VoucherList>'+
+'<DefaultGroup>Sundry Debtors</DefaultGroup>'+
 '<IsMultiRow>Yes</IsMultiRow>'+
 '</Data>'+
+
+'<ID>'+
+ '<Alias>ID</Alias>'+
+'<IsGenerated>Yes</IsGenerated>'+
+'</ID>'+
+
 '<DATE>'+
 '<Alias>DATE</Alias>'+
 '</DATE>'+
@@ -477,6 +199,7 @@ DAYBOOK = '<Voucher>'+
 '<DrAmtCol>'+
 '<Alias>DEBIT AMOUNT</Alias>'+
 '</DrAmtCol>'+
+
 '<LEDGER>'+
 '<Alias>LEDGER</Alias>'+
  '<Group>'+
@@ -493,7 +216,7 @@ DAYBOOK = '<Voucher>'+
 
 MYSALE = '<Voucher>'+
 '<Data>'+
-'<VoucherList>Annex_II</VoucherList>'+
+'<VoucherList>MySales</VoucherList>'+
 '<DefaultGroup>Sundry Debtors</DefaultGroup>'+
 '<IsMultiRow>No</IsMultiRow>'+
 '<IsMultiColumn>Yes</IsMultiColumn>'+
@@ -505,7 +228,13 @@ MYSALE = '<Voucher>'+
 '<VoucherRef>'+
 '<Alias>Voucher Ref</Alias>'+
 '</VoucherRef>'+
+'<BillRef>'+
+'<Alias>Bill Ref</Alias>'+
+'</BillRef>'+
 
+'<ID>'+
+'<Alias>ID</Alias>'+
+'</ID>'+
 '<DATE>'+
 '<Alias>Date</Alias>'+
 '</DATE>'+
@@ -513,153 +242,707 @@ MYSALE = '<Voucher>'+
 '<Alias>Narration</Alias>'+
 '</NARRATION>'+
 
-'+<LEDGER>'+
-'<Alias>Ledger</Alias>'+
+'<RoundOff>'+
+'<Alias>Party</Alias>'+
 '<Group>Sundry Debtors</Group>'+
+'<GSTN>'+
+'<Alias>GSTN</Alias>'+
+'</GSTN>'+
+'<RoundTo>1</RoundTo>'+
+'</RoundOff>'+
+{
+'<LEDGER>'+
+'<Group>Duties &amp; Taxes</Group>'+
+'<Dict>'+
+'<TokenCol>Tax_rate</TokenCol>'+
+'<Token>3</Token>'+
+'<Value>Output IGST 3%</Value>'+
+'</Dict>'+
+'<Dict>'+
+'<TokenCol>Tax_rate</TokenCol>'+
+'<Token>5</Token>'+
+'<Value>Output IGST 5%</Value>'+
+'</Dict>'+
+'<Dict>'+
+'<TokenCol>Tax_rate</TokenCol>'+
+'<Token>12</Token>'+
+'<Value>Output IGST 12%</Value>'+
+'</Dict>'+
+'<Dict>'+
+'<TokenCol>Tax_rate</TokenCol>'+
+'<Token>18</Token>'+
+'<Value>Output IGST 18%</Value>'+
+'</Dict>'+
+'<Dict>'+
+'<TokenCol>Tax_rate</TokenCol>'+
+'<Token>28</Token>'+
+'<Value>Output IGST 28%</Value>'+
+'</Dict>'+
 '<AmtCol>'+
-'<Alias>Bill Value</Alias>'+
-'<Type>Dr</Type>'+
+'<Alias>IGST</Alias>'+
+'<Type>Cr</Type>'+
 '</AmtCol>'+
-'<GSTN>TIN Number</GSTN>'+
+'<Assessable>Sales_Value</Assessable>'+
+'</LEDGER>'+
+}
+'+<LEDGER>'+
+'<Default>GST 3% Sales</Default>'+
+'<Group>Sales Accounts</Group>'+
+'<AmtCol>'+
+'<Alias>GST Sales 3</Alias>'+
+'<Type>Cr</Type>'+
+'<IsInvCol>Yes</IsInvCol>'+
+'</AmtCol>'+
+'</LEDGER>'+
+'+<LEDGER>'+
+'<Default>Output SGST 1.5%</Default>'+
+'<Group>Duties &amp; Taxes</Group>'+
+'<AmtCol>'+
+'<Alias>SGST Tax 1_5</Alias>'+
+'<Type>Cr</Type>'+
+'</AmtCol>'+
+'</LEDGER>'+
+'+<LEDGER>'+
+'<Default>Output CGST 1.5%</Default>'+
+'<Group>Duties &amp; Taxes</Group>'+
+'<AmtCol>'+
+'<Alias>CGST Tax 1_5</Alias>'+
+'<Type>Cr</Type>'+
+'</AmtCol>'+
 '</LEDGER>'+
 
-'+<LEDGER2>'+
-'<Default>VAT Sales 5%</Default>'+
+'+<LEDGER>'+
+'<Default>IGST 3% Sales</Default>'+
 '<Group>Sales Accounts</Group>'+
 '<AmtCol>'+
-'<Alias>VAT Sales 5</Alias>'+
+'<Alias>IGST Sales 3</Alias>'+
 '<Type>Cr</Type>'+
+'<IsInvCol>Yes</IsInvCol>'+
 '</AmtCol>'+
-'</LEDGER2>'+
-'+<LEDGER3>'+
-'<Default>Output Tax 5%</Default>'+
+'</LEDGER>'+
+'+<LEDGER>'+
+'<Default>Output IGST 3%</Default>'+
 '<Group>Duties &amp; Taxes</Group>'+
 '<AmtCol>'+
-'<Alias>VAT Output 5</Alias>'+
+'<Alias>IGST Tax 3</Alias>'+
 '<Type>Cr</Type>'+
 '</AmtCol>'+
-'</LEDGER3>'+
+'</LEDGER>'+
 
-'+<LEDGER4>'+
-'<Default>VAT Sales 14.5%</Default>'+
+'+<LEDGER>'+
+'<Default>GST 5% Sales</Default>'+
 '<Group>Sales Accounts</Group>'+
 '<AmtCol>'+
-'<Alias>VAT Sales 14_5</Alias>'+
+'<Alias>GST Sales 5</Alias>'+
 '<Type>Cr</Type>'+
+'<IsInvCol>Yes</IsInvCol>'+
 '</AmtCol>'+
-'</LEDGER4>'+
-'+<LEDGER5>'+
-'<Default>Output Tax 14.5%</Default>'+
+'</LEDGER>'+
+'+<LEDGER>'+
+'<Default>Output SGST 2.5%</Default>'+
 '<Group>Duties &amp; Taxes</Group>'+
 '<AmtCol>'+
-'<Alias>VAT Output 14_5</Alias>'+
+'<Alias>SGST Tax 2_5</Alias>'+
 '<Type>Cr</Type>'+
 '</AmtCol>'+
-'</LEDGER5>'+
-'+<LEDGER6>'+
+'</LEDGER>'+
+'+<LEDGER>'+
+'<Default>Output CGST 2.5%</Default>'+
+'<Group>Duties &amp; Taxes</Group>'+
 '<AmtCol>'+
-'<Alias>Sales Exempted</Alias>'+
+'<Alias>CGST Tax 2_5</Alias>'+
+'<Type>Cr</Type>'+
+'</AmtCol>'+
+'</LEDGER>'+
+'+<LEDGER>'+
+'<Default>IGST 5% Sales</Default>'+
 '<Group>Sales Accounts</Group>'+
+'<AmtCol>'+
+'<Alias>IGST Sales 5</Alias>'+
+'<Type>Cr</Type>'+
+'<IsInvCol>Yes</IsInvCol>'+
+'</AmtCol>'+
+'</LEDGER>'+
+'+<LEDGER>'+
+'<Default>Output IGST 5%</Default>'+
+'<Group>Duties &amp; Taxes</Group>'+
+'<AmtCol>'+
+'<Alias>IGST Tax 5</Alias>'+
+'<Type>Cr</Type>'+
+'</AmtCol>'+
+'</LEDGER>'+
+
+'+<LEDGER>'+
+'<Default>GST 12% Sales</Default>'+
+'<Group>Sales Accounts</Group>'+
+'<AmtCol>'+
+'<Alias>GST Sales 12</Alias>'+
+'<Type>Cr</Type>'+
+'<IsInvCol>Yes</IsInvCol>'+
+'</AmtCol>'+
+'</LEDGER>'+
+'+<LEDGER>'+
+'<Default>Output SGST 6%</Default>'+
+'<Group>Duties &amp; Taxes</Group>'+
+'<AmtCol>'+
+'<Alias>SGST Tax 6</Alias>'+
+'<Type>Cr</Type>'+
+'</AmtCol>'+
+'</LEDGER>'+
+'+<LEDGER>'+
+'<Default>Output CGST 6%</Default>'+
+'<Group>Duties &amp; Taxes</Group>'+
+'<AmtCol>'+
+'<Alias>CGST Tax 6</Alias>'+
+'<Type>Cr</Type>'+
+'</AmtCol>'+
+'</LEDGER>'+
+
+'+<LEDGER>'+
+'<Default>IGST 12% Sales</Default>'+
+'<Group>Sales Accounts</Group>'+
+'<AmtCol>'+
+'<Alias>IGST Sales 12</Alias>'+
+'<Type>Cr</Type>'+
+'<IsInvCol>Yes</IsInvCol>'+
+'</AmtCol>'+
+'</LEDGER>'+
+'+<LEDGER>'+
+'<Default>Output IGST 12%</Default>'+
+'<Group>Duties &amp; Taxes</Group>'+
+'<AmtCol>'+
+'<Alias>IGST Tax 12</Alias>'+
+'<Type>Cr</Type>'+
+'</AmtCol>'+
+'</LEDGER>'+
+
+'+<LEDGER>'+
+'<Default>GST 18% Sales</Default>'+
+'<Group>Sales Accounts</Group>'+
+'<AmtCol>'+
+'<Alias>GST Sales 18</Alias>'+
+'<Type>Cr</Type>'+
+'<IsInvCol>Yes</IsInvCol>'+
+'</AmtCol>'+
+'</LEDGER>'+
+'+<LEDGER>'+
+'<Default>Output SGST 9%</Default>'+
+'<Group>Duties &amp; Taxes</Group>'+
+'<AmtCol>'+
+'<Alias>SGST Tax 9</Alias>'+
+'<Type>Cr</Type>'+
+'</AmtCol>'+
+'</LEDGER>'+
+'+<LEDGER>'+
+'<Default>Output CGST 9%</Default>'+
+'<Group>Duties &amp; Taxes</Group>'+
+'<AmtCol>'+
+'<Alias>CGST Tax 9</Alias>'+
+'<Type>Cr</Type>'+
+'</AmtCol>'+
+'</LEDGER>'+
+'+<LEDGER>'+
+'<Default>IGST 18% Sales</Default>'+
+'<Group>Sales Accounts</Group>'+
+'<AmtCol>'+
+'<Alias>IGST Sales 18</Alias>'+
+'<Type>Cr</Type>'+
+'<IsInvCol>Yes</IsInvCol>'+
+'</AmtCol>'+
+'</LEDGER>'+
+'+<LEDGER>'+
+'<Default>Output IGST 18%</Default>'+
+'<Group>Duties &amp; Taxes</Group>'+
+'<AmtCol>'+
+'<Alias>IGST Tax 18</Alias>'+
+'<Type>Cr</Type>'+
+'</AmtCol>'+
+'</LEDGER>'+
+
+'+<LEDGER>'+
+'<Default>GST 28% Sales</Default>'+
+'<Group>Sales Accounts</Group>'+
+'<AmtCol>'+
+'<Alias>GST Sales 28</Alias>'+
+'<Type>Cr</Type>'+
+'<IsInvCol>Yes</IsInvCol>'+
+'</AmtCol>'+
+'</LEDGER>'+
+'+<LEDGER>'+
+'<Default>Output SGST 14%</Default>'+
+'<Group>Duties &amp; Taxes</Group>'+
+'<AmtCol>'+
+'<Alias>SGST Tax 14</Alias>'+
+'<Type>Cr</Type>'+
+'</AmtCol>'+
+'</LEDGER>'+
+'+<LEDGER>'+
+'<Default>Output CGST 14%</Default>'+
+'<Group>Duties &amp; Taxes</Group>'+
+'<AmtCol>'+
+'<Alias>CGST Tax 14</Alias>'+
+'<Type>Cr</Type>'+
+'</AmtCol>'+
+'</LEDGER>'+
+'+<LEDGER>'+
+'<Default>IGST 28% Sales</Default>'+
+'<Group>Sales Accounts</Group>'+
+'<AmtCol>'+
+'<Alias>IGST Sales 28</Alias>'+
+'<Type>Cr</Type>'+
+'<IsInvCol>Yes</IsInvCol>'+
+'</AmtCol>'+
+'</LEDGER>'+
+'+<LEDGER>'+
+'<Default>Output IGST 28%</Default>'+
+'<Group>Duties &amp; Taxes</Group>'+
+'<AmtCol>'+
+'<Alias>IGST Tax 28</Alias>'+
+'<Type>Cr</Type>'+
+'</AmtCol>'+
+'</LEDGER>'+
+
+'+<LEDGER>'+
+'<AmtCol>'+
+'<Alias>CESS</Alias>'+
+'<Group>Duties &amp; Taxes</Group>'+
 '<Type>Cr</Type>'+
 '<IsLedgerName>Yes</IsLedgerName>'+
 '</AmtCol>'+
-'</LEDGER6>'+
+'</LEDGER>'+
 
-'+<LEDGER7>'+
-'<Default>CST Sales @ 5%</Default>'+
-'<Group>Sales Accounts</Group>'+
+'+<LEDGER>'+
 '<AmtCol>'+
-'<Alias>CST Sales 5</Alias>'+
-'<Type>Cr</Type>'+
-'</AmtCol>'+
-'</LEDGER7>'+
-'+<LEDGER8>'+
-'<Default>CST Output @ 5%</Default>'+
-'<Group>Duties &amp; Taxes</Group>'+
-'<AmtCol>'+
-'<Alias>CST Output 5</Alias>'+
-'<Type>Cr</Type>'+
-'</AmtCol>'+
-'</LEDGER8>'+
-
-'+<LEDGER9>'+
-'<Default>CST Sales @ 14.5%</Default>'+
-'<Group>Sales Accounts</Group>'+
-'<AmtCol>'+
-'<Alias>CST Sales 14_5</Alias>'+
-'<Type>Cr</Type>'+
-'</AmtCol>'+
-'</LEDGER9>'+
-'+<LEDGER10>'+
-'<Default>CST Output @ 14.5%</Default>'+
-'<Group>Duties &amp; Taxes</Group>'+
-'<AmtCol>'+
-'<Alias>CST Output 14_5</Alias>'+
-'<Type>Cr</Type>'+
-'</AmtCol>'+
-'</LEDGER10>'+
-
-'+<LEDGER11>'+
-'<Default>CST Sales @ 2%</Default>'+
-'<Group>Sales Accounts</Group>'+
-'<AmtCol>'+
-'<Alias>CST Sales 2</Alias>'+
-'<Type>Cr</Type>'+
-'</AmtCol>'+
-'</LEDGER11>'+
-'+<LEDGER12>'+
-'<Default>CST Output @ 2%</Default>'+
-'<Group>Duties &amp; Taxes</Group>'+
-'<AmtCol>'+
-'<Alias>CST Output 2</Alias>'+
-'<Type>Cr</Type>'+
-'</AmtCol>'+
-'</LEDGER12>'+
-
-'+<LEDGER13>'+
-'<AmtCol>'+
-'<Alias>Service Tax</Alias>'+
+'<Alias>GST Sales Exempted</Alias>'+
 '<Group>Sales Accounts</Group>'+
 '<Type>Cr</Type>'+
 '<IsLedgerName>Yes</IsLedgerName>'+
+'<IsInvCol>Yes</IsInvCol>'+
 '</AmtCol>'+
-'</LEDGER13>'+
-'+<LEDGER14>'+
+'</LEDGER>'+
+'+<LEDGER>'+
 '<AmtCol>'+
-'<Alias>Service Tax Payable</Alias>'+
-'<Group>Duties &amp; Taxes</Group>'+
+'<Alias>IGST Sales Exempted</Alias>'+
+'<Group>Sales Accounts</Group>'+
 '<Type>Cr</Type>'+
 '<IsLedgerName>Yes</IsLedgerName>'+
+'<IsInvCol>Yes</IsInvCol>'+
 '</AmtCol>'+
-'</LEDGER14>'+
+'</LEDGER>'+
 
-'+<LEDGER15>'+
+'+<LEDGER>'+
 '<AmtCol>'+
 '<Alias>Discount</Alias>'+
 '<Group>Indirect Expenses</Group>'+
 '<Type>Dr</Type>'+
 '<IsLedgerName>Yes</IsLedgerName>'+
 '</AmtCol>'+
-'</LEDGER15>'+
-
-'+<LEDGER16>'+
+'</LEDGER>'+
+'+<LEDGER>'+
 '<AmtCol>'+
 '<Alias>Delivery Charges</Alias>'+
+'<Group>Indirect Expenses</Group>'+
 '<Type>Cr</Type>'+
 '<IsLedgerName>Yes</IsLedgerName>'+
 '</AmtCol>'+
-'</LEDGER16>'+
+'</LEDGER>'+
 
 '<VTYPE>>'+
 '<Default>Sales</Default>'+
 '</VTYPE>'+
+'<INVENTORY>>'+
+'<ITEM>>'+
+'<Alias>Item</Alias>'+
+'</ITEM>'+
+'<HSN>>'+
+'<Alias>HSN</Alias>'+
+'</HSN>'+
+'<UNIT>>'+
+'<Alias>Unit</Alias>'+
+'</UNIT>'+
+'<QTY>>'+
+'<Alias>Qty</Alias>'+
+'</QTY>'+
+'<RATE>>'+
+'<Alias>Rate</Alias>'+
+'</RATE>'+
+'<Value>>'+
+'<Alias>Bill_Value</Alias>'+
+'</Value>'+
+'</INVENTORY>'+
 '</Voucher>';
 
 MYPURC = '<Voucher>'+
 '<Data>'+
-'<VoucherList>Annex_I</VoucherList>'+
-'<DefaultGroup>Sundry Creditors</DefaultGroup>'+
+'<VoucherList>MyPurchase</VoucherList>'+
+'<DefaultGroup>Sundry Debtors</DefaultGroup>'+
 '<IsMultiRow>No</IsMultiRow>'+
+'<IsMultiColumn>Yes</IsMultiColumn>'+
+'</Data>'+
+
+'<VoucherNo>'+
+'<Alias>Voucher No</Alias>'+
+'</VoucherNo>'+
+'<VoucherDate>'+
+'<Alias>Voucher Date</Alias>'+
+'</VoucherDate>'+
+'<VoucherRef>'+
+'<Alias>Voucher Ref</Alias>'+
+'</VoucherRef>'+
+'<BillRef>'+
+'<Alias>Bill Ref</Alias>'+
+'</BillRef>'+
+
+'<ID>'+
+'<Alias>ID</Alias>'+
+'</ID>'+
+'<DATE>'+
+'<Alias>Date</Alias>'+
+'</DATE>'+
+'<NARRATION>'+
+'<Alias>Narration</Alias>'+
+'</NARRATION>'+
+
+'<RoundOff>'+
+'<Alias>Party</Alias>'+
+'<Group>Sundry Creditors</Group>'+
+'<GSTN>'+
+'<Alias>GSTN</Alias>'+
+'</GSTN>'+
+'<RoundTo>1</RoundTo>'+
+'</RoundOff>'+
+
+{
+'<LEDGER>'+
+'<Group>Duties &amp; Taxes</Group>'+
+'<Dict>'+
+//'<TokenCol>Tax_rate</TokenCol>'+
+'<Token>3</Token>'+
+'<Value>Input SGST 1.5%</Value>'+
+'</Dict>'+
+'<Dict>'+
+//'<TokenCol>Tax_rate</TokenCol>'+
+'<Token>5</Token>'+
+'<Value>Input SGST 2.5%</Value>'+
+'</Dict>'+
+'<Dict>'+
+//'<TokenCol>Tax_rate</TokenCol>'+
+'<Token>12</Token>'+
+'<Value>Input SGST 6%</Value>'+
+'</Dict>'+
+'<Dict>'+
+//'<TokenCol>Tax_rate</TokenCol>'+
+'<Token>18</Token>'+
+'<Value>Input SGST 9%</Value>'+
+'</Dict>'+
+'<Dict>'+
+//'<TokenCol>Tax_rate</TokenCol>'+
+'<Token>28</Token>'+
+'<Value>Input SGST 14%</Value>'+
+'</Dict>'+
+'<AmtCol>'+
+'<Alias>SGST</Alias>'+
+'<Type>Dr</Type>'+
+'</AmtCol>'+
+'<Assessable>Purchase_Value</Assessable>'+
+'</LEDGER>'+
+}
+
+'+<LEDGER>'+
+'<Default>GST 3% Purchase</Default>'+
+'<Group>Purchase Accounts</Group>'+
+'<AmtCol>'+
+'<Alias>GST Purchase 3</Alias>'+
+'<Type>Dr</Type>'+
+'<IsInvCol>Yes</IsInvCol>'+
+'</AmtCol>'+
+'</LEDGER>'+
+'+<LEDGER>'+
+'<Default>Input SGST 1.5%</Default>'+
+'<Group>Duties &amp; Taxes</Group>'+
+'<AmtCol>'+
+'<Alias>SGST Tax 1_5</Alias>'+
+'<Type>Dr</Type>'+
+'</AmtCol>'+
+'</LEDGER>'+
+'+<LEDGER>'+
+'<Default>Input CGST 1.5%</Default>'+
+'<Group>Duties &amp; Taxes</Group>'+
+'<AmtCol>'+
+'<Alias>CGST Tax 1_5</Alias>'+
+'<Type>Dr</Type>'+
+'</AmtCol>'+
+'</LEDGER>'+
+
+'+<LEDGER>'+
+'<Default>IGST 3% Purchase</Default>'+
+'<Group>Purchase Accounts</Group>'+
+'<AmtCol>'+
+'<Alias>IGST Purchase 3</Alias>'+
+'<Type>Dr</Type>'+
+'<IsInvCol>Yes</IsInvCol>'+
+'</AmtCol>'+
+'</LEDGER>'+
+'+<LEDGER>'+
+'<Default>Input IGST 3%</Default>'+
+'<Group>Duties &amp; Taxes</Group>'+
+'<AmtCol>'+
+'<Alias>IGST Tax 3</Alias>'+
+'<Type>Dr</Type>'+
+'</AmtCol>'+
+'</LEDGER>'+
+
+'+<LEDGER>'+
+'<Default>GST 5% Purchase</Default>'+
+'<Group>Purchase Accounts</Group>'+
+'<AmtCol>'+
+'<Alias>GST Purchase 5</Alias>'+
+'<Type>Dr</Type>'+
+'<IsInvCol>Yes</IsInvCol>'+
+'</AmtCol>'+
+'</LEDGER>'+
+'+<LEDGER>'+
+'<Default>Input SGST 2.5%</Default>'+
+'<Group>Duties &amp; Taxes</Group>'+
+'<AmtCol>'+
+'<Alias>SGST Tax 2_5</Alias>'+
+'<Type>Dr</Type>'+
+'</AmtCol>'+
+'</LEDGER>'+
+'+<LEDGER>'+
+'<Default>Input CGST 2.5%</Default>'+
+'<Group>Duties &amp; Taxes</Group>'+
+'<AmtCol>'+
+'<Alias>CGST Tax 2_5</Alias>'+
+'<Type>Dr</Type>'+
+'</AmtCol>'+
+'</LEDGER>'+
+
+'+<LEDGER>'+
+'<Default>IGST 5% Purchase</Default>'+
+'<Group>Purchase Accounts</Group>'+
+'<AmtCol>'+
+'<Alias>IGST Purchase 5</Alias>'+
+'<Type>Dr</Type>'+
+'<IsInvCol>Yes</IsInvCol>'+
+'</AmtCol>'+
+'</LEDGER>'+
+'+<LEDGER>'+
+'<Default>Input IGST 5%</Default>'+
+'<Group>Duties &amp; Taxes</Group>'+
+'<AmtCol>'+
+'<Alias>IGST Tax 5</Alias>'+
+'<Type>Dr</Type>'+
+'</AmtCol>'+
+'</LEDGER>'+
+
+'+<LEDGER>'+
+'<Default>GST 12% Purchase</Default>'+
+'<Group>Purchase Accounts</Group>'+
+'<AmtCol>'+
+'<Alias>GST Purchase 12</Alias>'+
+'<Type>Dr</Type>'+
+'<IsInvCol>Yes</IsInvCol>'+
+'</AmtCol>'+
+'</LEDGER>'+
+'+<LEDGER>'+
+'<Default>Input SGST 6%</Default>'+
+'<Group>Duties &amp; Taxes</Group>'+
+'<AmtCol>'+
+'<Alias>SGST Tax 6</Alias>'+
+'<Type>Dr</Type>'+
+'</AmtCol>'+
+'</LEDGER>'+
+'+<LEDGER>'+
+'<Default>Input CGST 6%</Default>'+
+'<Group>Duties &amp; Taxes</Group>'+
+'<AmtCol>'+
+'<Alias>CGST Tax 6</Alias>'+
+'<Type>Dr</Type>'+
+'</AmtCol>'+
+'</LEDGER>'+
+
+'+<LEDGER>'+
+'<Default>IGST 12% Purchase</Default>'+
+'<Group>Purchase Accounts</Group>'+
+'<AmtCol>'+
+'<Alias>IGST Purchase 12</Alias>'+
+'<Type>Dr</Type>'+
+'<IsInvCol>Yes</IsInvCol>'+
+'</AmtCol>'+
+'</LEDGER>'+
+'+<LEDGER>'+
+'<Default>Input IGST 12%</Default>'+
+'<Group>Duties &amp; Taxes</Group>'+
+'<AmtCol>'+
+'<Alias>IGST Tax 12</Alias>'+
+'<Type>Dr</Type>'+
+'</AmtCol>'+
+'</LEDGER>'+
+
+'+<LEDGER>'+
+'<Default>GST 18% Purchase</Default>'+
+'<Group>Purchase Accounts</Group>'+
+'<AmtCol>'+
+'<Alias>GST Purchase 18</Alias>'+
+'<Type>Dr</Type>'+
+'<IsInvCol>Yes</IsInvCol>'+
+'</AmtCol>'+
+'</LEDGER>'+
+'+<LEDGER>'+
+'<Default>Input SGST 9%</Default>'+
+'<Group>Duties &amp; Taxes</Group>'+
+'<AmtCol>'+
+'<Alias>SGST Tax 9</Alias>'+
+'<Type>Dr</Type>'+
+'</AmtCol>'+
+'</LEDGER>'+
+'+<LEDGER>'+
+'<Default>Input CGST 9%</Default>'+
+'<Group>Duties &amp; Taxes</Group>'+
+'<AmtCol>'+
+'<Alias>CGST Tax 9</Alias>'+
+'<Type>Dr</Type>'+
+'</AmtCol>'+
+'</LEDGER>'+
+
+'+<LEDGER>'+
+'<Default>IGST 18% Purchase</Default>'+
+'<Group>Purchase Accounts</Group>'+
+'<AmtCol>'+
+'<Alias>IGST Purchase 18</Alias>'+
+'<Type>Dr</Type>'+
+'<IsInvCol>Yes</IsInvCol>'+
+'</AmtCol>'+
+'</LEDGER>'+
+'+<LEDGER>'+
+'<Default>Input IGST 18%</Default>'+
+'<Group>Duties &amp; Taxes</Group>'+
+'<AmtCol>'+
+'<Alias>IGST Tax 18</Alias>'+
+'<Type>Dr</Type>'+
+'</AmtCol>'+
+'</LEDGER>'+
+
+'+<LEDGER>'+
+'<Default>GST 28% Purchase</Default>'+
+'<Group>Purchase Accounts</Group>'+
+'<AmtCol>'+
+'<Alias>GST Purchase 28</Alias>'+
+'<Type>Dr</Type>'+
+'<IsInvCol>Yes</IsInvCol>'+
+'</AmtCol>'+
+'</LEDGER>'+
+'+<LEDGER>'+
+'<Default>Input SGST 14%</Default>'+
+'<Group>Duties &amp; Taxes</Group>'+
+'<AmtCol>'+
+'<Alias>SGST Tax 14</Alias>'+
+'<Type>Dr</Type>'+
+'</AmtCol>'+
+'</LEDGER>'+
+'+<LEDGER>'+
+'<Default>Input CGST 14%</Default>'+
+'<Group>Duties &amp; Taxes</Group>'+
+'<AmtCol>'+
+'<Alias>CGST Tax 14</Alias>'+
+'<Type>Dr</Type>'+
+'</AmtCol>'+
+'</LEDGER>'+
+
+'+<LEDGER>'+
+'<Default>IGST 28% Purchase</Default>'+
+'<Group>Purchase Accounts</Group>'+
+'<AmtCol>'+
+'<Alias>IGST Purchase 28</Alias>'+
+'<Type>Dr</Type>'+
+'<IsInvCol>Yes</IsInvCol>'+
+'</AmtCol>'+
+'</LEDGER>'+
+'+<LEDGER>'+
+'<Default>Input IGST 28%</Default>'+
+'<Group>Duties &amp; Taxes</Group>'+
+'<AmtCol>'+
+'<Alias>IGST Tax 28</Alias>'+
+'<Type>Dr</Type>'+
+'</AmtCol>'+
+'</LEDGER>'+
+
+'+<LEDGER>'+
+'<AmtCol>'+
+'<Alias>CESS</Alias>'+
+'<Group>Duties &amp; Taxes</Group>'+
+'<Type>Dr</Type>'+
+'<IsLedgerName>Yes</IsLedgerName>'+
+'</AmtCol>'+
+'</LEDGER>'+
+
+'+<LEDGER>'+
+'<AmtCol>'+
+'<Alias>GST Purchase Exempted</Alias>'+
+'<Group>Purchase Accounts</Group>'+
+'<Type>Dr</Type>'+
+'<IsLedgerName>Yes</IsLedgerName>'+
+'<IsInvCol>Yes</IsInvCol>'+
+'</AmtCol>'+
+'</LEDGER>'+
+'+<LEDGER>'+
+'<AmtCol>'+
+'<Alias>IGST Purchase Exempted</Alias>'+
+'<Group>Purchase Accounts</Group>'+
+'<Type>Dr</Type>'+
+'<IsLedgerName>Yes</IsLedgerName>'+
+'<IsInvCol>Yes</IsInvCol>'+
+'</AmtCol>'+
+'</LEDGER>'+
+
+'<LEDGER>'+
+'<AmtCol>'+
+'<Alias>Discount</Alias>'+
+'<Group>Indirect Expenses</Group>'+
+'<Type>Cr</Type>'+
+'<IsLedgerName>Yes</IsLedgerName>'+
+'</AmtCol>'+
+'</LEDGER>'+
+'+<LEDGER>'+
+'<AmtCol>'+
+'<Alias>Delivery Charges</Alias>'+
+'<Group>Indirect Expenses</Group>'+
+'<Type>Dr</Type>'+
+'<IsLedgerName>Yes</IsLedgerName>'+
+'</AmtCol>'+
+'</LEDGER>'+
+
+'<VTYPE>>'+
+'<Default>Purchase</Default>'+
+'</VTYPE>'+
+'<INVENTORY>>'+
+'<ITEM>>'+
+'<Alias>Item</Alias>'+
+'</ITEM>'+
+'<HSN>>'+
+'<Alias>HSN</Alias>'+
+'</HSN>'+
+'<UNIT>>'+
+'<Alias>Unit</Alias>'+
+'</UNIT>'+
+'<QTY>>'+
+'<Alias>Qty</Alias>'+
+'</QTY>'+
+'<RATE>>'+
+'<Alias>Rate</Alias>'+
+'</RATE>'+
+'<Value>>'+
+'<Alias>Bill_Value</Alias>'+
+'</Value>'+
+'</INVENTORY>'+
+'</Voucher>';
+
+SBILL = '<Voucher>'+
+'<Data>'+
+'<VoucherList>SBill</VoucherList>'+
+'<DefaultGroup>Sundry Debtors</DefaultGroup>'+
+'<IsMultiRow>Yes</IsMultiRow>'+
 '<IsMultiColumn>Yes</IsMultiColumn>'+
 '</Data>'+
 
@@ -669,158 +952,531 @@ MYPURC = '<Voucher>'+
 '<VoucherRef>'+
 '<Alias>Voucher Ref</Alias>'+
 '</VoucherRef>'+
+'<BillRef>'+
+'<Alias>Bill Ref</Alias>'+
+'</BillRef>'+
 
+'<ID>'+
+'<Alias>ID</Alias>'+
+'</ID>'+
 '<DATE>'+
 '<Alias>Date</Alias>'+
 '</DATE>'+
-'<NARRATION>>'+
+'<NARRATION>'+
 '<Alias>Narration</Alias>'+
 '</NARRATION>'+
 
+'<RoundOff>'+
+'<Alias>Party</Alias>'+
+'<Group>Sundry Debtors</Group>'+
+'<GSTN>'+
+'<Alias>GSTN</Alias>'+
+'</GSTN>'+
+'<RoundTo>1</RoundTo>'+
+'</RoundOff>'+
+
 '+<LEDGER>'+
-'<Alias>Ledger</Alias>'+
-'<Group>Sundry Creditors</Group>'+
+'<Alias>Bill_Ledger</Alias>'+
+'<Default>Sales Account</Default>'+
+'<IsInvCol>Yes</IsInvCol>'+
 '<AmtCol>'+
-'<Alias>Bill Value</Alias>'+
+'<Alias>Bill_Value</Alias>'+
+'<Group>Sales Accounts</Group>'+
 '<Type>Cr</Type>'+
 '</AmtCol>'+
-'<GSTN>TIN Number</GSTN>'+
 '</LEDGER>'+
 
-'+<LEDGER2>'+
-'<Default>VAT Purchase 5%</Default>'+
-'<Group>Purchase Accounts</Group>'+
+'+<LEDGER>'+
 '<AmtCol>'+
-'<Alias>VAT Purchase 5</Alias>'+
-'<Type>Dr</Type>'+
-'</AmtCol>'+
-'</LEDGER2>'+
-'+<LEDGER3>'+
-'<Default>Input Tax 5%</Default>'+
+'<Alias>SGST</Alias>'+
 '<Group>Duties &amp; Taxes</Group>'+
-'<AmtCol>'+
-'<Alias>VAT Input 5</Alias>'+
-'<Type>Dr</Type>'+
-'</AmtCol>'+
-'</LEDGER3>'+
-
-'+<LEDGER4>'+
-'<Default>VAT Purchase 14.5%</Default>'+
-'<Group>Purchase Accounts</Group>'+
-'<AmtCol>'+
-'<Alias>VAT Purchase 14_5</Alias>'+
-'<Type>Dr</Type>'+
-'</AmtCol>'+
-'</LEDGER4>'+
-'+<LEDGER5>'+
-'<Default>Input Tax 14_5</Default>'+
-'<Group>Duties &amp; Taxes</Group>'+
-'<AmtCol>'+
-'<Alias>VAT Input 14_5</Alias>'+
-'<Type>Dr</Type>'+
-'</AmtCol>'+
-'</LEDGER5>'+
-'+<LEDGER6>'+
-'<AmtCol>'+
-'<Alias>Purchase Exempted</Alias>'+
-'<Group>Purchase Accounts</Group>'+
-'<Type>Dr</Type>'+
-'<IsLedgerName>Yes</IsLedgerName>'+
-'</AmtCol>'+
-'</LEDGER6>'+
-
-'+<LEDGER7>'+
-'<Default>CST Purchase @ 5%</Default>'+
-'<Group>Purchase Accounts</Group>'+
-'<AmtCol>'+
-'<Alias>CST Purchase 5</Alias>'+
-'<Type>Dr</Type>'+
-'</AmtCol>'+
-'</LEDGER7>'+
-'+<LEDGER8>'+
-'<Default>CST Input @ 5%</Default>'+
-'<Group>Duties &amp; Taxes</Group>'+
-'<AmtCol>'+
-'<Alias>CST Input 5</Alias>'+
-'<Type>Dr</Type>'+
-'</AmtCol>'+
-'</LEDGER8>'+
-
-'+<LEDGER9>'+
-'<Default>CST Purchase @ 14.5%</Default>'+
-'<Group>Purchase Accounts</Group>'+
-'<AmtCol>'+
-'<Alias>CST Purchase 14_5</Alias>'+
-'<Type>Dr</Type>'+
-'</AmtCol>'+
-'</LEDGER9>'+
-'+<LEDGER10>'+
-'<Default>CST Input @ 14.5%</Default>'+
-'<Group>Duties &amp; Taxes</Group>'+
-'<AmtCol>'+
-'<Alias>CST Input 14_5</Alias>'+
-'<Type>Dr</Type>'+
-'</AmtCol>'+
-'</LEDGER10>'+
-
-'+<LEDGER11>'+
-'<Default>CST Purchase @ 2%</Default>'+
-'<Group>Purchase Accounts</Group>'+
-'<AmtCol>'+
-'<Alias>CST Purchase 2</Alias>'+
-'<Type>Dr</Type>'+
-'</AmtCol>'+
-'</LEDGER11>'+
-'+<LEDGER12>'+
-'<Default>CST Input @ 2%</Default>'+
-'<Group>Duties &amp; Taxes</Group>'+
-'<AmtCol>'+
-'<Alias>CST Input 2</Alias>'+
-'<Type>Dr</Type>'+
-'</AmtCol>'+
-'</LEDGER12>'+
-
-'+<LEDGER13>'+
-'<AmtCol>'+
-'<Alias>Service Tax</Alias>'+
-'<Group>Purchase Accounts</Group>'+
-'<Type>Dr</Type>'+
-'<IsLedgerName>Yes</IsLedgerName>'+
-'</AmtCol>'+
-'</LEDGER13>'+
-'+<LEDGER14>'+
-'<AmtCol>'+
-'<Alias>Service Tax Input</Alias>'+
-'<Group>Duties &amp; Taxes</Group>'+
-'<Type>Dr</Type>'+
-'<IsLedgerName>Yes</IsLedgerName>'+
-'</AmtCol>'+
-'</LEDGER14>'+
-
-'+<LEDGER15>'+
-'<AmtCol>'+
-'<Alias>Discount</Alias>'+
-'<Group>Indirect Incomes</Group>'+
 '<Type>Cr</Type>'+
 '<IsLedgerName>Yes</IsLedgerName>'+
 '</AmtCol>'+
-'</LEDGER15>'+
-'+<LEDGER16>'+
+'</LEDGER>'+
+
+'+<LEDGER>'+
+'<AmtCol>'+
+'<Alias>CGST</Alias>'+
+'<Group>Duties &amp; Taxes</Group>'+
+'<Type>Cr</Type>'+
+'<IsLedgerName>Yes</IsLedgerName>'+
+'</AmtCol>'+
+'</LEDGER>'+
+
+'+<LEDGER>'+
+'<AmtCol>'+
+'<Alias>IGST</Alias>'+
+'<Group>Duties &amp; Taxes</Group>'+
+'<Type>Cr</Type>'+
+'<IsLedgerName>Yes</IsLedgerName>'+
+'</AmtCol>'+
+'</LEDGER>'+
+{
+'+<LEDGER>'+
+'<Default>Output SGST 1.5%</Default>'+
+'<Group>Duties &amp; Taxes</Group>'+
+'<AmtCol>'+
+'<Alias>SGST Tax 1_5</Alias>'+
+'<Type>Cr</Type>'+
+'</AmtCol>'+
+'</LEDGER>'+
+'+<LEDGER>'+
+'<Default>Output CGST 1.5%</Default>'+
+'<Group>Duties &amp; Taxes</Group>'+
+'<AmtCol>'+
+'<Alias>CGST Tax 1_5</Alias>'+
+'<Type>Cr</Type>'+
+'</AmtCol>'+
+'</LEDGER>'+
+'+<LEDGER>'+
+'<Default>Output IGST 3%</Default>'+
+'<Group>Duties &amp; Taxes</Group>'+
+'<AmtCol>'+
+'<Alias>IGST Tax 3</Alias>'+
+'<Type>Cr</Type>'+
+'</AmtCol>'+
+'</LEDGER>'+
+
+'+<LEDGER>'+
+'<Default>Output SGST 2.5%</Default>'+
+'<Group>Duties &amp; Taxes</Group>'+
+'<AmtCol>'+
+'<Alias>SGST Tax 2_5</Alias>'+
+'<Type>Cr</Type>'+
+'</AmtCol>'+
+'</LEDGER>'+
+'+<LEDGER>'+
+'<Default>Output CGST 2.5%</Default>'+
+'<Group>Duties &amp; Taxes</Group>'+
+'<AmtCol>'+
+'<Alias>CGST Tax 2_5</Alias>'+
+'<Type>Cr</Type>'+
+'</AmtCol>'+
+'</LEDGER>'+
+'+<LEDGER>'+
+'<Default>Output IGST 5%</Default>'+
+'<Group>Duties &amp; Taxes</Group>'+
+'<AmtCol>'+
+'<Alias>IGST Tax 5</Alias>'+
+'<Type>Cr</Type>'+
+'</AmtCol>'+
+'</LEDGER>'+
+
+'+<LEDGER>'+
+'<Default>Output SGST 6%</Default>'+
+'<Group>Duties &amp; Taxes</Group>'+
+'<AmtCol>'+
+'<Alias>SGST Tax 6</Alias>'+
+'<Type>Cr</Type>'+
+'</AmtCol>'+
+'</LEDGER>'+
+'+<LEDGER>'+
+'<Default>Output CGST 6%</Default>'+
+'<Group>Duties &amp; Taxes</Group>'+
+'<AmtCol>'+
+'<Alias>CGST Tax 6</Alias>'+
+'<Type>Cr</Type>'+
+'</AmtCol>'+
+'</LEDGER>'+
+'+<LEDGER>'+
+'<Default>Output IGST 12%</Default>'+
+'<Group>Duties &amp; Taxes</Group>'+
+'<AmtCol>'+
+'<Alias>IGST Tax 12</Alias>'+
+'<Type>Cr</Type>'+
+'</AmtCol>'+
+'</LEDGER>'+
+
+'+<LEDGER>'+
+'<Default>Output SGST 9%</Default>'+
+'<Group>Duties &amp; Taxes</Group>'+
+'<AmtCol>'+
+'<Alias>SGST Tax 9</Alias>'+
+'<Type>Cr</Type>'+
+'</AmtCol>'+
+'</LEDGER>'+
+'+<LEDGER>'+
+'<Default>Output CGST 9%</Default>'+
+'<Group>Duties &amp; Taxes</Group>'+
+'<AmtCol>'+
+'<Alias>CGST Tax 9</Alias>'+
+'<Type>Cr</Type>'+
+'</AmtCol>'+
+'</LEDGER>'+
+'+<LEDGER>'+
+'<Default>Output IGST 18%</Default>'+
+'<Group>Duties &amp; Taxes</Group>'+
+'<AmtCol>'+
+'<Alias>IGST Tax 18</Alias>'+
+'<Type>Cr</Type>'+
+'</AmtCol>'+
+'</LEDGER>'+
+
+'+<LEDGER>'+
+'<Default>Output SGST 14%</Default>'+
+'<Group>Duties &amp; Taxes</Group>'+
+'<AmtCol>'+
+'<Alias>SGST Tax 14</Alias>'+
+'<Type>Cr</Type>'+
+'</AmtCol>'+
+'</LEDGER>'+
+'+<LEDGER>'+
+'<Default>Output CGST 14%</Default>'+
+'<Group>Duties &amp; Taxes</Group>'+
+'<AmtCol>'+
+'<Alias>CGST Tax 14</Alias>'+
+'<Type>Cr</Type>'+
+'</AmtCol>'+
+'</LEDGER>'+
+'+<LEDGER>'+
+'<Default>Output IGST 28%</Default>'+
+'<Group>Duties &amp; Taxes</Group>'+
+'<AmtCol>'+
+'<Alias>IGST Tax 28</Alias>'+
+'<Type>Cr</Type>'+
+'</AmtCol>'+
+'</LEDGER>'+
+
+'+<LEDGER>'+
+'<AmtCol>'+
+'<Alias>Discount</Alias>'+
+'<Group>Indirect Expenses</Group>'+
+'<Type>Dr</Type>'+
+'<IsLedgerName>Yes</IsLedgerName>'+
+'</AmtCol>'+
+'</LEDGER>'+
+'+<LEDGER>'+
+'<AmtCol>'+
+'<Alias>Delivery Charges</Alias>'+
+'<Type>Cr</Type>'+
+'<IsLedgerName>Yes</IsLedgerName>'+
+'</AmtCol>'+
+'</LEDGER>'+
+}
+'+<LEDGER>'+
+'<AmtCol>'+
+'<Alias>CESS</Alias>'+
+'<Group>Duties &amp; Taxes</Group>'+
+'<Type>Cr</Type>'+
+'<IsLedgerName>Yes</IsLedgerName>'+
+'</AmtCol>'+
+'</LEDGER>'+
+
+'+<LEDGER>'+
+'<AmtCol>'+
+'<Alias>Discount</Alias>'+
+'<Group>Indirect Expenses</Group>'+
+'<Type>Dr</Type>'+
+'<IsLedgerName>Yes</IsLedgerName>'+
+'</AmtCol>'+
+'</LEDGER>'+
+'+<LEDGER>'+
+'<AmtCol>'+
+'<Alias>Delivery Charges</Alias>'+
+'<Group>Indirect Expenses</Group>'+
+'<Type>Cr</Type>'+
+'<IsLedgerName>Yes</IsLedgerName>'+
+'</AmtCol>'+
+'</LEDGER>'+
+
+'<VTYPE>>'+
+'<Default>Sales</Default>'+
+'</VTYPE>'+
+
+'<INVENTORY>>'+
+'<ITEM>>'+
+'<Alias>Item</Alias>'+
+'</ITEM>'+
+'<HSN>>'+
+'<Alias>HSN</Alias>'+
+'</HSN>'+
+'<UNIT>>'+
+'<Alias>Unit</Alias>'+
+'</UNIT>'+
+'<QTY>>'+
+'<Alias>Qty</Alias>'+
+'</QTY>'+
+'<RATE>>'+
+'<Alias>Rate</Alias>'+
+'</RATE>'+
+'<Value>>'+
+'<Alias>Bill_Value</Alias>'+
+'</Value>'+
+'</INVENTORY>'+
+'</Voucher>';
+
+PBILL = '<Voucher>'+
+'<Data>'+
+'<VoucherList>SBill</VoucherList>'+
+'<DefaultGroup>Sundry Debtors</DefaultGroup>'+
+'<IsMultiRow>Yes</IsMultiRow>'+
+'<IsMultiColumn>Yes</IsMultiColumn>'+
+'</Data>'+
+
+'<VoucherNo>'+
+'<Alias>Voucher No</Alias>'+
+'</VoucherNo>'+
+'<VoucherRef>'+
+'<Alias>Voucher Ref</Alias>'+
+'</VoucherRef>'+
+'<BillRef>'+
+'<Alias>Bill Ref</Alias>'+
+'</BillRef>'+
+
+'<ID>'+
+'<Alias>ID</Alias>'+
+'</ID>'+
+'<DATE>'+
+'<Alias>Date</Alias>'+
+'</DATE>'+
+'<NARRATION>'+
+'<Alias>Narration</Alias>'+
+'</NARRATION>'+
+
+'<RoundOff>'+
+'<Alias>Party</Alias>'+
+'<Group>Sundry Debtors</Group>'+
+'<GSTN>'+
+'<Alias>GSTN</Alias>'+
+'</GSTN>'+
+'<RoundTo>1</RoundTo>'+
+'</RoundOff>'+
+
+'+<LEDGER>'+
+'<Alias>Bill_Ledger</Alias>'+
+'<Default>Purchase Account</Default>'+
+'<IsInvCol>Yes</IsInvCol>'+
+'<AmtCol>'+
+'<Alias>Bill_Value</Alias>'+
+'<Group>Purchase Accounts</Group>'+
+'<Type>Dr</Type>'+
+'</AmtCol>'+
+'</LEDGER>'+
+
+'+<LEDGER>'+
+'<AmtCol>'+
+'<Alias>SGST</Alias>'+
+'<Group>Duties &amp; Taxes</Group>'+
+'<Type>Dr</Type>'+
+'<IsLedgerName>Yes</IsLedgerName>'+
+'</AmtCol>'+
+'</LEDGER>'+
+
+'+<LEDGER>'+
+'<AmtCol>'+
+'<Alias>CGST</Alias>'+
+'<Group>Duties &amp; Taxes</Group>'+
+'<Type>Dr</Type>'+
+'<IsLedgerName>Yes</IsLedgerName>'+
+'</AmtCol>'+
+'</LEDGER>'+
+
+'+<LEDGER>'+
+'<AmtCol>'+
+'<Alias>IGST</Alias>'+
+'<Group>Duties &amp; Taxes</Group>'+
+'<Type>Dr</Type>'+
+'<IsLedgerName>Yes</IsLedgerName>'+
+'</AmtCol>'+
+'</LEDGER>'+
+{
+'+<LEDGER>'+
+'<Default>Output SGST 1.5%</Default>'+
+'<Group>Duties &amp; Taxes</Group>'+
+'<AmtCol>'+
+'<Alias>SGST Tax 1_5</Alias>'+
+'<Type>Dr</Type>'+
+'</AmtCol>'+
+'</LEDGER>'+
+'+<LEDGER>'+
+'<Default>Output CGST 1.5%</Default>'+
+'<Group>Duties &amp; Taxes</Group>'+
+'<AmtCol>'+
+'<Alias>CGST Tax 1_5</Alias>'+
+'<Type>Dr</Type>'+
+'</AmtCol>'+
+'</LEDGER>'+
+'+<LEDGER>'+
+'<Default>Output IGST 3%</Default>'+
+'<Group>Duties &amp; Taxes</Group>'+
+'<AmtCol>'+
+'<Alias>IGST Tax 3</Alias>'+
+'<Type>Dr</Type>'+
+'</AmtCol>'+
+'</LEDGER>'+
+
+'+<LEDGER>'+
+'<Default>Output SGST 2.5%</Default>'+
+'<Group>Duties &amp; Taxes</Group>'+
+'<AmtCol>'+
+'<Alias>SGST Tax 2_5</Alias>'+
+'<Type>Dr</Type>'+
+'</AmtCol>'+
+'</LEDGER>'+
+'+<LEDGER>'+
+'<Default>Output CGST 2.5%</Default>'+
+'<Group>Duties &amp; Taxes</Group>'+
+'<AmtCol>'+
+'<Alias>CGST Tax 2_5</Alias>'+
+'<Type>Dr</Type>'+
+'</AmtCol>'+
+'</LEDGER>'+
+'+<LEDGER>'+
+'<Default>Output IGST 5%</Default>'+
+'<Group>Duties &amp; Taxes</Group>'+
+'<AmtCol>'+
+'<Alias>IGST Tax 5</Alias>'+
+'<Type>Dr</Type>'+
+'</AmtCol>'+
+'</LEDGER>'+
+
+'+<LEDGER>'+
+'<Default>Output SGST 6%</Default>'+
+'<Group>Duties &amp; Taxes</Group>'+
+'<AmtCol>'+
+'<Alias>SGST Tax 6</Alias>'+
+'<Type>Dr</Type>'+
+'</AmtCol>'+
+'</LEDGER>'+
+'+<LEDGER>'+
+'<Default>Output CGST 6%</Default>'+
+'<Group>Duties &amp; Taxes</Group>'+
+'<AmtCol>'+
+'<Alias>CGST Tax 6</Alias>'+
+'<Type>Dr</Type>'+
+'</AmtCol>'+
+'</LEDGER>'+
+'+<LEDGER>'+
+'<Default>Output IGST 12%</Default>'+
+'<Group>Duties &amp; Taxes</Group>'+
+'<AmtCol>'+
+'<Alias>IGST Tax 12</Alias>'+
+'<Type>Dr</Type>'+
+'</AmtCol>'+
+'</LEDGER>'+
+
+'+<LEDGER>'+
+'<Default>Output SGST 9%</Default>'+
+'<Group>Duties &amp; Taxes</Group>'+
+'<AmtCol>'+
+'<Alias>SGST Tax 9</Alias>'+
+'<Type>Dr</Type>'+
+'</AmtCol>'+
+'</LEDGER>'+
+'+<LEDGER>'+
+'<Default>Output CGST 9%</Default>'+
+'<Group>Duties &amp; Taxes</Group>'+
+'<AmtCol>'+
+'<Alias>CGST Tax 9</Alias>'+
+'<Type>Dr</Type>'+
+'</AmtCol>'+
+'</LEDGER>'+
+'+<LEDGER>'+
+'<Default>Output IGST 18%</Default>'+
+'<Group>Duties &amp; Taxes</Group>'+
+'<AmtCol>'+
+'<Alias>IGST Tax 18</Alias>'+
+'<Type>Dr</Type>'+
+'</AmtCol>'+
+'</LEDGER>'+
+
+'+<LEDGER>'+
+'<Default>Output SGST 14%</Default>'+
+'<Group>Duties &amp; Taxes</Group>'+
+'<AmtCol>'+
+'<Alias>SGST Tax 14</Alias>'+
+'<Type>Dr</Type>'+
+'</AmtCol>'+
+'</LEDGER>'+
+'+<LEDGER>'+
+'<Default>Output CGST 14%</Default>'+
+'<Group>Duties &amp; Taxes</Group>'+
+'<AmtCol>'+
+'<Alias>CGST Tax 14</Alias>'+
+'<Type>Dr</Type>'+
+'</AmtCol>'+
+'</LEDGER>'+
+'+<LEDGER>'+
+'<Default>Output IGST 28%</Default>'+
+'<Group>Duties &amp; Taxes</Group>'+
+'<AmtCol>'+
+'<Alias>IGST Tax 28</Alias>'+
+'<Type>Dr</Type>'+
+'</AmtCol>'+
+'</LEDGER>'+
+
+'+<LEDGER>'+
+'<AmtCol>'+
+'<Alias>Discount</Alias>'+
+'<Group>Indirect Expenses</Group>'+
+'<Type>Cr</Type>'+
+'<IsLedgerName>Yes</IsLedgerName>'+
+'</AmtCol>'+
+'</LEDGER>'+
+'+<LEDGER>'+
 '<AmtCol>'+
 '<Alias>Delivery Charges</Alias>'+
 '<Type>Dr</Type>'+
 '<IsLedgerName>Yes</IsLedgerName>'+
 '</AmtCol>'+
-'</LEDGER16>'+
+'</LEDGER>'+
+}
+'+<LEDGER>'+
+'<AmtCol>'+
+'<Alias>CESS</Alias>'+
+'<Group>Duties &amp; Taxes</Group>'+
+'<Type>Dr</Type>'+
+'<IsLedgerName>Yes</IsLedgerName>'+
+'</AmtCol>'+
+'</LEDGER>'+
+
+'+<LEDGER>'+
+'<AmtCol>'+
+'<Alias>Discount</Alias>'+
+'<Group>Indirect Expenses</Group>'+
+'<Type>Cr</Type>'+
+'<IsLedgerName>Yes</IsLedgerName>'+
+'</AmtCol>'+
+'</LEDGER>'+
+'+<LEDGER>'+
+'<AmtCol>'+
+'<Alias>Delivery Charges</Alias>'+
+'<Group>Indirect Expenses</Group>'+
+'<Type>Dr</Type>'+
+'<IsLedgerName>Yes</IsLedgerName>'+
+'</AmtCol>'+
+'</LEDGER>'+
 
 '<VTYPE>>'+
-'<Default>Purchase</Default>'+
+'<Default>Sales</Default>'+
 '</VTYPE>'+
+
+'<INVENTORY>>'+
+'<ITEM>>'+
+'<Alias>Item</Alias>'+
+'</ITEM>'+
+'<HSN>>'+
+'<Alias>HSN</Alias>'+
+'</HSN>'+
+'<UNIT>>'+
+'<Alias>Unit</Alias>'+
+'</UNIT>'+
+'<QTY>>'+
+'<Alias>Qty</Alias>'+
+'</QTY>'+
+'<RATE>>'+
+'<Alias>Rate</Alias>'+
+'</RATE>'+
+'<Value>>'+
+'<Alias>Bill_Value</Alias>'+
+'</Value>'+
+'</INVENTORY>'+
 '</Voucher>';
 
 FINANCE = '<Voucher>'+
 '<Data>'+
-'<VoucherList>Ne</VoucherList>'+
+'<VoucherList>Finance</VoucherList>'+
 '<IsMultiColumn>Yes</IsMultiColumn>'+
 '</Data>'+
 '<CrAmtCol>'+
@@ -838,11 +1494,11 @@ FINANCE = '<Voucher>'+
 '<Alias>PARTY</Alias>'+
 '<Group>Sundry Creditors</Group>'+
 '</LEDGER>'+
-'+<LEDGER2>'+
+'+<LEDGER>'+
 '<Default>Fund Account</Default>'+
 '<Group>Current Liabilities</Group>'+
 '<Alias>LEDGER</Alias>'+
-'+</LEDGER2>'+
+'+</LEDGER>'+
 '<VTYPE>>'+
 '<Default>Receipt</Default>'+
 '</VTYPE>'+
@@ -853,65 +1509,76 @@ FINANCE = '<Voucher>'+
 
 GSTSALE = '<Voucher>'+
 '<Data>'+
-'<VoucherList>Annex_II</VoucherList>'+
+'<VoucherList>Sales</VoucherList>'+
 '<DefaultGroup>Sundry Debtors</DefaultGroup>'+
-'<IsMultiRow>No</IsMultiRow>'+
+'<IsMultiRow>Yes</IsMultiRow>'+
 '<IsMultiColumn>Yes</IsMultiColumn>'+
 '</Data>'+
 
 '<VoucherNo>'+
-'<Alias>Invoice_No</Alias>'+
+'<Alias>Voucher No</Alias>'+
 '</VoucherNo>'+
+'<VoucherRef>'+
+'<Alias>Voucher Ref</Alias>'+
+'</VoucherRef>'+
+'<BillRef>'+
+'<Alias>Bill Ref</Alias>'+
+'</BillRef>'+
 
 '<RoundOff>'+
 '<Alias>Name_of_buyer</Alias>'+
 '<Group>Sundry Debtors</Group>'+
-'<GSTN>Buyer_TIN</GSTN>'+
+'<GSTN>'+
+'<Alias>GSTN</Alias>'+
+'</GSTN>'+
+'<RoundTo>1</RoundTo>'+
 '</RoundOff>'+
 
 '<ID>'+
- '<Alias>Invoice_No</Alias>'+
+'<Alias>ID</Alias>'+
 '</ID>'+
 '<DATE>'+
 '<Alias>Invoice_Date</Alias>'+
 '</DATE>'+
 '<NARRATION>>'+
-'<Alias>Invoice_No</Alias>'+
+'<Alias>NARRATION</Alias>'+
 '</NARRATION>'+
 
 '<LEDGER>'+
-'<Alias>Tax_rate</Alias>'+
-'<Default>Sales Account</Default>'+
+'<Alias>Sales_Ledger</Alias>'+
 '<Group>Sales Accounts</Group>'+
+'<Default>Sales Account</Default>'+
+'<IsInvCol>Yes</IsInvCol>'+
 '<Dict>'+
-'<TokenCol>1</TokenCol>'+
+'<TokenCol>Tax_rate</TokenCol>'+
 '<Token>0</Token>'+
-'<Value>Sales Account</Value>'+
+'<Value>GST Sales Exempted</Value>'+
+'</Dict>'+
+
+'<Dict>'+
+'<TokenCol>Tax_rate</TokenCol>'+
+'<Token>3</Token>'+
+'<Value>GST 3% Sales</Value>'+
 '</Dict>'+
 '<Dict>'+
-'<TokenCol>1</TokenCol>'+
-'<Token>2</Token>'+
-'<Value>GST Sales 2%</Value>'+
-'</Dict>'+
-'<Dict>'+
-'<TokenCol>1</TokenCol>'+
+'<TokenCol>Tax_rate</TokenCol>'+
 '<Token>5</Token>'+
-'<Value>GST Sales 5%</Value>'+
+'<Value>GST 5% Sales</Value>'+
 '</Dict>'+
 '<Dict>'+
-'<TokenCol>1</TokenCol>'+
+'<TokenCol>Tax_rate</TokenCol>'+
 '<Token>12</Token>'+
-'<Value>GST Sales 12%</Value>'+
+'<Value>GST 12% Sales</Value>'+
 '</Dict>'+
 '<Dict>'+
-'<TokenCol>1</TokenCol>'+
+'<TokenCol>Tax_rate</TokenCol>'+
 '<Token>18</Token>'+
-'<Value>GST Sales 18%</Value>'+
+'<Value>GST 18% Sales</Value>'+
 '</Dict>'+
 '<Dict>'+
-'<TokenCol>1</TokenCol>'+
+'<TokenCol>Tax_rate</TokenCol>'+
 '<Token>28</Token>'+
-'<Value>GST Sales 28%</Value>'+
+'<Value>GST 28% Sales</Value>'+
 '</Dict>'+
 '<AmtCol>'+
 '<Alias>Sales_Value</Alias>'+
@@ -919,30 +1586,31 @@ GSTSALE = '<Voucher>'+
 '</AmtCol>'+
 '</LEDGER>'+
 
-'<LEDGER2>'+
+'<LEDGER>'+
+'<Default>SGST</Default>'+
 '<Group>Duties &amp; Taxes</Group>'+
 '<Dict>'+
-'<TokenCol>1</TokenCol>'+
-'<Token>2</Token>'+
-'<Value>Output SGST 1%</Value>'+
+'<TokenCol>Tax_rate</TokenCol>'+
+'<Token>3</Token>'+
+'<Value>Output SGST 1.5%</Value>'+
 '</Dict>'+
 '<Dict>'+
-'<TokenCol>1</TokenCol>'+
+'<TokenCol>Tax_rate</TokenCol>'+
 '<Token>5</Token>'+
 '<Value>Output SGST 2.5%</Value>'+
 '</Dict>'+
 '<Dict>'+
-'<TokenCol>1</TokenCol>'+
+'<TokenCol>Tax_rate</TokenCol>'+
 '<Token>12</Token>'+
 '<Value>Output SGST 6%</Value>'+
 '</Dict>'+
 '<Dict>'+
-'<TokenCol>1</TokenCol>'+
+'<TokenCol>Tax_rate</TokenCol>'+
 '<Token>18</Token>'+
 '<Value>Output SGST 9%</Value>'+
 '</Dict>'+
 '<Dict>'+
-'<TokenCol>1</TokenCol>'+
+'<TokenCol>Tax_rate</TokenCol>'+
 '<Token>28</Token>'+
 '<Value>Output SGST 14%</Value>'+
 '</Dict>'+
@@ -951,32 +1619,33 @@ GSTSALE = '<Voucher>'+
 '<Type>Cr</Type>'+
 '</AmtCol>'+
 '<Assessable>Sales_Value</Assessable>'+
-'</LEDGER2>'+
+'</LEDGER>'+
 
-'<LEDGER3>'+
+'<LEDGER>'+
+'<Default>CGST</Default>'+
 '<Group>Duties &amp; Taxes</Group>'+
 '<Dict>'+
-'<TokenCol>1</TokenCol>'+
-'<Token>2</Token>'+
-'<Value>Output CGST 1%</Value>'+
+'<TokenCol>Tax_rate</TokenCol>'+
+'<Token>3</Token>'+
+'<Value>Output CGST 1.5%</Value>'+
 '</Dict>'+
 '<Dict>'+
-'<TokenCol>1</TokenCol>'+
+'<TokenCol>Tax_rate</TokenCol>'+
 '<Token>5</Token>'+
 '<Value>Output CGST 2.5%</Value>'+
 '</Dict>'+
 '<Dict>'+
-'<TokenCol>1</TokenCol>'+
+'<TokenCol>Tax_rate</TokenCol>'+
 '<Token>12</Token>'+
 '<Value>Output CGST 6%</Value>'+
 '</Dict>'+
 '<Dict>'+
-'<TokenCol>1</TokenCol>'+
+'<TokenCol>Tax_rate</TokenCol>'+
 '<Token>18</Token>'+
 '<Value>Output CGST 9%</Value>'+
 '</Dict>'+
 '<Dict>'+
-'<TokenCol>1</TokenCol>'+
+'<TokenCol>Tax_rate</TokenCol>'+
 '<Token>28</Token>'+
 '<Value>Output CGST 14%</Value>'+
 '</Dict>'+
@@ -985,32 +1654,75 @@ GSTSALE = '<Voucher>'+
 '<Type>Cr</Type>'+
 '</AmtCol>'+
 '<Assessable>Sales_Value</Assessable>'+
-'</LEDGER3>'+
+'</LEDGER>'+
 
-'<LEDGER4>'+
-'<Group>Duties &amp; Taxes</Group>'+
+'<LEDGER>'+
+'<Alias>Sales_Ledger</Alias>'+
+'<Group>Sales Accounts</Group>'+
+'<Default>Sales Account</Default>'+
+'<IsInvCol>Yes</IsInvCol>'+
 '<Dict>'+
-'<TokenCol>1</TokenCol>'+
-'<Token>2</Token>'+
-'<Value>Output IGST 2%</Value>'+
+'<TokenCol>Tax_rate</TokenCol>'+
+'<Token>0</Token>'+
+'<Value>IGST Sales Exempted</Value>'+
+'</Dict>'+
+
+'<Dict>'+
+'<TokenCol>Tax_rate</TokenCol>'+
+'<Token>3</Token>'+
+'<Value>IGST 3% Sales</Value>'+
 '</Dict>'+
 '<Dict>'+
-'<TokenCol>1</TokenCol>'+
+'<TokenCol>Tax_rate</TokenCol>'+
+'<Token>5</Token>'+
+'<Value>IGST 5% Sales</Value>'+
+'</Dict>'+
+'<Dict>'+
+'<TokenCol>Tax_rate</TokenCol>'+
+'<Token>12</Token>'+
+'<Value>IGST 12% Sales</Value>'+
+'</Dict>'+
+'<Dict>'+
+'<TokenCol>Tax_rate</TokenCol>'+
+'<Token>18</Token>'+
+'<Value>IGST 18% Sales</Value>'+
+'</Dict>'+
+'<Dict>'+
+'<TokenCol>Tax_rate</TokenCol>'+
+'<Token>28</Token>'+
+'<Value>IGST 28% Sales</Value>'+
+'</Dict>'+
+'<AmtCol>'+
+'<Alias>IGST Sales Value</Alias>'+
+'<Type>Cr</Type>'+
+'</AmtCol>'+
+'</LEDGER>'+
+
+'<LEDGER>'+
+'<Default>IGST</Default>'+
+'<Group>Duties &amp; Taxes</Group>'+
+'<Dict>'+
+'<TokenCol>Tax_rate</TokenCol>'+
+'<Token>3</Token>'+
+'<Value>Output IGST 3%</Value>'+
+'</Dict>'+
+'<Dict>'+
+'<TokenCol>Tax_rate</TokenCol>'+
 '<Token>5</Token>'+
 '<Value>Output IGST 5%</Value>'+
 '</Dict>'+
 '<Dict>'+
-'<TokenCol>1</TokenCol>'+
+'<TokenCol>Tax_rate</TokenCol>'+
 '<Token>12</Token>'+
 '<Value>Output IGST 12%</Value>'+
 '</Dict>'+
 '<Dict>'+
-'<TokenCol>1</TokenCol>'+
+'<TokenCol>Tax_rate</TokenCol>'+
 '<Token>18</Token>'+
 '<Value>Output IGST 18%</Value>'+
 '</Dict>'+
 '<Dict>'+
-'<TokenCol>1</TokenCol>'+
+'<TokenCol>Tax_rate</TokenCol>'+
 '<Token>28</Token>'+
 '<Value>Output IGST 28%</Value>'+
 '</Dict>'+
@@ -1018,106 +1730,207 @@ GSTSALE = '<Voucher>'+
 '<Alias>IGST</Alias>'+
 '<Type>Cr</Type>'+
 '</AmtCol>'+
-'<Assessable>Sales_Value</Assessable>'+
-'</LEDGER4>'+
+'<Assessable>IGST Sales Value</Assessable>'+
+'</LEDGER>'+
+
+'+<LEDGER>'+
+'<AmtCol>'+
+'<Alias>CESS</Alias>'+
+'<Group>Duties &amp; Taxes</Group>'+
+'<Type>Cr</Type>'+
+'<IsLedgerName>Yes</IsLedgerName>'+
+'</AmtCol>'+
+'</LEDGER>'+
+
+'<GSTRate>'+
+'<Alias>Tax_rate</Alias>'+
+'</GSTRate>'+
+
+'+<LEDGER>'+
+'<Group>Bank Accounts</Group>'+
+'<AmtCol>'+
+'<Alias>Card Receipts</Alias>'+
+'<Type>Dr</Type>'+
+'<IsLedgerName>Yes</IsLedgerName>'+
+'</AmtCol>'+
+'+</LEDGER>'+
+
+'+<LEDGER>'+
+'<AmtCol>'+
+'<Alias>Discount</Alias>'+
+'<Group>Indirect Expenses</Group>'+
+'<Type>Dr</Type>'+
+'<IsLedgerName>Yes</IsLedgerName>'+
+'</AmtCol>'+
+'</LEDGER>'+
+
+'+<LEDGER>'+
+'<AmtCol>'+
+'<Alias>Delivery Charges</Alias>'+
+'<Group>Indirect Expenses</Group>'+
+'<Type>Cr</Type>'+
+'<IsLedgerName>Yes</IsLedgerName>'+
+'</AmtCol>'+
+'</LEDGER>'+
 
 '<VTYPE>>'+
 '<Default>Sales</Default>'+
 '</VTYPE>'+
+
+
+'<INVENTORY>>'+
+'<ITEM>>'+
+'<Alias>Item</Alias>'+
+'</ITEM>'+
+'<HSN>>'+
+'<Alias>HSN</Alias>'+
+'</HSN>'+
+'<UNIT>>'+
+'<Alias>Unit</Alias>'+
+'</UNIT>'+
+'<QTY>>'+
+'<Alias>Qty</Alias>'+
+'</QTY>'+
+'<RATE>>'+
+'<Alias>Rate</Alias>'+
+'</RATE>'+
+{
+'<Value>>'+
+'<Alias>Sales_Value</Alias>'+
+'</Value>'+
+}
+'</INVENTORY>'+
+'</Voucher>'+
 '</Voucher>';
 
 GSTPURC = '<Voucher>'+
 '<Data>'+
-'<VoucherList>Annex_I</VoucherList>'+
+'<VoucherList>Purchase</VoucherList>'+
 '<DefaultGroup>Sundry Creditors</DefaultGroup>'+
-'<IsMultiRow>No</IsMultiRow>'+
+'<IsMultiRow>Yes</IsMultiRow>'+
 '<IsMultiColumn>Yes</IsMultiColumn>'+
 '</Data>'+
 
 '<VoucherNo>'+
-'<Alias>Invoice_No</Alias>'+
+'<Alias>Voucher No</Alias>'+
 '</VoucherNo>'+
+'<VoucherDate>'+
+'<Alias>Voucher Date</Alias>'+
+'</VoucherDate>'+
+'<VoucherRef>'+
+'<Alias>Voucher Ref</Alias>'+
+'</VoucherRef>'+
+'<BillRef>'+
+'<Alias>Bill Ref</Alias>'+
+'</BillRef>'+
 
 '<RoundOff>'+
 '<Alias>Name_of_seller</Alias>'+
 '<Group>Sundry Creditors</Group>'+
-'<GSTN>Seller_TIN</GSTN>'+
+'<GSTN>'+
+'<Alias>GSTN</Alias>'+
+'</GSTN>'+
+'<RoundTo>1</RoundTo>'+
 '</RoundOff>'+
 
 '<ID>'+
- '<Alias>Invoice_No</Alias>'+
+'<Alias>ID</Alias>'+
 '</ID>'+
 '<DATE>'+
 '<Alias>Invoice_Date</Alias>'+
 '</DATE>'+
 '<NARRATION>>'+
-'<Alias>Invoice_No</Alias>'+
+'<Alias>NARRATION</Alias>'+
 '</NARRATION>'+
 
 '<LEDGER>'+
-'<Alias>Tax_rate</Alias>'+
-'<Default>Purchase Account</Default>'+
+'<Alias>Purchase_Ledger</Alias>'+
 '<Group>Purchase Accounts</Group>'+
+'<Default>Purchase Account</Default>'+
+'<IsInvCol>Yes</IsInvCol>'+
 '<Dict>'+
-'<TokenCol>1</TokenCol>'+
+'<TokenCol>Tax_rate</TokenCol>'+
 '<Token>0</Token>'+
-'<Value>Purchase Account</Value>'+
+'<Value>GST Purchase Exempted</Value>'+
 '</Dict>'+
 '<Dict>'+
-'<TokenCol>1</TokenCol>'+
-'<Token>2</Token>'+
-'<Value>GST Purchase 2%</Value>'+
+'<TokenCol>Tax_rate</TokenCol>'+
+'<Token>3</Token>'+
+'<Value>GST 3% Purchase</Value>'+
 '</Dict>'+
 '<Dict>'+
-'<TokenCol>1</TokenCol>'+
+'<TokenCol>Tax_rate</TokenCol>'+
 '<Token>5</Token>'+
-'<Value>GST Purchase 5%</Value>'+
+'<Value>GST 5% Purchase</Value>'+
 '</Dict>'+
 '<Dict>'+
-'<TokenCol>1</TokenCol>'+
+'<TokenCol>Tax_rate</TokenCol>'+
 '<Token>12</Token>'+
-'<Value>GST Purchase 12%</Value>'+
+'<Value>GST 12% Purchase</Value>'+
 '</Dict>'+
 '<Dict>'+
-'<TokenCol>1</TokenCol>'+
+'<TokenCol>Tax_rate</TokenCol>'+
 '<Token>18</Token>'+
-'<Value>GST Purchase 18%</Value>'+
+'<Value>GST 18% Purchase</Value>'+
 '</Dict>'+
 '<Dict>'+
-'<TokenCol>1</TokenCol>'+
+'<TokenCol>Tax_rate</TokenCol>'+
 '<Token>28</Token>'+
-'<Value>GST Purchase 28%</Value>'+
+'<Value>GST 28% Purchase</Value>'+
 '</Dict>'+
+{
+'<Dict>'+
+'<TokenCol>Tax_rate</TokenCol>'+
+'<Token>5</Token>'+
+'<Value>IGST 5% Purchase</Value>'+
+'</Dict>'+
+'<Dict>'+
+'<TokenCol>Tax_rate</TokenCol>'+
+'<Token>12</Token>'+
+'<Value>IGST 12% Purchase</Value>'+
+'</Dict>'+
+'<Dict>'+
+'<TokenCol>Tax_rate</TokenCol>'+
+'<Token>18</Token>'+
+'<Value>IGST 18% Purchase</Value>'+
+'</Dict>'+
+'<Dict>'+
+'<TokenCol>Tax_rate</TokenCol>'+
+'<Token>28</Token>'+
+'<Value>IGST 28% Purchase</Value>'+
+'</Dict>'+
+}
 '<AmtCol>'+
 '<Alias>Purchase_Value</Alias>'+
 '<Type>Dr</Type>'+
 '</AmtCol>'+
 '</LEDGER>'+
 
-'<LEDGER2>'+
+'<LEDGER>'+
+'<Default>SGST</Default>'+
 '<Group>Duties &amp; Taxes</Group>'+
 '<Dict>'+
-'<TokenCol>1</TokenCol>'+
-'<Token>2</Token>'+
-'<Value>Input SGST 1%</Value>'+
+'<TokenCol>Tax_rate</TokenCol>'+
+'<Token>3</Token>'+
+'<Value>Input SGST 1.5%</Value>'+
 '</Dict>'+
 '<Dict>'+
-'<TokenCol>1</TokenCol>'+
+'<TokenCol>Tax_rate</TokenCol>'+
 '<Token>5</Token>'+
 '<Value>Input SGST 2.5%</Value>'+
 '</Dict>'+
 '<Dict>'+
-'<TokenCol>1</TokenCol>'+
+'<TokenCol>Tax_rate</TokenCol>'+
 '<Token>12</Token>'+
 '<Value>Input SGST 6%</Value>'+
 '</Dict>'+
 '<Dict>'+
-'<TokenCol>1</TokenCol>'+
+'<TokenCol>Tax_rate</TokenCol>'+
 '<Token>18</Token>'+
 '<Value>Input SGST 9%</Value>'+
 '</Dict>'+
 '<Dict>'+
-'<TokenCol>1</TokenCol>'+
+'<TokenCol>Tax_rate</TokenCol>'+
 '<Token>28</Token>'+
 '<Value>Input SGST 14%</Value>'+
 '</Dict>'+
@@ -1126,32 +1939,33 @@ GSTPURC = '<Voucher>'+
 '<Type>Dr</Type>'+
 '</AmtCol>'+
 '<Assessable>Purchase_Value</Assessable>'+
-'</LEDGER2>'+
+'</LEDGER>'+
 
-'<LEDGER3>'+
+'<LEDGER>'+
+'<Default>CGST</Default>'+
 '<Group>Duties &amp; Taxes</Group>'+
 '<Dict>'+
-'<TokenCol>1</TokenCol>'+
-'<Token>2</Token>'+
-'<Value>Input CGST 1%</Value>'+
+'<TokenCol>Tax_rate</TokenCol>'+
+'<Token>3</Token>'+
+'<Value>Input CGST 1.5%</Value>'+
 '</Dict>'+
 '<Dict>'+
-'<TokenCol>1</TokenCol>'+
+'<TokenCol>Tax_rate</TokenCol>'+
 '<Token>5</Token>'+
 '<Value>Input CGST 2.5%</Value>'+
 '</Dict>'+
 '<Dict>'+
-'<TokenCol>1</TokenCol>'+
+'<TokenCol>Tax_rate</TokenCol>'+
 '<Token>12</Token>'+
 '<Value>Input CGST 6%</Value>'+
 '</Dict>'+
 '<Dict>'+
-'<TokenCol>1</TokenCol>'+
+'<TokenCol>Tax_rate</TokenCol>'+
 '<Token>18</Token>'+
 '<Value>Input CGST 9%</Value>'+
 '</Dict>'+
 '<Dict>'+
-'<TokenCol>1</TokenCol>'+
+'<TokenCol>Tax_rate</TokenCol>'+
 '<Token>28</Token>'+
 '<Value>Input CGST 14%</Value>'+
 '</Dict>'+
@@ -1160,32 +1974,74 @@ GSTPURC = '<Voucher>'+
 '<Type>Dr</Type>'+
 '</AmtCol>'+
 '<Assessable>Purchase_Value</Assessable>'+
-'</LEDGER3>'+
+'</LEDGER>'+
 
-'<LEDGER4>'+
-'<Group>Duties &amp; Taxes</Group>'+
+'<LEDGER>'+
+'<Alias>Purchase_Ledger</Alias>'+
+'<Group>Purchase Accounts</Group>'+
+'<Default>Purchase Account</Default>'+
+'<IsInvCol>Yes</IsInvCol>'+
 '<Dict>'+
-'<TokenCol>1</TokenCol>'+
-'<Token>2</Token>'+
-'<Value>Input IGST 2%</Value>'+
+'<TokenCol>Tax_rate</TokenCol>'+
+'<Token>0</Token>'+
+'<Value>IGST Purchase Exempted</Value>'+
 '</Dict>'+
 '<Dict>'+
-'<TokenCol>1</TokenCol>'+
+'<TokenCol>Tax_rate</TokenCol>'+
+'<Token>3</Token>'+
+'<Value>IGST 3% Purchase</Value>'+
+'</Dict>'+
+'<Dict>'+
+'<TokenCol>Tax_rate</TokenCol>'+
+'<Token>5</Token>'+
+'<Value>IGST 5% Purchase</Value>'+
+'</Dict>'+
+'<Dict>'+
+'<TokenCol>Tax_rate</TokenCol>'+
+'<Token>12</Token>'+
+'<Value>IGST 12% Purchase</Value>'+
+'</Dict>'+
+'<Dict>'+
+'<TokenCol>Tax_rate</TokenCol>'+
+'<Token>18</Token>'+
+'<Value>IGST 18% Purchase</Value>'+
+'</Dict>'+
+'<Dict>'+
+'<TokenCol>Tax_rate</TokenCol>'+
+'<Token>28</Token>'+
+'<Value>IGST 28% Purchase</Value>'+
+'</Dict>'+
+'<AmtCol>'+
+'<Alias>IGST Purchase Value</Alias>'+
+'<Type>Dr</Type>'+
+'</AmtCol>'+
+'</LEDGER>'+
+
+'<LEDGER>'+
+'<Default>IGST</Default>'+
+'<Group>Duties &amp; Taxes</Group>'+
+'<Dict>'+
+'<TokenCol>Tax_rate</TokenCol>'+
+'<Token>3</Token>'+
+'<Value>Input IGST 3%</Value>'+
+'</Dict>'+
+'<Dict>'+
+'<TokenCol>Tax_rate</TokenCol>'+
 '<Token>5</Token>'+
 '<Value>Input IGST 5%</Value>'+
 '</Dict>'+
 '<Dict>'+
-'<TokenCol>1</TokenCol>'+
+'<TokenCol>Tax_rate</TokenCol>'+
 '<Token>12</Token>'+
 '<Value>Input IGST 12%</Value>'+
 '</Dict>'+
 '<Dict>'+
-'<TokenCol>1</TokenCol>'+
+'<TokenCol>Tax_rate</TokenCol>'+
 '<Token>18</Token>'+
 '<Value>Input IGST 18%</Value>'+
 '</Dict>'+
 '<Dict>'+
-'<TokenCol>1</TokenCol>'+
+'<TokenCol>Tax_rate</TokenCol>'+
 '<Token>28</Token>'+
 '<Value>Input IGST 28%</Value>'+
 '</Dict>'+
@@ -1193,12 +2049,730 @@ GSTPURC = '<Voucher>'+
 '<Alias>IGST</Alias>'+
 '<Type>Dr</Type>'+
 '</AmtCol>'+
-'<Assessable>Purchase_Value</Assessable>'+
-'</LEDGER4>'+
+'<Assessable>IGST Purchase Value</Assessable>'+
+'</LEDGER>'+
+
+'+<LEDGER>'+
+'<AmtCol>'+
+'<Alias>CESS</Alias>'+
+'<Group>Duties &amp; Taxes</Group>'+
+'<Type>Dr</Type>'+
+'<IsLedgerName>Yes</IsLedgerName>'+
+'</AmtCol>'+
+'</LEDGER>'+
+
+'<GSTRate>'+
+'<Alias>Tax_rate</Alias>'+
+'</GSTRate>'+
+
+'+<LEDGER>'+
+'<AmtCol>'+
+'<Alias>Discount</Alias>'+
+'<Group>Indirect Expenses</Group>'+
+'<Type>Cr</Type>'+
+'<IsLedgerName>Yes</IsLedgerName>'+
+'</AmtCol>'+
+'</LEDGER>'+
+
+'+<LEDGER>'+
+'<AmtCol>'+
+'<Alias>Delivery Charges</Alias>'+
+'<Group>Indirect Expenses</Group>'+
+'<Type>Dr</Type>'+
+'<IsLedgerName>Yes</IsLedgerName>'+
+'</AmtCol>'+
+'</LEDGER>'+
 
 '<VTYPE>>'+
 '<Default>Purchase</Default>'+
 '</VTYPE>'+
+
+'<INVENTORY>>'+
+'<ITEM>>'+
+'<Alias>Item</Alias>'+
+'</ITEM>'+
+'<HSN>>'+
+'<Alias>HSN</Alias>'+
+'</HSN>'+
+'<UNIT>>'+
+'<Alias>Unit</Alias>'+
+'</UNIT>'+
+'<QTY>>'+
+'<Alias>Qty</Alias>'+
+'</QTY>'+
+'<RATE>>'+
+'<Alias>Rate</Alias>'+
+'</RATE>'+
+{
+'<Value>>'+
+'<Alias>Purchase_Value</Alias>'+
+'</Value>'+
+}
+'</INVENTORY>'+
+'</Voucher>';
+
+ACCMASTER = '<Voucher>'+
+'<Data>'+
+'<MasterList>LMaster</MasterList>'+
+'<DefaultGroup>Sundry Debtors</DefaultGroup>'+
+'<IsMultiRow>No</IsMultiRow>'+
+'</Data>'+
+
+'<LEDGER>'+
+'<Alias>LEDGER</Alias>'+
+'<AliasName>'+
+'<Alias>Alias</Alias>'+
+'</AliasName>'+
+'<Group>'+
+'<Alias>GROUP</Alias>'+
+'</Group>'+
+'<GSTN>'+
+'<Alias>GSTN</Alias>'+
+'</GSTN>'+
+'</LEDGER>'+
+'</Voucher>';
+
+INVMASTER = '<Voucher>'+
+'<Data>'+
+'<MasterList>IMaster</MasterList>'+
+'<DefaultUnit>NOs</DefaultUnit>'+
+'<IsMultiRow>No</IsMultiRow>'+
+'</Data>'+
+
+'<LEDGER>'+
+'<Alias>LEDGER</Alias>'+
+'</LEDGER>'+
+'<ITEM>'+
+'<Alias>Item</Alias>'+
+'<HSN>>'+
+'<Alias>HSN</Alias>'+
+'</HSN>'+
+'<GSTRate>>'+
+'<Alias>GSTRate</Alias>'+
+'</GSTRate>'+
+'<AliasName>'+
+'<Alias>Alias</Alias>'+
+'</AliasName>'+
+'<UNIT>'+
+'<Alias>Unit</Alias>'+
+'</UNIT>'+
+'<O_BALANCE>'+
+'<Alias>O_Balance</Alias>'+
+'</O_BALANCE>'+
+'<O_RATE>'+
+'<Alias>O_Rate</Alias>'+
+'</O_RATE>'+
+'<GROUP>'+
+'<Alias>Group</Alias>'+
+'</GROUP>'+
+'<SUBGROUP>'+
+'<Alias>SubGroup</Alias>'+
+'</SUBGROUP>'+
+'<GODOWN>'+
+'<Alias>Godown</Alias>'+
+'</GODOWN>'+
+'</ITEM>'+
+'</Voucher>';
+
+CNOTE = '<Voucher>'+
+'<Data>'+
+'<VoucherList>Sales</VoucherList>'+
+'<DefaultGroup>Sundry Debtors</DefaultGroup>'+
+'<IsMultiRow>Yes</IsMultiRow>'+
+'<IsMultiColumn>Yes</IsMultiColumn>'+
+'</Data>'+
+
+'<VoucherNo>'+
+'<Alias>Voucher No</Alias>'+
+'</VoucherNo>'+
+'<VoucherRef>'+
+'<Alias>Voucher Ref</Alias>'+
+'</VoucherRef>'+
+'<BillRef>'+
+'<Alias>Bill Ref</Alias>'+
+'</BillRef>'+
+
+'<RoundOff>'+
+'<Alias>Name_of_buyer</Alias>'+
+'<Group>Sundry Debtors</Group>'+
+'<GSTN>'+
+'<Alias>GSTN</Alias>'+
+'</GSTN>'+
+'<RoundTo>1</RoundTo>'+
+'</RoundOff>'+
+
+'<ID>'+
+'<Alias>ID</Alias>'+
+'</ID>'+
+'<DATE>'+
+'<Alias>Invoice_Date</Alias>'+
+'</DATE>'+
+'<NARRATION>>'+
+'<Alias>NARRATION</Alias>'+
+'</NARRATION>'+
+
+'<LEDGER>'+
+'<Alias>Sales_Ledger</Alias>'+
+'<Group>Sales Accounts</Group>'+
+'<Default>Sales Account</Default>'+
+'<Dict>'+
+'<TokenCol>Tax_rate</TokenCol>'+
+'<Token>0</Token>'+
+'<Value>Sales Account</Value>'+
+'</Dict>'+
+
+'<Dict>'+
+'<TokenCol>Tax_rate</TokenCol>'+
+'<Token>3</Token>'+
+'<Value>GST 3% Sales</Value>'+
+'</Dict>'+
+'<Dict>'+
+'<TokenCol>Tax_rate</TokenCol>'+
+'<Token>5</Token>'+
+'<Value>GST 5% Sales</Value>'+
+'</Dict>'+
+'<Dict>'+
+'<TokenCol>Tax_rate</TokenCol>'+
+'<Token>12</Token>'+
+'<Value>GST 12% Sales</Value>'+
+'</Dict>'+
+'<Dict>'+
+'<TokenCol>Tax_rate</TokenCol>'+
+'<Token>18</Token>'+
+'<Value>GST 18% Sales</Value>'+
+'</Dict>'+
+'<Dict>'+
+'<TokenCol>Tax_rate</TokenCol>'+
+'<Token>28</Token>'+
+'<Value>GST 28% Sales</Value>'+
+'</Dict>'+
+'<AmtCol>'+
+'<Alias>Sales_Value</Alias>'+
+'<Type>Dr</Type>'+
+'</AmtCol>'+
+'</LEDGER>'+
+
+'<LEDGER>'+
+'<Default>SGST</Default>'+
+'<Group>Duties &amp; Taxes</Group>'+
+'<Dict>'+
+'<TokenCol>Tax_rate</TokenCol>'+
+'<Token>3</Token>'+
+'<Value>Output SGST 1.5%</Value>'+
+//'<Value>Input SGST 1.5%</Value>'+
+'</Dict>'+
+'<Dict>'+
+'<TokenCol>Tax_rate</TokenCol>'+
+'<Token>5</Token>'+
+'<Value>Output SGST 2.5%</Value>'+
+//'<Value>Input SGST 2.5%</Value>'+
+'</Dict>'+
+'<Dict>'+
+'<TokenCol>Tax_rate</TokenCol>'+
+'<Token>12</Token>'+
+'<Value>Output SGST 6%</Value>'+
+//'<Value>Input SGST 6%</Value>'+
+'</Dict>'+
+'<Dict>'+
+'<TokenCol>Tax_rate</TokenCol>'+
+'<Token>18</Token>'+
+'<Value>Output SGST 9%</Value>'+
+//'<Value>Input SGST 9%</Value>'+
+'</Dict>'+
+'<Dict>'+
+'<TokenCol>Tax_rate</TokenCol>'+
+'<Token>28</Token>'+
+'<Value>Output SGST 14%</Value>'+
+//'<Value>Input SGST 14%</Value>'+
+'</Dict>'+
+'<AmtCol>'+
+'<Alias>SGST</Alias>'+
+'<Type>Dr</Type>'+
+'</AmtCol>'+
+'<Assessable>Sales_Value</Assessable>'+
+'</LEDGER>'+
+
+'<LEDGER>'+
+'<Default>CGST</Default>'+
+'<Group>Duties &amp; Taxes</Group>'+
+'<Dict>'+
+'<TokenCol>Tax_rate</TokenCol>'+
+'<Token>3</Token>'+
+'<Value>Output CGST 1.5%</Value>'+
+//'<Value>Input CGST 1.5%</Value>'+
+'</Dict>'+
+'<Dict>'+
+'<TokenCol>Tax_rate</TokenCol>'+
+'<Token>5</Token>'+
+'<Value>Output CGST 2.5%</Value>'+
+//'<Value>Input CGST 2.5%</Value>'+
+'</Dict>'+
+'<Dict>'+
+'<TokenCol>Tax_rate</TokenCol>'+
+'<Token>12</Token>'+
+'<Value>Output CGST 6%</Value>'+
+//'<Value>Input CGST 6%</Value>'+
+'</Dict>'+
+'<Dict>'+
+'<TokenCol>Tax_rate</TokenCol>'+
+'<Token>18</Token>'+
+'<Value>Output CGST 9%</Value>'+
+//'<Value>Input CGST 9%</Value>'+
+'</Dict>'+
+'<Dict>'+
+'<TokenCol>Tax_rate</TokenCol>'+
+'<Token>28</Token>'+
+'<Value>Output CGST 14%</Value>'+
+//'<Value>Input CGST 14%</Value>'+
+'</Dict>'+
+'<AmtCol>'+
+'<Alias>CGST</Alias>'+
+'<Type>Dr</Type>'+
+'</AmtCol>'+
+'<Assessable>Sales_Value</Assessable>'+
+'</LEDGER>'+
+
+'<LEDGER>'+
+'<Alias>Sales_Ledger</Alias>'+
+'<Group>Sales Accounts</Group>'+
+'<Default>Sales Account</Default>'+
+'<IsInvCol>Yes</IsInvCol>'+
+'<Dict>'+
+'<TokenCol>Tax_rate</TokenCol>'+
+'<Token>0</Token>'+
+'<Value>IGST Sales Exempted</Value>'+
+'</Dict>'+
+
+'<Dict>'+
+'<TokenCol>Tax_rate</TokenCol>'+
+'<Token>3</Token>'+
+'<Value>IGST 3% Sales</Value>'+
+'</Dict>'+
+'<Dict>'+
+'<TokenCol>Tax_rate</TokenCol>'+
+'<Token>5</Token>'+
+'<Value>IGST 5% Sales</Value>'+
+'</Dict>'+
+'<Dict>'+
+'<TokenCol>Tax_rate</TokenCol>'+
+'<Token>12</Token>'+
+'<Value>IGST 12% Sales</Value>'+
+'</Dict>'+
+'<Dict>'+
+'<TokenCol>Tax_rate</TokenCol>'+
+'<Token>18</Token>'+
+'<Value>IGST 18% Sales</Value>'+
+'</Dict>'+
+'<Dict>'+
+'<TokenCol>Tax_rate</TokenCol>'+
+'<Token>28</Token>'+
+'<Value>IGST 28% Sales</Value>'+
+'</Dict>'+
+'<AmtCol>'+
+'<Alias>IGST Sales Value</Alias>'+
+'<Type>Dr</Type>'+
+'</AmtCol>'+
+'</LEDGER>'+
+
+'<LEDGER>'+
+'<Default>IGST</Default>'+
+'<Group>Duties &amp; Taxes</Group>'+
+'<Dict>'+
+'<TokenCol>Tax_rate</TokenCol>'+
+'<Token>3</Token>'+
+'<Value>Output IGST 3%</Value>'+
+//'<Value>Input IGST 3%</Value>'+
+'</Dict>'+
+'<Dict>'+
+'<TokenCol>Tax_rate</TokenCol>'+
+'<Token>5</Token>'+
+'<Value>Output IGST 5%</Value>'+
+//'<Value>Input IGST 5%</Value>'+
+'</Dict>'+
+'<Dict>'+
+'<TokenCol>Tax_rate</TokenCol>'+
+'<Token>12</Token>'+
+'<Value>Output IGST 12%</Value>'+
+//'<Value>Input IGST 12%</Value>'+
+'</Dict>'+
+'<Dict>'+
+'<TokenCol>Tax_rate</TokenCol>'+
+'<Token>18</Token>'+
+'<Value>Output IGST 18%</Value>'+
+//'<Value>Input IGST 18%</Value>'+
+'</Dict>'+
+'<Dict>'+
+'<TokenCol>Tax_rate</TokenCol>'+
+'<Token>28</Token>'+
+'<Value>Output IGST 28%</Value>'+
+//'<Value>Input IGST 28%</Value>'+
+'</Dict>'+
+'<AmtCol>'+
+'<Alias>IGST</Alias>'+
+'<Type>Dr</Type>'+
+'</AmtCol>'+
+'<Assessable>IGST Sales Value</Assessable>'+
+'</LEDGER>'+
+
+'+<LEDGER>'+
+'<AmtCol>'+
+'<Alias>CESS</Alias>'+
+'<Group>Duties &amp; Taxes</Group>'+
+'<Type>Dr</Type>'+
+'<IsLedgerName>Yes</IsLedgerName>'+
+'</AmtCol>'+
+'</LEDGER>'+
+
+'<GSTRate>'+
+'<Alias>Tax_rate</Alias>'+
+'</GSTRate>'+
+
+'+<LEDGER>'+
+'<Group>Bank Accounts</Group>'+
+'<AmtCol>'+
+'<Alias>Card Receipts</Alias>'+
+'<Type>Cr</Type>'+
+'<IsLedgerName>Yes</IsLedgerName>'+
+'</AmtCol>'+
+'+</LEDGER>'+
+
+'+<LEDGER>'+
+'<AmtCol>'+
+'<Alias>Discount</Alias>'+
+'<Group>Indirect Expenses</Group>'+
+'<Type>Cr</Type>'+
+'<IsLedgerName>Yes</IsLedgerName>'+
+'</AmtCol>'+
+'</LEDGER>'+
+
+'+<LEDGER>'+
+'<AmtCol>'+
+'<Alias>Delivery Charges</Alias>'+
+'<Group>Indirect Expenses</Group>'+
+'<Type>Dr</Type>'+
+'<IsLedgerName>Yes</IsLedgerName>'+
+'</AmtCol>'+
+'</LEDGER>'+
+
+'<VTYPE>>'+
+'<Default>Credit Note</Default>'+
+'</VTYPE>'+
+
+'<INVENTORY>>'+
+'<ITEM>>'+
+'<Alias>Item</Alias>'+
+'</ITEM>'+
+'<HSN>>'+
+'<Alias>HSN</Alias>'+
+'</HSN>'+
+'<UNIT>>'+
+'<Alias>Unit</Alias>'+
+'</UNIT>'+
+'<QTY>>'+
+'<Alias>Qty</Alias>'+
+'</QTY>'+
+'<RATE>>'+
+'<Alias>Rate</Alias>'+
+'</RATE>'+
+'<Value>>'+
+'<Alias>Sales_Value</Alias>'+
+'</Value>'+
+'</INVENTORY>'+
+'</Voucher>';
+
+DNOTE = '<Voucher>'+
+'<Data>'+
+'<VoucherList>Purchase</VoucherList>'+
+'<DefaultGroup>Sundry Creditors</DefaultGroup>'+
+'<IsMultiRow>Yes</IsMultiRow>'+
+'<IsMultiColumn>Yes</IsMultiColumn>'+
+'</Data>'+
+
+'<VoucherNo>'+
+'<Alias>Voucher No</Alias>'+
+'</VoucherNo>'+
+'<VoucherRef>'+
+'<Alias>Voucher Ref</Alias>'+
+'</VoucherRef>'+
+'<BillRef>'+
+'<Alias>Bill Ref</Alias>'+
+'</BillRef>'+
+
+'<RoundOff>'+
+'<Alias>Name_of_seller</Alias>'+
+'<Group>Sundry Creditors</Group>'+
+'<GSTN>'+
+'<Alias>GSTN</Alias>'+
+'</GSTN>'+
+'<RoundTo>1</RoundTo>'+
+'</RoundOff>'+
+
+'<ID>'+
+ '<Alias>ID</Alias>'+
+'</ID>'+
+'<DATE>'+
+'<Alias>Invoice_Date</Alias>'+
+'</DATE>'+
+'<NARRATION>>'+
+'<Alias>NARRATION</Alias>'+
+'</NARRATION>'+
+
+'<LEDGER>'+
+'<Alias>Purchase_Ledger</Alias>'+
+'<Group>Purchase Accounts</Group>'+
+'<Default>Purchase Account</Default>'+
+'<Dict>'+
+'<TokenCol>Tax_rate</TokenCol>'+
+'<Token>0</Token>'+
+'<Value>Purchase Account</Value>'+
+'</Dict>'+
+'<Dict>'+
+'<TokenCol>Tax_rate</TokenCol>'+
+'<Token>3</Token>'+
+'<Value>GST 3% Purchase</Value>'+
+'</Dict>'+
+'<Dict>'+
+'<TokenCol>Tax_rate</TokenCol>'+
+'<Token>5</Token>'+
+'<Value>GST 5% Purchase</Value>'+
+'</Dict>'+
+'<Dict>'+
+'<TokenCol>Tax_rate</TokenCol>'+
+'<Token>12</Token>'+
+'<Value>GST 12% Purchase</Value>'+
+'</Dict>'+
+'<Dict>'+
+'<TokenCol>Tax_rate</TokenCol>'+
+'<Token>18</Token>'+
+'<Value>GST 18% Purchase</Value>'+
+'</Dict>'+
+'<Dict>'+
+'<TokenCol>Tax_rate</TokenCol>'+
+'<Token>28</Token>'+
+'<Value>GST 28% Purchase</Value>'+
+'</Dict>'+
+'<AmtCol>'+
+'<Alias>Purchase_Value</Alias>'+
+'<Type>Cr</Type>'+
+'</AmtCol>'+
+'</LEDGER>'+
+
+'<LEDGER>'+
+'<Default>SGST</Default>'+
+'<Group>Duties &amp; Taxes</Group>'+
+'<Dict>'+
+'<TokenCol>Tax_rate</TokenCol>'+
+'<Token>3</Token>'+
+'<Value>Input SGST 1.5%</Value>'+
+//'<Value>Output SGST 1.5%</Value>'+
+'</Dict>'+
+'<Dict>'+
+'<TokenCol>Tax_rate</TokenCol>'+
+'<Token>5</Token>'+
+'<Value>Input SGST 2.5%</Value>'+
+//'<Value>Output SGST 2.5%</Value>'+
+'</Dict>'+
+'<Dict>'+
+'<TokenCol>Tax_rate</TokenCol>'+
+'<Token>12</Token>'+
+'<Value>Input SGST 6%</Value>'+
+//'<Value>Output SGST 6%</Value>'+
+'</Dict>'+
+'<Dict>'+
+'<TokenCol>Tax_rate</TokenCol>'+
+'<Token>18</Token>'+
+'<Value>Input SGST 9%</Value>'+
+//'<Value>Output SGST 9%</Value>'+
+'</Dict>'+
+'<Dict>'+
+'<TokenCol>Tax_rate</TokenCol>'+
+'<Token>28</Token>'+
+'<Value>Input SGST 14%</Value>'+
+//'<Value>Output SGST 14%</Value>'+
+'</Dict>'+
+'<AmtCol>'+
+'<Alias>SGST</Alias>'+
+'<Type>Cr</Type>'+
+'</AmtCol>'+
+'<Assessable>Purchase_Value</Assessable>'+
+'</LEDGER>'+
+
+'<LEDGER>'+
+'<Default>cGST</Default>'+
+'<Group>Duties &amp; Taxes</Group>'+
+'<Dict>'+
+'<TokenCol>Tax_rate</TokenCol>'+
+'<Token>3</Token>'+
+'<Value>Input CGST 1.5%</Value>'+
+//'<Value>Output CGST 1.5%</Value>'+
+'</Dict>'+
+'<Dict>'+
+'<TokenCol>Tax_rate</TokenCol>'+
+'<Token>5</Token>'+
+'<Value>Input CGST 2.5%</Value>'+
+//'<Value>Output CGST 2.5%</Value>'+
+'</Dict>'+
+'<Dict>'+
+'<TokenCol>Tax_rate</TokenCol>'+
+'<Token>12</Token>'+
+'<Value>Input CGST 6%</Value>'+
+//'<Value>Output CGST 6%</Value>'+
+'</Dict>'+
+'<Dict>'+
+'<TokenCol>Tax_rate</TokenCol>'+
+'<Token>18</Token>'+
+'<Value>Input CGST 9%</Value>'+
+//'<Value>Output CGST 9%</Value>'+
+'</Dict>'+
+'<Dict>'+
+'<TokenCol>Tax_rate</TokenCol>'+
+'<Token>28</Token>'+
+'<Value>Input CGST 14%</Value>'+
+//'<Value>Output CGST 14%</Value>'+
+'</Dict>'+
+'<AmtCol>'+
+'<Alias>CGST</Alias>'+
+'<Type>Cr</Type>'+
+'</AmtCol>'+
+'<Assessable>Purchase_Value</Assessable>'+
+'</LEDGER>'+
+
+'<LEDGER>'+
+'<Alias>Purchase_Ledger</Alias>'+
+'<Group>Purchase Accounts</Group>'+
+'<Default>Purchase Account</Default>'+
+'<IsInvCol>Yes</IsInvCol>'+
+'<Dict>'+
+'<TokenCol>Tax_rate</TokenCol>'+
+'<Token>0</Token>'+
+'<Value>IGST Purchase Exempted</Value>'+
+'</Dict>'+
+'<Dict>'+
+'<TokenCol>Tax_rate</TokenCol>'+
+'<Token>3</Token>'+
+'<Value>IGST 3% Purchase</Value>'+
+'</Dict>'+
+'<Dict>'+
+'<TokenCol>Tax_rate</TokenCol>'+
+'<Token>5</Token>'+
+'<Value>IGST 5% Purchase</Value>'+
+'</Dict>'+
+'<Dict>'+
+'<TokenCol>Tax_rate</TokenCol>'+
+'<Token>12</Token>'+
+'<Value>IGST 12% Purchase</Value>'+
+'</Dict>'+
+'<Dict>'+
+'<TokenCol>Tax_rate</TokenCol>'+
+'<Token>18</Token>'+
+'<Value>IGST 18% Purchase</Value>'+
+'</Dict>'+
+'<Dict>'+
+'<TokenCol>Tax_rate</TokenCol>'+
+'<Token>28</Token>'+
+'<Value>IGST 28% Purchase</Value>'+
+'</Dict>'+
+'<AmtCol>'+
+'<Alias>IGST Purchase Value</Alias>'+
+'<Type>Cr</Type>'+
+'</AmtCol>'+
+'</LEDGER>'+
+
+'<LEDGER>'+
+'<Default>IGST</Default>'+
+'<Group>Duties &amp; Taxes</Group>'+
+'<Dict>'+
+'<TokenCol>Tax_rate</TokenCol>'+
+'<Token>3</Token>'+
+'<Value>Input IGST 3%</Value>'+
+//'<Value>Output IGST 3%</Value>'+
+'</Dict>'+
+'<Dict>'+
+'<TokenCol>Tax_rate</TokenCol>'+
+'<Token>5</Token>'+
+'<Value>Input IGST 5%</Value>'+
+//'<Value>Output IGST 5%</Value>'+
+'</Dict>'+
+'<Dict>'+
+'<TokenCol>Tax_rate</TokenCol>'+
+'<Token>12</Token>'+
+'<Value>Input IGST 12%</Value>'+
+//'<Value>Output IGST 12%</Value>'+
+'</Dict>'+
+'<Dict>'+
+'<TokenCol>Tax_rate</TokenCol>'+
+'<Token>18</Token>'+
+'<Value>Input IGST 18%</Value>'+
+//'<Value>Output IGST 18%</Value>'+
+'</Dict>'+
+'<Dict>'+
+'<TokenCol>Tax_rate</TokenCol>'+
+'<Token>28</Token>'+
+'<Value>Input IGST 28%</Value>'+
+//'<Value>Output IGST 28%</Value>'+
+'</Dict>'+
+'<AmtCol>'+
+'<Alias>IGST</Alias>'+
+'<Type>Cr</Type>'+
+'</AmtCol>'+
+'<Assessable>Purchase_Value</Assessable>'+
+'</LEDGER>'+
+
+'+<LEDGER>'+
+'<AmtCol>'+
+'<Alias>CESS</Alias>'+
+'<Group>Duties &amp; Taxes</Group>'+
+'<Type>Cr</Type>'+
+'<IsLedgerName>Yes</IsLedgerName>'+
+'</AmtCol>'+
+'</LEDGER>'+
+
+'<GSTRate>'+
+'<Alias>Tax_rate</Alias>'+
+'</GSTRate>'+
+
+'+<LEDGER>'+
+'<AmtCol>'+
+'<Alias>Discount</Alias>'+
+'<Group>Indirect Expenses</Group>'+
+'<Type>Dr</Type>'+
+'<IsLedgerName>Yes</IsLedgerName>'+
+'</AmtCol>'+
+'</LEDGER>'+
+
+'+<LEDGER>'+
+'<AmtCol>'+
+'<Alias>Delivery Charges</Alias>'+
+'<Group>Indirect Expenses</Group>'+
+'<Type>Cr</Type>'+
+'<IsLedgerName>Yes</IsLedgerName>'+
+'</AmtCol>'+
+'</LEDGER>'+
+
+'<VTYPE>>'+
+'<Default>Debit Note</Default>'+
+'</VTYPE>'+
+
+'<INVENTORY>>'+
+'<ITEM>>'+
+'<Alias>Item</Alias>'+
+'</ITEM>'+
+'<HSN>>'+
+'<Alias>HSN</Alias>'+
+'</HSN>'+
+'<UNIT>>'+
+'<Alias>Unit</Alias>'+
+'</UNIT>'+
+'<QTY>>'+
+'<Alias>Qty</Alias>'+
+'</QTY>'+
+'<RATE>>'+
+'<Alias>Rate</Alias>'+
+'</RATE>'+
+'<Value>>'+
+'<Alias>Purchase_Value</Alias>'+
+'</Value>'+
+'</INVENTORY>'+
 '</Voucher>';
 
 implementation
