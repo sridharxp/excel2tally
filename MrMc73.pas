@@ -243,7 +243,7 @@ TbjMrMc = class(TinterfacedObject, IbjXlExp, IbjMrMc)
     function GetGSTState(const aGSTN: string): string;
     function GETDictToken(const ctr: integer): string;
     function GETDictValue(const ctr: integer): string;
-    procedure Filter;
+    procedure Filter(aFailure: integer);
     procedure CreateGSTLedger;
     procedure SetGSTSetting;
   public
@@ -936,7 +936,7 @@ begin
     StatusMsg := InttoStr(ProcessedCount) + ' Vouchers processed; ' +
     InttoStr(SCount) + ' Success. Check Tally.xls'
   FUpdate(StatusMsg);
-  Filter;
+  Filter(ProcessedCount - SCount);
 end;
 
 procedure TbjMrMc.Process;
@@ -1965,11 +1965,12 @@ begin
   end;
 end;
 
-procedure TbjMrMc.Filter;
+procedure TbjMrMc.Filter(aFailure: integer);
 var
   inErr: boolean;
 begin
-
+  if (aFailure = 0) then
+    Exit;
   if MessageDlg('Copy Unposted only to Tally.xls?', mtWarning, mbYesNoCancel, 0) <> mrYes then
     Exit;
   inErr := True;
