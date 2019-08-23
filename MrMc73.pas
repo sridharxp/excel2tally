@@ -169,8 +169,6 @@ TbjMrMc = class(TinterfacedObject, IbjXlExp, IbjMrMc)
     UNarration2Name: string;
     UNarration3Name: string;
     UVchNoColName: string;
-    ULRNoColName: string;
-    UDestinationColName: string;
     UVoucherRefName: string;
     UVoucherDateName: string;
     UBillRefName: string;
@@ -1260,6 +1258,7 @@ AutoCreateMst does not affect explicit group or roundoff group
             bjMstExp.NewGST(LedgerColValue, GroupColValue, aToken)
         else
             bjMstExp.NewLedger(LedgerColValue, GroupColValue, 0);
+            FUpdate(LedgerColValue);
         end;
       end;
     end;
@@ -1282,6 +1281,7 @@ AutoCreateMst does not affect explicit group or roundoff group
       end
       else
         bjMstExp.NewLedger(LedgerColValue, RoundOffGroup, 0);
+      FUpdate(LedgerColValue);
     end;
 end;
 
@@ -1511,6 +1511,7 @@ AutoCreateMst does not affect explicit group or roundoff group
     else
       bjMstExp.NewLedger(LedgerColValue,
         GroupColValue, OB);
+    FUpdate(LedgerColValue);
   end;
 end;
 
@@ -1893,6 +1894,7 @@ begin
   if not Assigned(ClientFns) then
      ClientFns := TbjGSTClientFns.Create;
   ClientFns.Host := Host;
+  bjEnv.Host := Host;
 end;
 
 function TbjMrMc.GetGSTState(const aGSTN: string): string;

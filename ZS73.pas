@@ -101,11 +101,14 @@ type
     FGodown: string;
     FCategory: string;
     FbjEnv: TbjEnv;
+    FOBal: double;
+    FORate: double;
   protected
     { Protected declarations }
     xLdg: IbjXml;
     xLed: IbjXml;
     xLedid: IbjXml;
+    CashLedPList: TStringList;
     LedPList: TStringList;
     ItemPList: TStringList;
     LedGroupPList: TStringList;
@@ -186,6 +189,7 @@ type
     FbjEnv: TbjEnv;
     FbjMstExp: TbjMStExp;
     Fvchid: string;
+    FIsContra: boolean;
   protected
     { Protected declarations }
     Lines: TList;
@@ -252,6 +256,7 @@ type
     property VchRefDate: string read FVchRefDate write FVchRefDate;
     property bjEnv: TbjEnv read FbjEnv write SetEnv;
     property bjMstExp: TbjMstExp read FbjMstExp write SetMst;
+    property IsContra: boolean read FIsContra write FIsContra;
   end;
 
 (*
@@ -342,6 +347,7 @@ begin
   ItemGroupPList.Free;
   CategoryPList.Free;
   LedPList.Free;
+  CashLedPList.Free;
   LedGroupPList.Free;
   inherited;
 end;
@@ -471,6 +477,7 @@ begin
   { NAME.LIST }
   xLdg := xLdg.GetParent;
   xLdg.NewChild2('PARENT', parent );
+(*
   if IsTax then
   begin
   xLdg.NewChild2('TAXTYPE', 'GST' );
@@ -517,7 +524,6 @@ begin
     xLdg.NewChild2('GSTRATE', GetHalfof(TaxRate));
   { RATEDETAILS.LIST }
     xLdg := xLdg.GetParent;
-*)
     xLdg := xLdg.NewChild('RATEDETAILS.LIST', '');
     xLdg.NewChild2('GSTRATEDUTYHEAD', 'State Tax');
     xLdg.NewChild2('GSTRATE', GetHalfof(TaxRate));
@@ -536,12 +542,12 @@ begin
     xLdg.NewChild2('GSTRATE', '0');
   { RATEDETAILS.LIST }
     xLdg := xLdg.GetParent;
-*)
   { STATEWISEDETAILS.LIST }
    xLdg := xLdg.GetParent;
   { GSTDETAILS.LIST }
   xLdg := xLdg.GetParent;
   end;
+*)
   { LEDGER }
   xLdg := xLdg.GetParent;
 
@@ -850,6 +856,7 @@ begin
     LedObj.Host := bjEnv.Host;
     try
       LedPList := LedObj.GetLedPackedList;
+      CashLedPList := LedObj.GetCashLedPackedList;
     finally
       ledobj.Free;
     end;
@@ -1672,6 +1679,7 @@ begin
   ledObj := TbjMstListImp.Create;
   LedObj.Host := bjEnv.Host;
   try
+    CashLedPList := LedObj.GetCashLedPackedList;
     LedPList := LedObj.GetLedPackedList;
     ItemPList := LedObj.GetItemPackedList;
     UnitPList := LedObj.GetUnitPackedList;
