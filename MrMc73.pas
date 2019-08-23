@@ -169,6 +169,8 @@ TbjMrMc = class(TinterfacedObject, IbjXlExp, IbjMrMc)
     UNarration2Name: string;
     UNarration3Name: string;
     UVchNoColName: string;
+    ULRNoColName: string;
+    UDestinationColName: string;
     UVoucherRefName: string;
     UVoucherDateName: string;
     UBillRefName: string;
@@ -896,7 +898,7 @@ begin
     if missingledgers > 0 then
       MessageDlg(IntToStr(missingledgers)+ ' Ledgers Missing in Tally', mtInformation, [mbOK], 0)
     else
-      MessageDlg('Ledgers exist in Tally', mtInformation, [mbOK], 0);
+      MessageDlg('Done', mtInformation, [mbOK], 0);
     end;
     if IsExpItemMst then
       MessageDlg('Done', mtInformation, [mbOK], 0);
@@ -1288,6 +1290,7 @@ var
   UnitColValue: string;
   ItemColValue: string;
   HSNColValue: string;
+  GRate: string;
 begin
   if not IsInvDefined[level] then
     Exit;
@@ -1307,7 +1310,8 @@ begin
   if IsHSNDefined then
   begin
     HSNColValue := kadb.GetFieldString('HSN');
-    bjMstExp.NewHSN(ItemColValue, UnitColValue, HSNColValue, 0);
+    GRate := kadb.GetFieldString('Tax_rate');
+    bjMstExp.NewHSN(ItemColValue, UnitColValue, HSNColValue, GRate);
   end
   else
     bjMstExp.NewItem(ItemColValue,
@@ -1335,12 +1339,15 @@ var
   dbkLed, wLed, dbGSTN, wGSTN: string;
   IsThere: boolean;
   dbAlias: string;
+  OBal: double;
 begin
   if not IsMListDeclared then
     Exit;
   if not IsCheckLedMst then
     Exit;
   kadb.SetFieldVal('TALLYID', ' - ');
+  OBal := kadb.GetFieldFloat('O_Balance');
+  bjMstExp.OBal := OBal;
   if IsLedgerdefined[1] then
   dbkLed := kadb.GetFieldString('Ledger');
   if IsAliasDefined then
@@ -1404,7 +1411,8 @@ var
   dbItem, dbUnit: string;
   dbAlias, dbGodown, dbParent, dbCategory: string;
   dbHSN: string;
-  OBal, Rate: Double;
+  OBal, ORate: Double;
+  GRate: string;
 begin
   if not IsMListDeclared then
     Exit;
@@ -1449,14 +1457,19 @@ begin
   end;
   dbItem := kadb.GetFieldString('Item');
   OBal := kadb.GetFieldFloat('O_Balance');
-  Rate := kadb.GetFieldFloat('O_Rate');
+  ORate := kadb.GetFieldFloat('O_Rate');
+  GRate := kadb.GetFieldString('GSTRate');
+  bjMstExp.OBal := OBal;
+  bjMstExp.ORate := ORate;
   if IsHSNDefined then
     begin
     dbHSN := kadb.GetFieldString('HSN');
-  bjMstExp.NewHSN(dbItem, dbUnit, dbHSN, Rate);
+      bjMstExp.OBal := OBal;
+      bjMstExp.ORate := ORate;
+      bjMstExp.NewHSN(dbItem, dbUnit, dbHSN, GRate);
     end
     else
-  bjMstExp.NewItem(dbItem, dbUnit, OBal, Rate);
+      bjMstExp.NewItem(dbItem, dbUnit, OBal, ORate);
 end;
 
 procedure TbjMrMc.CreateRowLedgers;
@@ -1887,18 +1900,19 @@ var
   idx: integer;
   str: string;
 begin
+  Result := UdefStateName;
   idx := 33;
   str := copy(aGSTN, 1, 2);
   if Length(Trim(str)) = 0 then
   begin
-  Result := UdefStateName;
+//  Result := UdefStateName;
   Exit;
   end;
   if not tryStrtoInt(str, idx) then
   begin
     MessageDlg('Error in GSTN, Row: '+ IntToStr(kadb.CurrentRow+1) , mterror, [mbOK], 0);
     kadb.SetFieldVal('TALLYID', 'GSTN');
-    Result := UDefStateName;
+//    Result := UDefStateName;
     Exit;
   end;
 Case idx of
@@ -1935,7 +1949,7 @@ Case idx of
        31: str := 'Lakshdweep';
        32: str := 'Kerala';
        33: str := 'Tamil Nadu';
-       34: str := 'Pondicherry';
+       34: str := 'Puducherry';
        35: str := 'Andaman & Nicobar Islands';
        36: str := 'Telangana';
        37: str := 'Andhra Pradesh (New)';
@@ -2040,8 +2054,6 @@ end;
 
 procedure TbjMrMc.SetGSTSetting;
 begin
-  if not ToSetGstSettings then
-    Exit;
   if VchType = 'Sales' then
   begin
     bjMstExp.VchType := 'Sales';

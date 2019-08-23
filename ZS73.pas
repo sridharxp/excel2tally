@@ -94,7 +94,7 @@ type
   private
     { Private declarations }
     FVchType: string;
-    FLedState: string;
+//    FLedState: string;
     FAlias: string;
 //    FLedgerGroup: string;
     FGroup: string;
@@ -121,8 +121,8 @@ type
     function CreateLedger(const Ledger, Parent: string; const OpBal: double ): boolean;
     function CreateParty(const Ledger, Parent, GSTN, State: string ): boolean;
     function CreateGST(const Ledger, Parent: string; Const TaxRate: string ): boolean;
-    function CreateItem(const Item, BaseUnit: string; const OBal, ORate: double): boolean;
-    function CreateHSN(const Item, BaseUnit, aHSN: string; const ORate: double): boolean;
+    function CreateItem(const Item, BaseUnit: string; const OpBal, OpRate: double): boolean;
+    function CreateHSN(const Item, BaseUnit, aHSN: string; const GRate: string): boolean;
 //    function CreateItem(const Item, BaseUnit: string; const OBal, ORate: double): boolean;
     function CreateUnit(const ItemUnit: string): boolean;
     function CreateItemGroup(const Grp, Parent: string): boolean;
@@ -146,8 +146,8 @@ type
     procedure NewGST(const aLedger, aParent: string; const TaxRate: string);
     function GetHalfof(const TaxRate: string): string;
     function IsItem(const Item: string): boolean;
-    procedure NewItem(const aItem, aBaseUnit: string; OpBal, ORate: double);
-    procedure NewHSN(const aItem, aBaseUnit, aHSN: string; const ORate: double);
+    procedure NewItem(const aItem, aBaseUnit: string; OpBal, OpRate: double);
+    procedure NewHSN(const aItem, aBaseUnit, aHSN: string; const GRate: string);
     function IsUnit(const aUnit: string): boolean;
     procedure NewUnit(const aUnit: string);
     procedure NewItemGroup(const aGrp, aParent: string);
@@ -159,14 +159,16 @@ type
   published
     { Published declarations }
 //    property Ledgerlias: string read FLedgerAlias write FLedgerAlias;
-    property Alias: string read FAlias write FAlias;
+    property Alias: string write FAlias;
 //    property LedgerGroup: string read FLedgerGroup write FLedgerGroup;
-    property VchType: string read FVchType write FVchType;
-    property Group: string read FGroup write FGroup;
-    property Godown: string read FGodown write FGodown;
-    property Category: string read FCategory write FCategory;
-    property LedState: string read FLedState write FLedState;
+    property VchType: string write FVchType;
+    property Group: string write FGroup;
+    property Godown: string write FGodown;
+    property Category: string write FCategory;
+//    property LedState: string read FLedState write FLedState;
     property bjEnv: TbjEnv read FbjEnv write SetEnv;
+    property OBal: double write FOBal;
+    property ORate: double write FORate;
   end;
 
   TbjVchExp = class
@@ -424,13 +426,13 @@ begin
   xLdg.AddAttribute('ACTION','Create');
   xLdg := xLdg.NewChild('NAME.LIST','');
   xLdg.NewChild2('NAME', ledger );
-  If Length(Alias) > 0 then
-  xLdg.NewChild2('NAME', Alias );
+  If Length(FAlias) > 0 then
+  xLdg.NewChild2('NAME', FAlias );
   { NAME.LIST }
   xLdg := xLdg.GetParent;
   xLdg.NewChild2('PARENT', parent );
 {  if OpBal > 0 then }
-    xLdg.NewChild2('OPENINGBALANCE', FormatFloat(TallyAmtPicture, OpBal));
+    xLdg.NewChild2('OPENINGBALANCE', FormatFloat(TallyAmtPicture, FOBal));
   { LEDGER }
   xLdg := xLdg.GetParent;
 
@@ -464,8 +466,8 @@ begin
   xLdg.AddAttribute('ACTION','Create');
   xLdg := xLdg.NewChild('NAME.LIST','');
   xLdg.NewChild2('NAME', ledger );
-  If Length(Alias) > 0 then
-  xLdg.NewChild2('NAME', Alias );
+  If Length(FAlias) > 0 then
+  xLdg.NewChild2('NAME', FAlias );
   { NAME.LIST }
   xLdg := xLdg.GetParent;
   xLdg.NewChild2('PARENT', parent );
@@ -651,8 +653,8 @@ begin
   xLdg.AddAttribute('ACTION','Create');
   xLdg := xLdg.NewChild('NAME.LIST','');
   xLdg.NewChild2('NAME', ledger );
-  If Length(Alias) > 0 then
-  xLdg.NewChild2('NAME', Alias );
+  If Length(FAlias) > 0 then
+  xLdg.NewChild2('NAME', FAlias );
   { NAME.LIST }
   xLdg := xLdg.GetParent;
   xLdg.NewChild2('SALESTAXNUMBER', GSTN);
@@ -662,6 +664,7 @@ begin
   else
     xLdg.NewChild2('GSTREGISTRATIONTYPE', 'Unregistered');
   xLdg.NewChild2('PARENT', parent );
+  xLdg.NewChild2('OPENINGBALANCE', FormatFloat(TallyAmtPicture, FOBal));
   if Length(GSTN) > 0 then
     xLdg.NewChild2('PARTYGSTIN', GSTN);
 //  xLdg.NewChild2('SERVICECATEGORY', '&#4; Not Applicable');
@@ -678,7 +681,7 @@ begin
   Result := True;
 end;
 
-function TbjMstExp.CreateItem(const Item, BaseUnit: string; const OBal, ORate: double): boolean;
+function TbjMstExp.CreateItem(const Item, BaseUnit: string; const OpBal, OpRate: double): boolean;
 begin
 {  Result := False; }
 {
@@ -691,27 +694,27 @@ begin
   xLdg := xLdg.NewChild('STOCKITEM','');
   xLdg.AddAttribute('NAME', Item);
   xLdg.AddAttribute('ACTION','Create');
-  If Length(Group) > 0 then
-  xLdg.NewChild2('PARENT', Group );
-  If Length(category) > 0 then
-    xLdg.NewChild2('CATEGORY', Category );
+  If Length(FGroup) > 0 then
+  xLdg.NewChild2('PARENT', FGroup );
+  If Length(Fcategory) > 0 then
+    xLdg.NewChild2('CATEGORY', FCategory );
   xLdg := xLdg.NewChild('NAME.LIST','');
   xLdg.NewChild2('NAME', Item );
-  If Length(Alias) > 0 then
-  xLdg.NewChild2('NAME', Alias );
+  If Length(FAlias) > 0 then
+  xLdg.NewChild2('NAME', FAlias );
   { NAME.LIST }
   xLdg := xLdg.GetParent;
   xLdg.NewChild2('BASEUNITS', BaseUnit );
-  xLdg.NewChild2('OPENINGBALANCE', FormatFloat(TallyAmtPicture, OBal)+' '+BaseUnit);
-  if ORate > 0 then
-    xLdg.NewChild2('OPENINGRATE', FormatFloat(TallyAmtPicture,ORate)+'/'+BaseUnit);;
-  If Length(Godown) > 0 then
+  xLdg.NewChild2('OPENINGBALANCE', FormatFloat(TallyAmtPicture, FOBal)+' '+BaseUnit);
+  if FORate > 0 then
+    xLdg.NewChild2('OPENINGRATE', FormatFloat(TallyAmtPicture,FORate)+'/'+BaseUnit);;
+  If Length(FGodown) > 0 then
   begin
     xLdg := xLdg.NewChild('BATCHALLOCATIONS.LIST','');
-    xLdg.NewChild2('GODOWNNAME', Godown );
+    xLdg.NewChild2('GODOWNNAME', FGodown );
     xLdg.NewChild2('BATCHNAME', 'Primary Batch');
     xLdg.NewChild2('BATCHNAME', 'Primary Batch');
-    xLdg.NewChild2('OPENINGBALANCE', FormatFloat(TallyAmtPicture, OBal)+' '+BaseUnit);
+    xLdg.NewChild2('OPENINGBALANCE', FormatFloat(TallyAmtPicture, FOBal)+' '+BaseUnit);
   { BATCHALLOCATIONS }
     xLdg := xLdg.GetParent;
   end;
@@ -728,17 +731,17 @@ begin
 end;
 
 { Function to replace CreateItem }
-function TbjMstExp.CreateHSN(const Item, BaseUnit, aHSN: string; const ORate: double): boolean;
+function TbjMstExp.CreateHSN(const Item, BaseUnit, aHSN: string; const GRate: string): boolean;
 begin
   xmlHeader('L');
   xLdg := xLdg.NewChild('TALLYMESSAGE','');
   xLdg := xLdg.NewChild('STOCKITEM','');
   xLdg.AddAttribute('NAME', Item);
   xLdg.AddAttribute('ACTION','Create');
-  If Length(Group) > 0 then
-  xLdg.NewChild2('PARENT', Group );
-  If Length(category) > 0 then
-    xLdg.NewChild2('CATEGORY', Category );
+  If Length(FGroup) > 0 then
+  xLdg.NewChild2('PARENT', FGroup );
+  If Length(Fcategory) > 0 then
+    xLdg.NewChild2('CATEGORY', FCategory );
   If Length(aHSN) > 0 then
   begin
     xLdg.NewChild2('GSTAPPLICABLE', #4 +' Applicable' );
@@ -746,21 +749,22 @@ begin
   end;
   xLdg := xLdg.NewChild('NAME.LIST','');
   xLdg.NewChild2('NAME', Item );
-  If Length(Alias) > 0 then
-  xLdg.NewChild2('NAME', Alias );
+  If Length(FAlias) > 0 then
+  xLdg.NewChild2('NAME', FAlias );
   { NAME.LIST }
   xLdg := xLdg.GetParent;
   xLdg.NewChild2('BASEUNITS', BaseUnit );
-  xLdg.NewChild2('OPENINGBALANCE', FormatFloat(TallyAmtPicture, 0)+' '+BaseUnit);
-  if ORate > 0 then
-    xLdg.NewChild2('OPENINGRATE', FormatFloat(TallyAmtPicture,ORate)+'/'+BaseUnit);;
-  If Length(Godown) > 0 then
+  xLdg.NewChild2('OPENINGBALANCE', FormatFloat(TallyAmtPicture, FOBal)+' '+BaseUnit);
+  if FORate > 0 then
+    xLdg.NewChild2('OPENINGRATE', FormatFloat(TallyAmtPicture,FORate)+'/'+BaseUnit);;
+  If Length(FGodown) > 0 then
   begin
   xLdg := xLdg.NewChild('BATCHALLOCATIONS.LIST','');
-  xLdg.NewChild2('GODOWNNAME', Godown );
+  xLdg.NewChild2('GODOWNNAME', FGodown );
   xLdg.NewChild2('BATCHNAME', 'Primary Batch');
   xLdg.NewChild2('BATCHNAME', 'Primary Batch');
-  xLdg.NewChild2('OPENINGBALANCE', FormatFloat(TallyAmtPicture, 0)+' '+BaseUnit);
+  if FORate > 0 then
+  xLdg.NewChild2('OPENINGBALANCE', FormatFloat(TallyAmtPicture, FORate)+' '+BaseUnit);
   { BATCHALLOCATIONS }
   xLdg := xLdg.GetParent;
   end;
@@ -770,6 +774,24 @@ begin
     xLdg.NewChild2('APPLICABLEFROM', '20180701');
     xLdg.NewChild2('HSNCODE', aHSN);
     xLdg.NewChild2('TAXABILITY', 'Taxable');
+    xLdg := xLdg.NewChild('STATEWISEDETAILS.LIST', '');
+    xLdg.NewChild2('STATENAME', #4 +' Any' );
+    if Length(GRate) > 0 then
+    begin
+    xLdg := xLdg.NewChild('RATEDETAILS.LIST', '');
+    xLdg.NewChild2('GSTRATEDUTYHEAD', 'Central Tax');
+    xLdg.NewChild2('GSTRATE', GetHalfof(GRate));
+    xLdg := xLdg.GetParent;
+    xLdg := xLdg.NewChild('RATEDETAILS.LIST', '');
+    xLdg.NewChild2('GSTRATEDUTYHEAD', 'State Tax');
+    xLdg.NewChild2('GSTRATE', GetHalfof(GRate));
+    xLdg := xLdg.GetParent;
+    xLdg := xLdg.NewChild('RATEDETAILS.LIST', '');
+    xLdg.NewChild2('GSTRATEDUTYHEAD', 'Integrated Tax');
+    xLdg.NewChild2('GSTRATE', GRate);
+    xLdg := xLdg.GetParent;
+    end;
+   xLdg := xLdg.GetParent;
   xLdg := xLdg.GetParent;
   end;
   { STOCKITEM }
@@ -1700,7 +1722,7 @@ begin
   end;
 end;
 
-procedure TbjMstExp.NewItem(const aItem, aBaseUnit: string; OpBal, ORate: double);
+procedure TbjMstExp.NewItem(const aItem, aBaseUnit: string; OpBal, OpRate: double);
 var
   Found: boolean;
 begin
@@ -1711,15 +1733,15 @@ begin
   Found := IsItem(aItem);
   if Found then
     if bjEnv.ToUpdateMasters then
-      CreateItem(aItem, aBaseUnit, OpBal, ORate);
+      CreateItem(aItem, aBaseUnit, OpBal, OpRate);
   if not found then
   begin
-    CreateItem(aItem, aBaseUnit, OpBal, ORate);
+    CreateItem(aItem, aBaseUnit, OpBal, OpRate);
     ItemPList.Add(PackStr(aItem));
   end;
 end;
 
-procedure TbjMstExp.NewHSN(const aItem, aBaseUnit, aHSN: string; const ORate: double);
+procedure TbjMstExp.NewHSN(const aItem, aBaseUnit, aHSN: string; const GRate: string);
 var
   Found: boolean;
 begin
@@ -1730,10 +1752,10 @@ begin
   Found := IsItem(aItem);
   if Found then
     if bjEnv.ToUpdateMasters then
-      CreateHSN(aItem, aBaseUnit, aHSN, ORate);
+      CreateHSN(aItem, aBaseUnit, aHSN, GRate);
   if not found then
   begin
-    CreateHSN(aItem, aBaseUnit, aHSN, ORate);
+    CreateHSN(aItem, aBaseUnit, aHSN, GRate);
     ItemPList.Add(PackStr(aItem));
   end;
 end;
