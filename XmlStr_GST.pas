@@ -149,6 +149,9 @@ BANK = '<Voucher>'+
 '<DATE>'+
 '<Alias>DATE</Alias>'+
 '</DATE>'+
+'<BillRef>'+
+'<Alias>Bill Ref</Alias>'+
+'</BillRef>'+
 '<LEDGER>'+
 '<Alias>LEDGER</Alias>'+
 '<Default>Party</Default>'+
@@ -548,6 +551,7 @@ MYSALE = '<Voucher>'+
 '</LEDGER>'+
 
 '<VTYPE>>'+
+'<Alias>VTYPE</Alias>'+
 '<Default>Sales</Default>'+
 '</VTYPE>'+
 '<INVENTORY>>'+
@@ -914,6 +918,7 @@ MYPURC = '<Voucher>'+
 '</LEDGER>'+
 
 '<VTYPE>>'+
+'<Alias>VTYPE</Alias>'+
 '<Default>Purchase</Default>'+
 '</VTYPE>'+
 '<INVENTORY>>'+
@@ -1181,6 +1186,7 @@ SBILL = '<Voucher>'+
 '</LEDGER>'+
 
 '<VTYPE>>'+
+'<Alias>VTYPE</Alias>'+
 '<Default>Sales</Default>'+
 '</VTYPE>'+
 
@@ -1449,6 +1455,7 @@ PBILL = '<Voucher>'+
 '</LEDGER>'+
 
 '<VTYPE>>'+
+'<Alias>VTYPE</Alias>'+
 '<Default>Sales</Default>'+
 '</VTYPE>'+
 
@@ -1774,6 +1781,7 @@ GSTSALE = '<Voucher>'+
 '</LEDGER>'+
 
 '<VTYPE>>'+
+'<Alias>VTYPE</Alias>'+
 '<Default>Sales</Default>'+
 '</VTYPE>'+
 
@@ -2084,6 +2092,7 @@ GSTPURC = '<Voucher>'+
 '</LEDGER>'+
 
 '<VTYPE>>'+
+'<Alias>VTYPE</Alias>'+
 '<Default>Purchase</Default>'+
 '</VTYPE>'+
 
@@ -2129,6 +2138,9 @@ ACCMASTER = '<Voucher>'+
 '<GSTN>'+
 '<Alias>GSTN</Alias>'+
 '</GSTN>'+
+'<O_BALANCE>'+
+'<Alias>O_Balance</Alias>'+
+'</O_BALANCE>'+
 '</LEDGER>'+
 '</Voucher>';
 
@@ -2176,7 +2188,7 @@ INVMASTER = '<Voucher>'+
 
 CNOTE = '<Voucher>'+
 '<Data>'+
-'<VoucherList>Sales</VoucherList>'+
+'<VoucherList>CNote</VoucherList>'+
 '<DefaultGroup>Sundry Debtors</DefaultGroup>'+
 '<IsMultiRow>Yes</IsMultiRow>'+
 '<IsMultiColumn>Yes</IsMultiColumn>'+
@@ -2247,7 +2259,7 @@ CNOTE = '<Voucher>'+
 '<Value>GST 28% Sales</Value>'+
 '</Dict>'+
 '<AmtCol>'+
-'<Alias>Sales_Value</Alias>'+
+'<Alias>Return Value</Alias>'+
 '<Type>Dr</Type>'+
 '</AmtCol>'+
 '</LEDGER>'+
@@ -2289,7 +2301,7 @@ CNOTE = '<Voucher>'+
 '<Alias>SGST</Alias>'+
 '<Type>Dr</Type>'+
 '</AmtCol>'+
-'<Assessable>Sales_Value</Assessable>'+
+'<Assessable>Return Value</Assessable>'+
 '</LEDGER>'+
 
 '<LEDGER>'+
@@ -2329,7 +2341,7 @@ CNOTE = '<Voucher>'+
 '<Alias>CGST</Alias>'+
 '<Type>Dr</Type>'+
 '</AmtCol>'+
-'<Assessable>Sales_Value</Assessable>'+
+'<Assessable>Return Value</Assessable>'+
 '</LEDGER>'+
 
 '<LEDGER>'+
@@ -2372,6 +2384,7 @@ CNOTE = '<Voucher>'+
 '<Alias>IGST Sales Value</Alias>'+
 '<Type>Dr</Type>'+
 '</AmtCol>'+
+'<Assessable>Return Value</Assessable>'+
 '</LEDGER>'+
 
 '<LEDGER>'+
@@ -2475,14 +2488,14 @@ CNOTE = '<Voucher>'+
 '<Alias>Rate</Alias>'+
 '</RATE>'+
 '<Value>>'+
-'<Alias>Sales_Value</Alias>'+
+'<Alias>Return Value</Alias>'+
 '</Value>'+
 '</INVENTORY>'+
 '</Voucher>';
 
 DNOTE = '<Voucher>'+
 '<Data>'+
-'<VoucherList>Purchase</VoucherList>'+
+'<VoucherList>DNote</VoucherList>'+
 '<DefaultGroup>Sundry Creditors</DefaultGroup>'+
 '<IsMultiRow>Yes</IsMultiRow>'+
 '<IsMultiColumn>Yes</IsMultiColumn>'+
@@ -2552,7 +2565,7 @@ DNOTE = '<Voucher>'+
 '<Value>GST 28% Purchase</Value>'+
 '</Dict>'+
 '<AmtCol>'+
-'<Alias>Purchase_Value</Alias>'+
+'<Alias>Return Value</Alias>'+
 '<Type>Cr</Type>'+
 '</AmtCol>'+
 '</LEDGER>'+
@@ -2594,7 +2607,7 @@ DNOTE = '<Voucher>'+
 '<Alias>SGST</Alias>'+
 '<Type>Cr</Type>'+
 '</AmtCol>'+
-'<Assessable>Purchase_Value</Assessable>'+
+'<Assessable>Return Value</Assessable>'+
 '</LEDGER>'+
 
 '<LEDGER>'+
@@ -2634,7 +2647,7 @@ DNOTE = '<Voucher>'+
 '<Alias>CGST</Alias>'+
 '<Type>Cr</Type>'+
 '</AmtCol>'+
-'<Assessable>Purchase_Value</Assessable>'+
+'<Assessable>Return Value</Assessable>'+
 '</LEDGER>'+
 
 '<LEDGER>'+
@@ -2715,7 +2728,7 @@ DNOTE = '<Voucher>'+
 '<Alias>IGST</Alias>'+
 '<Type>Cr</Type>'+
 '</AmtCol>'+
-'<Assessable>Purchase_Value</Assessable>'+
+'<Assessable>Return Value</Assessable>'+
 '</LEDGER>'+
 
 '+<LEDGER>'+
@@ -2770,7 +2783,7 @@ DNOTE = '<Voucher>'+
 '<Alias>Rate</Alias>'+
 '</RATE>'+
 '<Value>>'+
-'<Alias>Purchase_Value</Alias>'+
+'<Alias>Return Value</Alias>'+
 '</Value>'+
 '</INVENTORY>'+
 '</Voucher>';

@@ -1258,7 +1258,7 @@ AutoCreateMst does not affect explicit group or roundoff group
             bjMstExp.NewGST(LedgerColValue, GroupColValue, aToken)
         else
             bjMstExp.NewLedger(LedgerColValue, GroupColValue, 0);
-            FUpdate(LedgerColValue);
+            FUpdate('Ledger: ' + LedgerColValue);
         end;
       end;
     end;
@@ -1281,7 +1281,7 @@ AutoCreateMst does not affect explicit group or roundoff group
       end
       else
         bjMstExp.NewLedger(LedgerColValue, RoundOffGroup, 0);
-      FUpdate(LedgerColValue);
+      FUpdate('Ledger: ' + LedgerColValue);
     end;
 end;
 
@@ -1511,7 +1511,7 @@ AutoCreateMst does not affect explicit group or roundoff group
     else
       bjMstExp.NewLedger(LedgerColValue,
         GroupColValue, OB);
-    FUpdate(LedgerColValue);
+    FUpdate('Ledger: ' + LedgerColValue);
   end;
 end;
 

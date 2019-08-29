@@ -108,7 +108,6 @@ type
     xLdg: IbjXml;
     xLed: IbjXml;
     xLedid: IbjXml;
-    CashLedPList: TStringList;
     LedPList: TStringList;
     ItemPList: TStringList;
     LedGroupPList: TStringList;
@@ -211,7 +210,8 @@ type
     CrLine, DrLine: integer;
     TallyVersion: string;
     Error: string;
-    procedure GetVchType(const aName: string);
+    CashBankPList: TStringList;
+//    procedure GetVchType(const aName: string);
     procedure CheckVchType(const ledger; const Amount: double);
     procedure XmlHeader(const tgt:string);
 //    procedure XmlHeader(const tgt:string);
@@ -247,7 +247,7 @@ type
     property VchID: string read FVchID write SetVchID;
     property vchDate: string read FVchDate write FVchDate;
     property vch_Date: string read FVch_Date write FVch_Date;
-    property VchType: string read FVchType write GetVchType;
+    property VchType: string read FVchType write FVchType;
     property InvVch: boolean read FInvVch write FInvVch;
     property VchNarration: string read FVchNarration write FVchNarration;
     property VchNo: string read FVchNo write FVchNo;
@@ -347,7 +347,6 @@ begin
   ItemGroupPList.Free;
   CategoryPList.Free;
   LedPList.Free;
-  CashLedPList.Free;
   LedGroupPList.Free;
   inherited;
 end;
@@ -381,6 +380,7 @@ begin
   ILines.Free;
   Lines.Free;
   GSTNLines.Free;
+  CashBankPList.Free;
   inherited;
 end;
 
@@ -856,7 +856,7 @@ begin
     LedObj.Host := bjEnv.Host;
     try
       LedPList := LedObj.GetLedPackedList;
-      CashLedPList := LedObj.GetCashLedPackedList;
+//      CashLedLedList := LedObj.GetCashLedPackedList;
     finally
       ledobj.Free;
     end;
@@ -1024,6 +1024,11 @@ procedure TbjVchExp.SetVchHeader;
 var
   sid: string;
 begin
+  if IsContra then
+  begin
+  if (VchType = 'Receipt') or (VchType = 'Payment') then
+    Vchtype := 'Contra';
+  end;
   xmlHeader('V');
 
     sid := bjEnv.GUID+'-'+ RightStr('00000000' +
@@ -1109,8 +1114,10 @@ begin
     Fvchid := InttoStr(random(100000000))
   else
     Fvchid := id;
+  IsContra := True;
 end;
 
+{
 procedure TbjVchExp.GetVchType(const aName: string);
 begin
    FVchType := aName;
@@ -1131,6 +1138,7 @@ begin
    FVchType := 'Journal';
   end;
 end;
+}
 
 Procedure TbjMstExp.XmlFooter(const tgt:string);
 begin
@@ -1272,7 +1280,25 @@ function TbjVchExp.Pack(const Ledger: string; const Amount: double; const Ref, R
 var
   item: pLine;
   step: integer;
+  idx: integer;
+  Obj: TbjMstListImp;
 begin
+  if not Assigned(CashBankPList) then
+  begin
+    Obj := TbjMstListImp.Create;
+    CashBankPList := TStringList.Create;
+    try
+      Obj.ToPack := False;
+      Obj.Host := bjEnv.Host;
+      CashBankPList.Text := Obj.GetCashBankText(True);
+      CashBankPList.Sorted := True;
+    Finally
+      Obj.Free;
+    end;
+  end;
+   if IsContra then
+   if not CashBankPList.Find(ledger, idx) then
+     IsContra := False;
   for Step := 1 to Lines.Count do
   begin
     Item := Lines.Items[Step - 1];
@@ -1679,7 +1705,7 @@ begin
   ledObj := TbjMstListImp.Create;
   LedObj.Host := bjEnv.Host;
   try
-    CashLedPList := LedObj.GetCashLedPackedList;
+//    LedObj.GetGrpLedList;
     LedPList := LedObj.GetLedPackedList;
     ItemPList := LedObj.GetItemPackedList;
     UnitPList := LedObj.GetUnitPackedList;
