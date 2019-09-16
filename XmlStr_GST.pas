@@ -23,7 +23,7 @@ CONTRA = '<Voucher>'+
 '<Alias>AMOUNT</Alias>'+
 '<Type>Cr</Type>'+
 '</AmtCol>'+
- '<Group>Bank Accounts</Group>'+
+'<Group>Bank Accounts</Group>'+
 '</LEDGER>'+
 '<LEDGER>'+
 '<Default>Cash</Default>'+
@@ -32,7 +32,7 @@ CONTRA = '<Voucher>'+
 '<Alias>AMOUNT</Alias>'+
 '<Type>Dr</Type>'+
 '</AmtCol>'+
- '<Group>Bank Accounts</Group>'+
+'<Group>Bank Accounts</Group>'+
 '</LEDGER>'+
 '<VTYPE>>'+
 '<Default>Contra</Default>'+
@@ -51,6 +51,9 @@ RCPT ='<Voucher>'+
 '<DATE>'+
 '<Alias>DATE</Alias>'+
 '</DATE>'+
+'<VoucherNo>'+
+'<Alias>Voucher No</Alias>'+
+'</VoucherNo>'+
 '<BillRef>'+
 '<Alias>Bill Ref</Alias>'+
 '</BillRef>'+
@@ -66,6 +69,7 @@ RCPT ='<Voucher>'+
 '</AmtCol>'+
 '</LEDGER>'+
 '<VTYPE>>'+
+'<Alias>VTYPE</Alias>'+
 '<Default>Receipt</Default>'+
 '</VTYPE>'+
 '<NARRATION>>'+
@@ -82,6 +86,9 @@ PYMT = '<Voucher>'+
 '<DATE>'+
 '<Alias>DATE</Alias>'+
 '</DATE>'+
+'<VoucherNo>'+
+'<Alias>Voucher No</Alias>'+
+'</VoucherNo>'+
 '<BillRef>'+
 '<Alias>Bill Ref</Alias>'+
 '</BillRef>'+
@@ -97,6 +104,7 @@ PYMT = '<Voucher>'+
 '<Alias>PARTY LEDGER</Alias>'+
 '</RoundOff>'+
 '<VTYPE>>'+
+'<Alias>VTYPE</Alias>'+
 '<Default>Payment</Default>'+
 '</VTYPE>'+
 '<NARRATION>>'+
@@ -189,7 +197,7 @@ DAYBOOK = '<Voucher>'+
 '</Data>'+
 
 '<ID>'+
- '<Alias>ID</Alias>'+
+'<Alias>ID</Alias>'+
 '<IsGenerated>Yes</IsGenerated>'+
 '</ID>'+
 
@@ -205,11 +213,12 @@ DAYBOOK = '<Voucher>'+
 
 '<LEDGER>'+
 '<Alias>LEDGER</Alias>'+
- '<Group>'+
+'<Group>'+
 '<Alias>GROUP</Alias>'+
 ' </Group>'+
 '</LEDGER>'+
 '<VTYPE>>'+
+'<Alias>VTYPE</Alias>'+
 '<Default>Journal</Default>'+
 '</VTYPE>'+
 '<NARRATION>>'+
@@ -951,6 +960,9 @@ SBILL = '<Voucher>'+
 '<IsMultiColumn>Yes</IsMultiColumn>'+
 '</Data>'+
 
+'<ID>'+
+'<Alias>ID</Alias>'+
+'</ID>'+
 '<VoucherNo>'+
 '<Alias>Voucher No</Alias>'+
 '</VoucherNo>'+
@@ -960,10 +972,6 @@ SBILL = '<Voucher>'+
 '<BillRef>'+
 '<Alias>Bill Ref</Alias>'+
 '</BillRef>'+
-
-'<ID>'+
-'<Alias>ID</Alias>'+
-'</ID>'+
 '<DATE>'+
 '<Alias>Date</Alias>'+
 '</DATE>'+
@@ -1194,9 +1202,6 @@ SBILL = '<Voucher>'+
 '<ITEM>>'+
 '<Alias>Item</Alias>'+
 '</ITEM>'+
-'<HSN>>'+
-'<Alias>HSN</Alias>'+
-'</HSN>'+
 '<UNIT>>'+
 '<Alias>Unit</Alias>'+
 '</UNIT>'+
@@ -1463,9 +1468,6 @@ PBILL = '<Voucher>'+
 '<ITEM>>'+
 '<Alias>Item</Alias>'+
 '</ITEM>'+
-'<HSN>>'+
-'<Alias>HSN</Alias>'+
-'</HSN>'+
 '<UNIT>>'+
 '<Alias>Unit</Alias>'+
 '</UNIT>'+
@@ -1522,6 +1524,9 @@ GSTSALE = '<Voucher>'+
 '<IsMultiColumn>Yes</IsMultiColumn>'+
 '</Data>'+
 
+'<ID>'+
+'<Alias>ID</Alias>'+
+'</ID>'+
 '<VoucherNo>'+
 '<Alias>Voucher No</Alias>'+
 '</VoucherNo>'+
@@ -1531,6 +1536,9 @@ GSTSALE = '<Voucher>'+
 '<BillRef>'+
 '<Alias>Bill Ref</Alias>'+
 '</BillRef>'+
+'<DATE>'+
+'<Alias>Invoice_Date</Alias>'+
+'</DATE>'+
 
 '<RoundOff>'+
 '<Alias>Name_of_buyer</Alias>'+
@@ -1541,12 +1549,6 @@ GSTSALE = '<Voucher>'+
 '<RoundTo>1</RoundTo>'+
 '</RoundOff>'+
 
-'<ID>'+
-'<Alias>ID</Alias>'+
-'</ID>'+
-'<DATE>'+
-'<Alias>Invoice_Date</Alias>'+
-'</DATE>'+
 '<NARRATION>>'+
 '<Alias>NARRATION</Alias>'+
 '</NARRATION>'+
@@ -1819,6 +1821,9 @@ GSTPURC = '<Voucher>'+
 '<IsMultiColumn>Yes</IsMultiColumn>'+
 '</Data>'+
 
+'<ID>'+
+'<Alias>ID</Alias>'+
+'</ID>'+
 '<VoucherNo>'+
 '<Alias>Voucher No</Alias>'+
 '</VoucherNo>'+
@@ -1831,6 +1836,9 @@ GSTPURC = '<Voucher>'+
 '<BillRef>'+
 '<Alias>Bill Ref</Alias>'+
 '</BillRef>'+
+'<DATE>'+
+'<Alias>Invoice_Date</Alias>'+
+'</DATE>'+
 
 '<RoundOff>'+
 '<Alias>Name_of_seller</Alias>'+
@@ -1841,12 +1849,6 @@ GSTPURC = '<Voucher>'+
 '<RoundTo>1</RoundTo>'+
 '</RoundOff>'+
 
-'<ID>'+
-'<Alias>ID</Alias>'+
-'</ID>'+
-'<DATE>'+
-'<Alias>Invoice_Date</Alias>'+
-'</DATE>'+
 '<NARRATION>>'+
 '<Alias>NARRATION</Alias>'+
 '</NARRATION>'+
@@ -2194,6 +2196,9 @@ CNOTE = '<Voucher>'+
 '<IsMultiColumn>Yes</IsMultiColumn>'+
 '</Data>'+
 
+'<ID>'+
+'<Alias>ID</Alias>'+
+'</ID>'+
 '<VoucherNo>'+
 '<Alias>Voucher No</Alias>'+
 '</VoucherNo>'+
@@ -2203,6 +2208,9 @@ CNOTE = '<Voucher>'+
 '<BillRef>'+
 '<Alias>Bill Ref</Alias>'+
 '</BillRef>'+
+'<DATE>'+
+'<Alias>Invoice_Date</Alias>'+
+'</DATE>'+
 
 '<RoundOff>'+
 '<Alias>Name_of_buyer</Alias>'+
@@ -2213,12 +2221,6 @@ CNOTE = '<Voucher>'+
 '<RoundTo>1</RoundTo>'+
 '</RoundOff>'+
 
-'<ID>'+
-'<Alias>ID</Alias>'+
-'</ID>'+
-'<DATE>'+
-'<Alias>Invoice_Date</Alias>'+
-'</DATE>'+
 '<NARRATION>>'+
 '<Alias>NARRATION</Alias>'+
 '</NARRATION>'+
@@ -2501,6 +2503,9 @@ DNOTE = '<Voucher>'+
 '<IsMultiColumn>Yes</IsMultiColumn>'+
 '</Data>'+
 
+'<ID>'+
+'<Alias>ID</Alias>'+
+'</ID>'+
 '<VoucherNo>'+
 '<Alias>Voucher No</Alias>'+
 '</VoucherNo>'+
@@ -2510,6 +2515,9 @@ DNOTE = '<Voucher>'+
 '<BillRef>'+
 '<Alias>Bill Ref</Alias>'+
 '</BillRef>'+
+'<DATE>'+
+'<Alias>Invoice_Date</Alias>'+
+'</DATE>'+
 
 '<RoundOff>'+
 '<Alias>Name_of_seller</Alias>'+
@@ -2520,12 +2528,6 @@ DNOTE = '<Voucher>'+
 '<RoundTo>1</RoundTo>'+
 '</RoundOff>'+
 
-'<ID>'+
- '<Alias>ID</Alias>'+
-'</ID>'+
-'<DATE>'+
-'<Alias>Invoice_Date</Alias>'+
-'</DATE>'+
 '<NARRATION>>'+
 '<Alias>NARRATION</Alias>'+
 '</NARRATION>'+

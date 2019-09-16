@@ -74,6 +74,8 @@ TbjMrMc = class(TinterfacedObject, IbjXlExp, IbjMrMc)
     FToAutoCreateMst: boolean;
     FdynPgLen: integer;
     FVchType: string;
+    FWSType: string;
+//    FInvVch: boolean;
     FRoundOfftoNext: boolean;
     FIsMListDeclared: Boolean;
     FIsVListDeclared: Boolean;
@@ -247,6 +249,7 @@ TbjMrMc = class(TinterfacedObject, IbjXlExp, IbjMrMc)
     procedure Filter(aFailure: integer);
     procedure CreateGSTLedger;
     procedure SetGSTSetting;
+    procedure SetGstLedSetting(const doit: boolean);
   public
     { Public declarations }
     dbName: string;
@@ -264,8 +267,7 @@ TbjMrMc = class(TinterfacedObject, IbjXlExp, IbjMrMc)
 
     ToSetGstSettings: Boolean;
     UdefStateName: string;
-//    Host: string;
-//    ToCreateMasters: boolean;
+{    ToCreateMasters: boolean; }
     bjEnv: TbjEnv;
     constructor Create;
     destructor Destroy; override;
@@ -277,6 +279,8 @@ TbjMrMc = class(TinterfacedObject, IbjXlExp, IbjMrMc)
     property ToAutoCreateMst: boolean read FToAutoCreateMst write FToAutoCreateMst;
     property RefreshLedMaster: Boolean read FRefreshLedMaster write FRefreshLedMaster;
     property VchType: string read FVchType write FVchType;
+    property WSType: string read FWSType write FWSType;
+//    property InvVch: boolean read FInvVch write FInvVch;
     property IsMListDeclared: Boolean read FIsMListDeclared write FIsMListDeclared;
     property IsVListDeclared: Boolean read FIsVListDeclared write FIsVListDeclared;
     property IsCheckLedMst: Boolean read FIsCheckLedMst write FIsCheckLedMst;
@@ -412,6 +416,8 @@ var
   dcfg, xxcfg: IbjXml;
   dItem: pDict;
 begin
+  if Assigned(FUpdate) then
+    FUpdate('Processing '+ Xmlstr + '.xml');
   cfgn.LoadXML(XmlStr);
   cfg := Cfgn.SearchForTag(nil, 'Voucher');
   if not Assigned(cfg) then
@@ -844,13 +850,11 @@ passing Windows Exception as it is }
     kadb.SetSheet(Filename);
     kadb.ToSaveFile := True;
     if Assigned(FUpdate) then
-      FUpdate('Reading '+ FileName);
-    if Assigned(FUpdate) then
-    FUpdate('Processing '+ FileName);
+    FUpdate('Reading '+ FileName+ '.xls');
     flds := TStringList.Create;
     kadb.ParseXml(Cfgn, flds);
     if not flds.Find('ID', idx) then
-    flds.Add('ID');
+      flds.Add('ID');
     flds.Add('TALLYID');
 //    flds.Add('Tax_rate');
     kadb.GetFields(flds);
@@ -1197,7 +1201,7 @@ begin
          ditem := LedgerDict[i].Items[j];
          if (Length(LedgerGroup[i]) > 0) then
          begin
-           bjMstExp.VchType := VchType;
+//           bjMstExp.VchType := VchType;
            LedgerColValue := pDict(dItem)^.Value;
            bjMstExp.NewGST(LedgerColValue, LedgerGroup[i], pDict(dItem)^.Token);
          end;
@@ -1253,11 +1257,11 @@ AutoCreateMst does not affect explicit group or roundoff group
         else if IsLedgerDefined[i] then
         begin
             atoken := GetDictToken(i);
-            bjMstExp.VchType := VchType;
+//            bjMstExp.VchType := VchType;
             if Length(aToken) > 0 then
-            bjMstExp.NewGST(LedgerColValue, GroupColValue, aToken)
-        else
-            bjMstExp.NewLedger(LedgerColValue, GroupColValue, 0);
+              bjMstExp.NewGST(LedgerColValue, GroupColValue, aToken)
+            else
+              bjMstExp.NewLedger(LedgerColValue, GroupColValue, 0);
             FUpdate('Ledger: ' + LedgerColValue);
         end;
       end;
@@ -1312,8 +1316,8 @@ begin
     HSNColValue := kadb.GetFieldString('HSN');
     GRate := kadb.GetFieldString('Tax_rate');
     bjMstExp.NewHSN(ItemColValue, UnitColValue, HSNColValue, GRate);
-  end
-  else
+    end
+    else
     bjMstExp.NewItem(ItemColValue,
     UnitColValue , 0, 0);
 end;
@@ -1558,6 +1562,7 @@ begin
   bjVchExp.VchNarration := NarrationColValue;
   bjVchExp.vchDate := DateColValue;
   bjVchExp.VchType := typeColValue;
+  bjVchExp.WSType := WSType;
   bjVchExp.VchID := tid;
   RoundOffName := GetRoundOffName;
   notoskip := 0;
@@ -1839,7 +1844,8 @@ begin
 //    StatMsg := ErrStr;
   VTotal := 0;
   if Assigned(FUpdate) then
-      FUpdate('Status: ' + Statmsg);
+//      FUpdate('Status: ' + Statmsg);
+      FUpdate('Tally Vch ID: ' + Statmsg);
   ProcessedCount := ProcessedCount + 1;
 
   for i := 1 to notoskip do
@@ -1917,7 +1923,7 @@ begin
 //    Result := UDefStateName;
     Exit;
   end;
-Case idx of
+  Case idx of
         1: str := 'Jammu & Kashmir';
         2: str := 'Himachal Pradesh';
         3: str := 'Punjab';
@@ -1951,6 +1957,7 @@ Case idx of
        31: str := 'Lakshdweep';
        32: str := 'Kerala';
        33: str := 'Tamil Nadu';
+//       34: str := 'Pondicherry';
        34: str := 'Puducherry';
        35: str := 'Andaman & Nicobar Islands';
        36: str := 'Telangana';
@@ -2058,7 +2065,7 @@ procedure TbjMrMc.SetGSTSetting;
 begin
   if VchType = 'Sales' then
   begin
-    bjMstExp.VchType := 'Sales';
+//    bjMstExp.VchType := 'Sales';
     bjMstExp.NewGst('GST Sales Exempted', 'Sales Accounts', '0');
     bjMstExp.NewGst('GST 3% Sales', 'Sales Accounts', '3');
     bjMstExp.NewGst('GST 5% Sales', 'Sales Accounts', '5');
@@ -2091,7 +2098,7 @@ begin
   end;
   if VchType = 'Purchase' then
   begin
-    bjMstExp.VchType := 'Purchase';
+//    bjMstExp.VchType := 'Purchase';
     bjMstExp.NewGst('GST Purchase Exempted', 'Purchase Accounts', '0');
     bjMstExp.NewGst('GST 3% Purchase', 'Purchase Accounts', '3');
     bjMstExp.NewGst('GST 5% Purchase', 'Purchase Accounts', '5');
@@ -2130,38 +2137,9 @@ begin
   end;
 end;
 
-(*
-function TbjMrMc.GetErrStr(const astr: string): string;
-var
-  CheckErrStr: string;
-  ErrList: TStringList;
-  i: Integer;
+procedure TbjMrMc.SetGstLedSetting(const doit: boolean);
 begin
-  CheckErrStr := '(FOR OBJECT: ';
-  if Pos(CheckErrStr, astr) > 0 then
-    Result := Copy(aStr, 0, Pos(CheckErrStr, aStr)-1);
-  if Length(Result) > 0 then
-    Exit;
-{
-  ErrList := TStringList.Create;
-  ErrList.Text := astr;
-  try
-  for i:= 0 to Errlist.Count-1 do
-  begin
-    if pos('ERROR:', ErrList[i]) > 0 then
-    begin
-      Result := ErrList[i+1];
-      Exit;
-    end;
-  end;
-  finally
-    ErrList.Free;
-  end;
-}
+  FIsGSTSetting := True;
 end;
-*)
-(*
-    TryDt := DateTimeStrEval('mm-dd-yy', Txt);
-    Txt := pChar(FormatDateTime('dd-mm-yyyy', TryDt));
-*)
+
 end.

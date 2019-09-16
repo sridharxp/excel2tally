@@ -93,7 +93,7 @@ type
   TbjMstExp = class
   private
     { Private declarations }
-    FVchType: string;
+//    FVchType: string;
 //    FLedState: string;
     FAlias: string;
 //    FLedgerGroup: string;
@@ -163,7 +163,7 @@ type
 //    property Ledgerlias: string read FLedgerAlias write FLedgerAlias;
     property Alias: string write FAlias;
 //    property LedgerGroup: string read FLedgerGroup write FLedgerGroup;
-    property VchType: string write FVchType;
+//    property VchType: string write FVchType;
     property Group: string write FGroup;
     property Godown: string write FGodown;
     property Category: string write FCategory;
@@ -179,6 +179,7 @@ type
     FvchDate: string;
     Fvch_Date: string;
     FVchType: string;
+    FWSType: string;
     FInvVch: boolean;
     FVchNarration: string;
     FVchNo: string;
@@ -231,6 +232,7 @@ type
     procedure SetMst(aMst: TbjMstExp);
     procedure ClearLines;
     procedure SetVchID(const ID: string);
+    function GetWSType: string;
   public
     { Public declarations }
     constructor Create;
@@ -247,6 +249,7 @@ type
     property VchID: string read FVchID write SetVchID;
     property vchDate: string read FVchDate write FVchDate;
     property vch_Date: string read FVch_Date write FVch_Date;
+    property WSType: string read GetWSType write FWSType;
     property VchType: string read FVchType write FVchType;
     property InvVch: boolean read FInvVch write FInvVch;
     property VchNarration: string read FVchNarration write FVchNarration;
@@ -506,9 +509,9 @@ begin
     xLdg := xLdg.NewChild('GSTDETAILS.LIST', '');
     xLdg.NewChild2('APPLICABLEFROM', '20180701');
     xLdg.NewChild2('TAXABILITY', 'Taxable');
-    if VchType = 'Sales' then
+    if FVchType = 'Sales' then
       xLdg.NewChild2('GSTNATUREOFTRANSACTION', 'Sales Taxable');
-    if VchType = 'Purchase' then
+    if FVchType = 'Purchase' then
       xLdg.NewChild2('GSTNATUREOFTRANSACTION', 'Purchase Taxable');
     xLdg := xLdg.NewChild('STATEWISEDETAILS.LIST', '');
     xLdg.NewChild2('STATENAME', #4 +' Any' );
@@ -748,6 +751,7 @@ begin
   xLdg.NewChild2('PARENT', FGroup );
   If Length(Fcategory) > 0 then
     xLdg.NewChild2('CATEGORY', FCategory );
+// GST
   If Length(aHSN) > 0 then
   begin
     xLdg.NewChild2('GSTAPPLICABLE', #4 +' Applicable' );
@@ -774,6 +778,7 @@ begin
   { BATCHALLOCATIONS }
   xLdg := xLdg.GetParent;
   end;
+//hsn
   If Length(aHSN) > 0 then
   begin
     xLdg := xLdg.NewChild('GSTDETAILS.LIST', '');
@@ -787,17 +792,22 @@ begin
     xLdg := xLdg.NewChild('RATEDETAILS.LIST', '');
     xLdg.NewChild2('GSTRATEDUTYHEAD', 'Central Tax');
     xLdg.NewChild2('GSTRATE', GetHalfof(GRate));
+  { RATEDETAILS.LIST }
     xLdg := xLdg.GetParent;
     xLdg := xLdg.NewChild('RATEDETAILS.LIST', '');
     xLdg.NewChild2('GSTRATEDUTYHEAD', 'State Tax');
     xLdg.NewChild2('GSTRATE', GetHalfof(GRate));
+  { RATEDETAILS.LIST }
     xLdg := xLdg.GetParent;
     xLdg := xLdg.NewChild('RATEDETAILS.LIST', '');
     xLdg.NewChild2('GSTRATEDUTYHEAD', 'Integrated Tax');
     xLdg.NewChild2('GSTRATE', GRate);
+  { RATEDETAILS.LIST }
     xLdg := xLdg.GetParent;
     end;
+  { STATEWISEDETAILS.LIST }
    xLdg := xLdg.GetParent;
+  { GSTDETAILS }
   xLdg := xLdg.GetParent;
   end;
   { STOCKITEM }
@@ -1063,12 +1073,16 @@ begin
     xvou.NewChild2('VOUCHERNUMBER',VchNo);
     VchNo := '';
   end;
-  if (VchType = 'Purchase')  or (VchType = 'Sales') then
+  if (WSType = 'Purchase')  or (WSType = 'Sales') then
   begin
 {    xvou.NewChild2('PERSISTEDVIEW','Invoice Voucher View'); }
-    if (VchType = 'Sales')  and (DrLine > 1) then
+//    if FIsInvoice then
+//    xvou.NewChild2('ISINVOICE','Yes')
+//    else
+//    IsInv := True;
+    if (WSType = 'Sales')  and (DrLine > 1) then
       InvVch := False;
-    if (VchType = 'Purchase')  and (CrLine > 1) then
+    if (WSType = 'Purchase')  and (CrLine > 1) then
       InvVch := False;
     if InvVch then
     xvou.NewChild2('ISINVOICE','Yes');
@@ -1140,6 +1154,13 @@ begin
 end;
 }
 
+function TbjVchExp.GetWSType: string;
+begin
+  Result := FWSType;
+  if Length(FWSType) = 0 then
+    Result := FVchType;
+end;
+
 Procedure TbjMstExp.XmlFooter(const tgt:string);
 begin
   if tgt = 'L' then
@@ -1173,28 +1194,28 @@ end;
 procedure TbjVchExp.CheckVchType(const Ledger; const Amount: double);
 begin
   IsVchTypeMatched := True;
-  if  (VchType = 'Receipt') then
+  if  (WSType = 'Receipt') then
     if Amount <= 0 then
       IsVchTypeMatched := False;
-  if  (VchType = 'Payment') then
+  if  (WSType = 'Payment') then
     if Amount >= 0 then
       IsVchTypeMatched := False;
-  if  (VchType = 'Sales') then
+  if  (WSType = 'Sales') then
     if Amount >= 0 then
       IsVchTypeMatched := False;
-  if  (VchType = 'Purchase') then
+  if  (WSType = 'Purchase') then
     if Amount <= 0 then
       IsVchTypeMatched := False;
-  if  (VchType = 'Journal') then
+  if  (WSType = 'Journal') then
     if Amount >= 0 then
       IsVchTypeMatched := False;
-  if  (VchType = 'Contra') then
+  if  (WSType = 'Contra') then
     if Amount <= 0 then
       IsVchTypeMatched := False;
-  if  (VchType = 'Debit Note') then
+  if  (WSType = 'Debit Note') then
     if Amount >= 0 then
       IsVchTypeMatched := False;
-  if  (VchType = 'Credit Note') then
+  if  (WSType = 'Credit Note') then
     if Amount <= 0 then
       IsVchTypeMatched := False;
 end;
