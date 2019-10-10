@@ -83,6 +83,7 @@ TbjMrMc = class(TinterfacedObject, IbjXlExp, IbjMrMc)
     FIsCheckLedMst: Boolean;
     FFirm: string;
     FHost: string;
+    FIsGstSetting: Boolean;
   protected
     missingledgers: Integer;
     UIdstr: string;
@@ -136,8 +137,6 @@ TbjMrMc = class(TinterfacedObject, IbjXlExp, IbjMrMc)
     IsGroupDeclared: array [1..COLUMNLIMIT + 1] of boolean;
     IsGSTNDeclared: array [1..COLUMNLIMIT + 1] of boolean;
     IsGSTNDefined: array [1..COLUMNLIMIT + 1] of boolean;
-//    IsGSTApplicableDeclared: array [1..COLUMNLIMIT + 1] of boolean;
-//    IsGSTApplicableDefined: array [1..COLUMNLIMIT + 1] of boolean;
     IsInvDefined: array [1..COLUMNLIMIT + 1] of boolean;
     UGSTNName: array [1..COLUMNLIMIT + 1] of string;
     UStateName: array [1..COLUMNLIMIT+1] of string;
@@ -165,7 +164,6 @@ TbjMrMc = class(TinterfacedObject, IbjXlExp, IbjMrMc)
     UVTypeName: string;
     IsLedgerDefined: array [1..COLUMNLIMIT] of boolean;
     IsRoundOffColDefined: boolean;
-//    IsGroupDefined: array [1..COLUMNLIMIT + 1] of boolean;
     IsAmtDefined: array [1..COLUMNLIMIT] of boolean;
     UNarrationName: string;
     UNarration2Name: string;
@@ -185,7 +183,6 @@ TbjMrMc = class(TinterfacedObject, IbjXlExp, IbjMrMc)
     UUnitName: string;
     UQtyName: string;
     URateName: string;
-//    UItemAmtName: string;
     ToCheckInvCols: boolean;
 
 { if exosts value if not di}
@@ -193,18 +190,17 @@ TbjMrMc = class(TinterfacedObject, IbjXlExp, IbjMrMc)
     TypeColValue: string;
 
     IsAmt1Defined: boolean;
-{
-    IsCrAmt1Defined: boolean;
-    IsDrAmt1Defined: boolean;
-}
     IsNarrationDefined: boolean;
-    IsNarration2Defined: boolean;
-    IsNarration3Defined: boolean;
+{
+    IsNarration2Declared: boolean;
+    IsNarration3Declared: boolean;
+}
     IsTallyIdDefined: boolean;
     notoskip: integer;
     ProcessedCount: integer;
     UidName: string;
     IsIDGenerated: Boolean;
+    IsDaybook: Boolean;
     VTotal: double;
     VchAction: string;
     DrAmtCol: string;
@@ -215,7 +211,6 @@ TbjMrMc = class(TinterfacedObject, IbjXlExp, IbjMrMc)
     RoundOffName: string;
     IsInventoryAssigned: Boolean;
 
-//    bjEnv: TbjEnv;
     bjMstExp: TbjMstExp;
     bjVchExp: TbjVchExp;
     procedure DeclareColNames;
@@ -265,7 +260,7 @@ TbjMrMc = class(TinterfacedObject, IbjXlExp, IbjMrMc)
     FUpdate: TfnUpdate;
     DefGroup: string;
 
-    ToSetGstSettings: Boolean;
+
     UdefStateName: string;
 {    ToCreateMasters: boolean; }
     bjEnv: TbjEnv;
@@ -288,6 +283,7 @@ TbjMrMc = class(TinterfacedObject, IbjXlExp, IbjMrMc)
     property Firm: string read FFirm write setFirm;
     PROPERTY Host: string read FHost write SetHost;
     property RoundOfftoNext: boolean read FRoundOfftoNext write FRoundOfftoNext;
+    property IsGstSetting: boolean write SetGstLedSetting;
   end;
 
   TbjDSLParser = class
@@ -360,7 +356,6 @@ begin
   UGodownName := 'Godown';
   UCategoryName := 'Category';
   USubGroupName := 'SubGroup';
-//  UItemAmtName := 'Value';
   UTallyIDName := 'TALLYID';
   UMstGroupName := 'GROUP';
   FRefreshLedMaster := False;
@@ -455,10 +450,6 @@ AutoCreateMst affects default group only
   if  str = 'Yes' then
     IsMultiColumnVoucher := True;
 
-//  str := xcfg.GetChildContent('DictCol');
-//  if Length(str) > 0 then
-
-//  if FToAutoCreateMst and (Length(DefGroup) > 0) then
   if (Length(DefGroup) > 0) then
     bjEnv.DefaultGroup := DefGroup
   else
@@ -500,7 +491,6 @@ AutoCreateMst affects default group only
     if Assigned(xxCfg) then
     begin
       str := xxCfg.GetChildContent('Alias');
-//      RoundOffGSTN := str;
       UGSTNName[COLUMNLIMIT+1] := str;
       if Length(str) > 0 then
         IsGSTNDeclared[COLUMNLIMIT+1] := True;
@@ -580,8 +570,8 @@ AutoCreateMst affects default group only
     begin
       UNarrationName  := str;
     end;
-{ Unused Feature }
-{ For Combining tow Narration Texts }
+{
+Unused Feature
     xxCfg := xCfg.SearchForTag(xxCfg, 'Alias');
     if xxCfg <> nil then
     begin
@@ -589,7 +579,7 @@ AutoCreateMst affects default group only
       if Length(str) > 0 then
       begin
         UNarration2Name  := str;
-        IsNarration2Defined := True;
+        IsNarration2Declared := True;
       end;
       xxCfg := xCfg.SearchForTag(xxCfg, 'Alias');
       if xxCfg <> nil then
@@ -598,10 +588,11 @@ AutoCreateMst affects default group only
         if Length(str) > 0 then
         begin
           UNarration3Name  := str;
-          IsNarration3Defined := True;
+          IsNarration3Declared := True;
         end;
       end;
     end;
+}
   end;
   end;
 
@@ -616,6 +607,9 @@ AutoCreateMst affects default group only
     str := xCfg.GetChildContent('IsGenerated');
     if str = 'Yes' then
       IsIDGenerated  := True;
+    str := xCfg.GetChildContent('IsDaybook');
+    if str = 'Yes' then
+      IsDaybook  := True;
   end;
 
   xCfg := cfg.SearchForTag(nil, 'Voucher Ref');
@@ -719,7 +713,6 @@ AutoCreateMst affects default group only
         begin
           IsLedgerDeclared[i] := True;
           DiLedgerValue[i] := str;
-//          ULedgerName[i] := str;
 { For Ledger without Alias }
           str := xxCfg.GetChildContent('Group');
           if Length(str) > 0 then
@@ -826,8 +819,6 @@ AutoCreateMst affects default group only
 { Mandtory Minimum Columns }
   if not IsLedgerDeclared[1] then
     raise Exception.Create(ULedgerName[1] + ' Column is required');
-//  if not IsAmtDeclared[1] then
-//    raise Exception.Create(UAmountName[2] + ' Column is required');
 end;
 
 procedure TbjMrMc.OpenFile;
@@ -835,8 +826,6 @@ var
   flds: TStringList;
   idx: Integer;
 begin
-//  if Length(Host) > 0 then
-//    SetHost(pchar(Host));
 { No try except ...
 passing Windows Exception as it is }
   if not FileExists(dbName) then
@@ -846,7 +835,6 @@ passing Windows Exception as it is }
   begin
     kadb := TbjXLSTable.Create;
     kadb.XLSFileName := dbname;
-//    kadb.ReportFileName := 'Tally.xls';
     kadb.SetSheet(Filename);
     kadb.ToSaveFile := True;
     if Assigned(FUpdate) then
@@ -856,7 +844,6 @@ passing Windows Exception as it is }
     if not flds.Find('ID', idx) then
       flds.Add('ID');
     flds.Add('TALLYID');
-//    flds.Add('Tax_rate');
     kadb.GetFields(flds);
     flds.Free;
   end;
@@ -968,6 +955,13 @@ procedure TbjMrMc.ProcessRow;
 var
   LedgerColValue: string;
 begin
+  if IsNarrationDefined then
+  begin
+    if Length(NarrationColValue) > 0 then
+    NarrationColValue := NarrationColValue + ' ' + Trim(kadb.GetFieldString(UNarrationName))
+    else
+    NarrationColValue := Trim(kadb.GetFieldString(UNarrationName));
+  end;
   LedgerColvalue := Getledger(1);
   Amt[1] := GetAmt(1);
   if Abs(Amt[1]) >= 0.01 then
@@ -975,7 +969,6 @@ begin
     bjVchExp.AddLine(LedgerColValue, RoundTo(Amt[1], -2));
     if IsAssessableDefined[1] then
       bjVchExp.SetAssessable(kadb.GetFieldFloat(UAssessableName[1]));
-//    VTotal := VTotal + StrtoFloat(FormatFloat(TallyAmtPicture, Amt[1]));
     VTotal := VTotal + RoundTo(Amt[1],-2);
     ProcessItem(1, RoundTo(Amt[1], -2));
   end;
@@ -1015,7 +1008,6 @@ end;
 
 procedure TbjMrMc.ProcessItem(const level: integer; InvAmt: double);
 var
-//  invamt: Double;
   ItemColValue: string;
 begin
   if not  IsInvDefined[level] then
@@ -1028,10 +1020,7 @@ begin
     Exit;
   if kadb.IsEmptyField(UQtyName) then
     Exit;
-//    invamt := kadb.GetFieldFloat(UItemAmtName);
 { InvAmt for Purchase }
-//if AmountType[level] = 'Dr' then
-//  invamt := -invamt;
   ItemColValue := kadb.GetFieldString(UItemName);
   if (Length(ItemColValue) > 0) and
     (not kadb.IsEmptyField(UQtyName)) then
@@ -1114,7 +1103,7 @@ begin
         IsLedgerDefined[j] := True;
       if IsLedgerDeclared[j] then
         DeclaredLedgers := j;
-      end;
+  end;
   if kadb.FindField(RoundOffCol) <> nil then
     IsRoundOffColDefined := True;
 
@@ -1142,15 +1131,12 @@ begin
       bjMstExp.NewLedger(DiLedgerValue[DeclaredLedgers], 'Indirect Expenses', 0);
     end;
   end;
-//  if IsMultiRowVoucher then
-//    CheckColumn(UIdName);
   if Length(DiLedgerValue[1]) = 0 then
   CheckColumn(ULedgerName[1]);
   if not IsMListDeclared then
   begin
     if Length(DiDateValue) = 0 then
       CheckColumn(UDateName);
-//    SetColumnFormat(UDateName, kadb.IDate);
     if Length(DiTypeValue) = 0 then
       if not IsVtypeDefined then
       CheckColumn(UVTypeName);
@@ -1160,7 +1146,6 @@ begin
     begin
       CheckColumn(UQtyName);
       CheckColumn(URateName);
-//      CheckColumn(UItemAmtName);
     end;
   for i := 1 to COLUMNLIMIT+1 do
   begin
@@ -1173,9 +1158,6 @@ begin
           end;
   end;
   SetGSTSetting;
-//  if IsUnitDefined then
-//      CheckColumn(UUnitName);
-//Shifted from top
 // Ledger Creation should be done only when necessary
   SetLength(strMsg, 50);
 { Create Default Ledgers }
@@ -1217,8 +1199,6 @@ begin
         bjMstExp.NewLedger(LedgerColValue, RoundOffGroup, 0);
       end;
     end;
-//  if RoundToLimit > 0 then
-//    if (Pos('Sale', TypeColValue) > 0) or (Pos('Purc', TypeColValue) > 0)then
     bjMstExp.NewLedger('RoundOff', 'Indirect Expenses', 0);
 end;
 
@@ -1314,7 +1294,8 @@ begin
   if IsHSNDefined then
   begin
     HSNColValue := kadb.GetFieldString('HSN');
-    GRate := kadb.GetFieldString('Tax_rate');
+//    GRate := kadb.GetFieldString('Tax_rate');
+    GRate := kadb.GetFieldToken('Tax_rate');
     bjMstExp.NewHSN(ItemColValue, UnitColValue, HSNColValue, GRate);
     end
     else
@@ -1327,15 +1308,28 @@ begin
   if not IsIDGenerated then
     Exit;
 
-  if (vTotal = 0) and (kadb.GetFieldFloat(CrAmtCol) +
-    kadb.GetFieldFloat(DrAmtCol) > 0) then
-    uIdstr :=  IntToStr(kadb.CurrentRow);
-  if kadb.IsEmptyField('ID') then
+  if IsDaybook then
   begin
-    kadb.SetFieldVal('ID', uidStr);
-  end;
-  vTotal := vTotal + kadb.GetFieldFloat(CrAmtCol) -
+    if (vTotal = 0) and (kadb.GetFieldFloat(CrAmtCol) +
+      kadb.GetFieldFloat(DrAmtCol) > 0) then
+      uIdstr :=  IntToStr(kadb.CurrentRow);
+    if kadb.IsEmptyField('ID') then
+    begin
+      kadb.SetFieldVal('ID', uidStr);
+    end;
+    vTotal := vTotal + kadb.GetFieldFloat(CrAmtCol) -
               kadb.GetFieldFloat(DrAmtCol);
+  end
+  else
+  begin
+    if (kadb.GetFieldFloat(CrAmtCol) +
+      kadb.GetFieldFloat(DrAmtCol) > 0) then
+      uIdstr :=  IntToStr(kadb.CurrentRow);
+    if kadb.IsEmptyField('ID') then
+    begin
+      kadb.SetFieldVal('ID', uidStr);
+    end;
+  end;
 end;
 
 procedure TbjMrMc.CheckLedMst;
@@ -1396,18 +1390,6 @@ begin
       kadb.SetFieldVal('TALLYID', wLed + ' - Repeat GSTN');
   end;
   end;
-{
-  dbUnit := kadb.FieldByName('Unit').AsString;
-  if Length(dbunit) > 0 then
-  begin
-    bjMstExp.NewUnit(PChar(dbUnit));
-    dbItem := kadb.FieldByName('Item').AsString;
-    if Length(dbItem) > 0 then
-    begin
-      bjMstExp.NewItem(PChar(dbItem), PChar(dbUnit), 0, 0);
-    end;
-  end;
-}
 end;
 
 procedure TbjMrMc.ExpItemMst;
@@ -1467,7 +1449,7 @@ begin
   bjMstExp.ORate := ORate;
   if IsHSNDefined then
     begin
-    dbHSN := kadb.GetFieldString('HSN');
+      dbHSN := kadb.GetFieldString('HSN');
       bjMstExp.OBal := OBal;
       bjMstExp.ORate := ORate;
       bjMstExp.NewHSN(dbItem, dbUnit, dbHSN, GRate);
@@ -1487,15 +1469,6 @@ begin
   OB := 0;
   if not IsGroupDeclared[1] then
     Exit;
-{
-// Removing OB
-  if kadb.FindField(UOBCrName) <> nil then
-    if Length(kadb.FieldByName(UOBCrName).AsString) > 0 then
-      OB := kadb.FieldByName(UOBCrName).AsFloat;
-  if kadb.FindField(UOBDrName) <> nil then
-    if Length(kadb.FieldByName(UOBDrName).AsString) > 0 then
-      OB := OB - kadb.FieldByName(UOBDrName).AsFloat;
-}
 {
 AutoCreateMst does not affect explicit group or roundoff group
 }
@@ -1528,25 +1501,8 @@ begin
   UIdint := kadb.CurrentRow;
   GetDefaults;
   TID := '';
-{
-//  Alter is not an Option
-  if IsTallyIdDefined then
-//  if kadb.FindField('TALLYID') <> nil then
-  if Length(kadb.FieldByName('TALLYID').AsString) > 0 then
-  begin
-    TID := GetFieldstr(kadb.FieldByName('TALLYID'));
-  vchAction := 'Alter';
-    sint := StrtoInt(tid);
-    TId := InttoHex(sint, 8);
-  end;
-}
 { Let VchUpdate generate random id in case of no id }
 { Natural no as id would interfere will Tall's logic in some versions }
-//  StartVch(pchar(tid), pchar(DateColValue),
-//  pchar(typeColValue), pchar(NarrationColValue));
-//  if kadb.FindField('Voucher No') <> nil then
-//    bjVchExp.VchNo(pChar(kadb.FieldByName('Voucher No').AsString));
-//  if Length(UVchNoColName) > 0 then
   If IsVchNoDefined then
   bjVchExp.VchNo := kadb.GetFieldString(UVchNoColName);
 
@@ -1559,7 +1515,8 @@ begin
   end;
   if IsBillRefDefined then
     bjVchExp.BillRef := kadb.GetFieldString(UBillRefName);
-  bjVchExp.VchNarration := NarrationColValue;
+{  bjVchExp.VchNarration := NarrationColValue; }
+  NarrationColValue := '';
   bjVchExp.vchDate := DateColValue;
   bjVchExp.VchType := typeColValue;
   bjVchExp.WSType := WSType;
@@ -1576,10 +1533,6 @@ begin
   if IsDateDefined then
     if not kadb.IsEmptyField(UDateName) then
     DateColValue := kadb.GetFieldSDate(UDateName);
-{
-  if Length(DateColValue) = 0 then
-    DateColValue := DiDateValue;
-}
   if IsVtypeDefined then
 { Find if user set has Voucher type }
     TypeColValue := kadb.GetFieldString(UVTypeName);
@@ -1596,24 +1549,23 @@ begin
 }
   if IsCrDrAmtColsDefined then
   begin
-//    if not kadb.IsEmptyField(CrAmtCol) then
     if kadb.GetFieldFloat(CrAmtCol) > 0 then
       if Length(CrAmtColType) > 0 then
         TypeColValue := CrAmtColType;
-//    if not kadb.IsEmptyField(DrAmtCol) then
     if kadb.GetFieldFloat(DrAmtCol) > 0 then
       if Length(DrAmtColType) > 0 then
         TypeColValue := DrAmtColType;
   end;
+{
   if IsNarrationDefined then
     NarrationColValue := kadb.GetFieldString(UNarrationName);
-
-  if IsNarration2Defined then
+  if IsNarration2Declared then
   if kadb.FindField(UNarration2Name) <> nil then
     NarrationColValue := NarrationColValue + kadb.GetFieldString(UNarration2Name);
-  if IsNarration3Defined then
+  if IsNarration3Declared then
   if kadb.FindField(UNarration3Name) <> nil then
     NarrationColValue := NarrationColValue + kadb.GetFieldString(UNarration3Name);
+}
 end;
 
 {
@@ -1639,8 +1591,6 @@ end;
 function TbjMrMc.GetLedger(const level: integer): string;
 var
   lstr: string;
-//  i: integer;
-//  Item: pDict;
 begin
   if IsLedgerDefined[level] then
   begin
@@ -1657,26 +1607,12 @@ begin
 Depending on token in one column 1 Ledger 1 is derived
 Token code is exception to normal logic; Getout after executing this fragment
 }
-{
-  if Assigned(LedgerDict[level]) then
-  begin
-    for i := 0 to LedgerDict[level].Count-1 do
-    begin
-      Item := LedgerDict[level].Items[i];
-      if pDict(Item)^.Token = kadb.GetFieldString(pDict(Item)^.TokenCol) then
-      begin
-        lstr := pDict(Item)^.Value;
-        break;
-      end;
-    end;
-}
   lstr := GetDictValue(level);
   if Length(lstr) > 0 then
   begin
     Result := lstr;
     Exit;
   end;
-//  end;
   if Length(lstr) = 0 then
     Result := DiLedgerValue[level];
 end;
@@ -1708,16 +1644,12 @@ begin
     Exit;
   end;
 { IsMultiCol }
-//  if IsAmtDeclared[level] then
   if IsAmtDefined[level] then
   begin
     if not kadb.IsEmptyField(UAmountName[level]) then
     begin
-//      Result := StrtoFloat(kadb.FieldByName(UAmountName[level]).AsString);
-//      Result := kadb.FieldByName(UAmountName[level]).AsFloat;
       Result := kadb.GetFieldFloat(UAmountName[level]);
       if AmountType[level] = 'Dr' then
-//        Result := - StrtoFloat(kadb.FieldByName(UAmountName[level]).AsString);
         Result := - kadb.GetFieldFloat(UAmountName[level]);
 {      Exit;}
     end;
@@ -1749,20 +1681,11 @@ begin
     Result := True;
     break;
   end;
-{
-  if Assigned(LedgerDict[i+1]) then
-  begin
-    Result := True;
-    break;
-  end;
-}
   end;
 end;
 
 function TbjMrMc.GetRoundOffName: string;
 var
-//  i: integer;
-//  Item: pDict;
   lStr: string;
 begin
   Result := '';
@@ -1776,29 +1699,12 @@ begin
       Exit;
     end;
   end;
-{
-Depending on token in one column 1 RoundOff ledger is derived
-}
-{
-  if Assigned(LedgerDict[COLUMNLIMIT+1]) then
-  begin
-    for i := 0 to LedgerDict[COLUMNLIMIT+1].Count-1 do
-    begin
-      Item := LedgerDict[COLUMNLIMIT+1].Items[i];
-      if pDict(Item)^.Token = kadb.GetFieldString(pDict(Item)^.TokenCol) then
-      begin
-        lStr := pDict(Item)^.Value;
-        break;
-      end;
-    end;
-}
     lstr := GetDictValue(COLUMNLIMIT+1);
     if Length(lstr) > 0 then
     begin
       Result := lstr;
       Exit;
     end;
-//  end;
   if Length(DiRoundOff) > 0 then
     Result := DiRoundOff;
 end;
@@ -1807,7 +1713,6 @@ procedure TbjMrMc.WriteStatus;
 var
   i: integer;
   statmsg: string;
-//ErrStr: string;
   RoundOffAmount: Double;
 begin
   RoundOffAmount := Round(Vtotal) - VTotal;
@@ -1829,19 +1734,10 @@ begin
     end
     else
       bjVchExp.AddLine(RoundOffName, - VTotal);
-//      AddLine('RoundOff', - RoundOffAmount)
   end;
-//  StatMsg := TryPost(pChar(VchAction));
-{
-  TempStr := TryPost(pChar(VchAction));
-  SetLength(statmsg, Length(TempStr)+1);
-  StrCopy(PChar(StatMsg), TempStr);
-  dllRelease(TempStr);
-}
+  if IsNarrationDefined then
+    bjVchExp.VchNarration := NarrationColValue;
   StatMsg := bjVchExp.Post(VchAction, True);
-//  ErrStr := GetErrStr(statmsg);
-//  if Length(ErrStr) > 0 then
-//    StatMsg := ErrStr;
   VTotal := 0;
   if Assigned(FUpdate) then
 //      FUpdate('Status: ' + Statmsg);
@@ -1853,15 +1749,6 @@ begin
   if ToLog then
   if isTallyIdDefined then
     kadb.SetFieldVal('TALLYID', statmsg);
-{
-{
-    if IsErr then
-    begin
-      MessageDlg('Error on row no: ' + InttoStr(kadb.CurrentRow + 1),
-        mtError, [mbOK],0);
-      Abort;
-    end;
-}
   for i := 1 to notoskip do
     kadb.Next;
   notoskip := 0;
@@ -1978,7 +1865,8 @@ begin
   for i := 0 to LedgerDict[ctr].Count-1 do
   begin
     Item := LedgerDict[ctr].Items[i];
-    if pDict(Item)^.Token = Trim(kadb.GetFieldString(pDict(Item)^.TokenCol)) then
+//    if pDict(Item)^.Token = Trim(kadb.GetFieldString(pDict(Item)^.TokenCol)) then
+    if pDict(Item)^.Token = Trim(kadb.GetFieldToken(pDict(Item)^.TokenCol)) then
     begin
       Result := pDict(Item)^.Token;
       break;
@@ -1997,7 +1885,8 @@ begin
   for i := 0 to LedgerDict[ctr].Count-1 do
   begin
     Item := LedgerDict[ctr].Items[i];
-    if (pDict(Item)^.Token = Trim(kadb.GetFieldString(pDict(Item)^.TokenCol))) then
+//    if (pDict(Item)^.Token = Trim(kadb.GetFieldString(pDict(Item)^.TokenCol))) then
+    if (pDict(Item)^.Token = Trim(kadb.GetFieldToken(pDict(Item)^.TokenCol))) then
     begin
       Result := pDict(Item)^.Value;
       break;
@@ -2013,6 +1902,38 @@ begin
     Exit;
   if MessageDlg('Copy Unposted only to Tally.xls?', mtWarning, mbYesNoCancel, 0) <> mrYes then
     Exit;
+  kadb.SetFieldFormat('Tax_rate', 35);
+  kadb.SetFieldFormat('DATE', 14);
+  kadb.SetFieldFormat('Voucher Date', 14);
+  kadb.SetFieldFormat('Invoice_Date', 14);
+  kadb.SetFieldFormat('ID', 35);
+  kadb.SetFieldFormat('NARRATION', 35);
+
+  kadb.SetFieldFormat('PARTY', 35);
+
+  kadb.SetFieldFormat('GSTN', 35);
+  kadb.SetFieldFormat('Item', 35);
+  kadb.SetFieldFormat('HSN', 35);
+  kadb.SetFieldFormat('Unit', 35);
+  kadb.SetFieldFormat('Bank Ledger', 35);
+  kadb.SetFieldFormat('Sales_Ledger', 35);
+  kadb.SetFieldFormat('Purchase_Ledger', 35);
+  kadb.SetFieldFormat('Bill_Ledger', 35);
+  kadb.SetFieldFormat('Credit Ledger', 35);
+  kadb.SetFieldFormat('Debit Ledger', 35);
+  kadb.SetFieldFormat('LEDGER', 35);
+  kadb.SetFieldFormat('Party Ledger', 35);
+  kadb.SetFieldFormat('Payment Ledger', 35);
+  kadb.SetFieldFormat('Receipt Ledger', 35);
+  kadb.SetFieldFormat('Voucher Ref', 35);
+  kadb.SetFieldFormat('Bill Ref', 35);
+  kadb.SetFieldFormat('GROUP', 35);
+  kadb.SetFieldFormat('Alias', 35);
+  kadb.SetFieldFormat('GSTRate', 35);
+  kadb.SetFieldFormat('SubGroup', 35);
+  kadb.SetFieldFormat('Godown', 35);
+  kadb.SetFieldFormat('Category', 35);
+  kadb.Save(FileName);
   inErr := True;
   kadb.First;
   while not kadb.EOF do
@@ -2054,7 +1975,6 @@ begin
   if (kadb.GetFieldString('Group') = 'Sales Accounts') or
     (kadb.GetFieldString('Group') = 'Purchase Accounts') then
   begin
-//    bjMstExp.NewParty(kadb.GetFieldString('Ledger'), kadb.GetFieldString('Group'),'12');
     bjMstExp.NewGST(kadb.GetFieldString('Ledger'), kadb.GetFieldString('Group'),'12');
     Exit;
   end;
