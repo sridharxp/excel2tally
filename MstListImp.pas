@@ -56,6 +56,8 @@ type
   public
     { Public declarations }
     ToCheckLedAlias: Boolean;
+    CashBankLedList: TStringList;
+    PartyLedList: TStringList;
     constructor Create;
     destructor Destroy; override;
     function GetLedPackedList: TStringList;
@@ -111,6 +113,8 @@ begin
   xMst.Clear;
   XInv.Clear;
   Client.Free;
+  CashBankLedList.Free;
+  PartyLedList.Free;
   inherited;
 end;
 
@@ -268,6 +272,7 @@ begin
   LedPList := TStringList.Create;
 //  StrS.Add('PARENT');
   OResult := CreatebjXmlDocument;
+  LedPList.Add('NAME');
   OResult.LoadXml(ColEval(CollName, 'Ledger', LedPList));
   LedPList.Clear;
   LedNode := OResult.SearchforTag(nil, 'COLLECTION');
@@ -325,6 +330,24 @@ begin
           LedPList.Add( PackStr(LedNode.GetAttrValue('NAME')))
         else
           LedPList.Add( LedNode.GetAttrValue('NAME'));
+        if ToCheckLedAlias then
+        begin
+          AliasName := LedNode.GetAttrValue('NAME');
+          NamelistNode := LedNode.SearchForTag(nil, 'NAME.LIST');
+          if NameListNode <> nil then
+            AliasNode := NamelistNode.SearchForTag(nil, 'NAME');
+          while AliasNode <> nil do
+          begin
+            if AliasNode.GetContent <>  AliasName then
+            begin
+            if ToPack then
+              LedPList.Add(PackStr(AliasNode.GetContent))
+            else
+              LedPList.Add(AliasNode.GetContent);
+            end;
+            AliasNode := NamelistNode.SearchForTag(AliasNode, 'NAME');
+          end;
+        end;
       end;
     end;
   end;

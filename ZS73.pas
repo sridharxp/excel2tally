@@ -54,7 +54,7 @@ type
     FFirm: String;
     FDefaultGroup: string;
     FExportDependentMasters: boolean;
-    FbjMstExp: TbjMstExp;
+    FMstExp: TbjMstExp;
     FDefaultGSTState: string;
   protected
     { Protected declarations }
@@ -86,7 +86,7 @@ type
     property Host: string  read FHost write SetHost;
     property DefaultGroup: string read FDefaultGroup write SetDefaultGroup;
     property ToUpdate: boolean read FToUpdate write FToUpdate;
-    property bjMstExp: TbjMstExp read FbjMstExp write SetMst;
+    property MstExp: TbjMstExp read FMstExp write SetMst;
     property DefaultGSTState: string read FDefaultGSTState write FDefaultGSTState;
   end;
 
@@ -100,7 +100,7 @@ type
     FGroup: string;
     FGodown: string;
     FCategory: string;
-    FbjEnv: TbjEnv;
+    FEnv: TbjEnv;
     FOBal: double;
     FORate: double;
   protected
@@ -135,7 +135,6 @@ type
     function IsGodown(const Gdn: string): boolean;
     function  GetTallyReply: string;
     procedure CheckError;
-//    function GetEnv: Tbjenv;
     procedure SetEnv(aEnv: TbjEnv);
   public
     { Public declarations }
@@ -168,7 +167,7 @@ type
     property Godown: string write FGodown;
     property Category: string write FCategory;
 //    property LedState: string read FLedState write FLedState;
-    property bjEnv: TbjEnv read FbjEnv write SetEnv;
+    property Env: TbjEnv read FEnv write SetEnv;
     property OBal: double write FOBal;
     property ORate: double write FORate;
   end;
@@ -186,8 +185,8 @@ type
     FVchRef: string;
     FBillRef: string;
     FVchRefDate: string;
-    FbjEnv: TbjEnv;
-    FbjMstExp: TbjMStExp;
+    FEnv: TbjEnv;
+    FMstExp: TbjMStExp;
     Fvchid: string;
     FIsContra: boolean;
   protected
@@ -257,27 +256,11 @@ type
     property VchRef: string read FVchRef write FVchRef;
     property BillRef: string read FBillRef write FBillRef;
     property VchRefDate: string read FVchRefDate write FVchRefDate;
-    property bjEnv: TbjEnv read FbjEnv write SetEnv;
-    property bjMstExp: TbjMstExp read FbjMstExp write SetMst;
+    property Env: TbjEnv read FEnv write SetEnv;
+    property MstExp: TbjMstExp read FMstExp write SetMst;
     property IsContra: boolean read FIsContra write FIsContra;
   end;
 
-(*
-type
-  Tbjxmlupdate = class
-  private
-    { Private declarations }
-//    FConnectionStatus: boolean;
-//    FLedgerAlias: string;
-  protected
-    IsShareWare: boolean;
-  public
-    { Public declarations }
-    constructor Create;
-    destructor Destroy; override;
-  published
-  end;
-*)
   TLine = Record
     Ledger: string;
     Amount: double;
@@ -301,12 +284,6 @@ type
   end;
   pGSTNLine = ^TGSTNline;
 
-{
-threadvar
-  bjEnv: TbjEnv;
-  bjMstExp: TbjMstExp;
-  bjVchExp: TbjVchExp;
-}
 implementation
 
 Constructor TbjEnv.Create;
@@ -405,14 +382,14 @@ end;
 //For better exception handling removed
 Procedure TbjMstExp.CheckError;
 begin
-  if bjEnv.Client.Response.Size = 0 then
+  if Env.Client.Response.Size = 0 then
       MessageDlg('Error Posting Data to Tally', mtError, [mbOK], 0);
 end;
 
 //For better exception handling removed
 Procedure TbjVchExp.CheckError;
 begin
-  if bjEnv.Client.Response.Size = 0 then
+  if Env.Client.Response.Size = 0 then
       MessageDlg('Error Posting Data to Tally', mtError, [mbOK], 0);
 end;
 
@@ -515,7 +492,6 @@ begin
       xLdg.NewChild2('GSTNATUREOFTRANSACTION', 'Purchase Taxable');
     xLdg := xLdg.NewChild('STATEWISEDETAILS.LIST', '');
     xLdg.NewChild2('STATENAME', #4 +' Any' );
-
     xLdg := xLdg.NewChild('RATEDETAILS.LIST', '');
     xLdg.NewChild2('GSTRATEDUTYHEAD', 'Central Tax');
     xLdg.NewChild2('GSTRATE', GetHalfof(TaxRate));
@@ -528,21 +504,8 @@ begin
   { RATEDETAILS.LIST }
     xLdg := xLdg.GetParent;
     xLdg := xLdg.NewChild('RATEDETAILS.LIST', '');
-    xLdg.NewChild2('GSTRATEDUTYHEAD', 'State Tax');
-    xLdg.NewChild2('GSTRATE', GetHalfof(TaxRate));
-  { RATEDETAILS.LIST }
-    xLdg := xLdg.GetParent;
-
-    xLdg := xLdg.NewChild('RATEDETAILS.LIST', '');
     xLdg.NewChild2('GSTRATEDUTYHEAD', 'Integrated Tax');
     xLdg.NewChild2('GSTRATE', TaxRate);
-  { RATEDETAILS.LIST }
-    xLdg := xLdg.GetParent;
-
-(*
-    xLdg := xLdg.NewChild('RATEDETAILS.LIST', '');
-    xLdg.NewChild2('GSTRATEDUTYHEAD', 'Cess');
-    xLdg.NewChild2('GSTRATE', '0');
   { RATEDETAILS.LIST }
     xLdg := xLdg.GetParent;
   { STATEWISEDETAILS.LIST }
@@ -863,7 +826,7 @@ begin
   if not Assigned(LedPList) then
   begin
     ledObj := TbjMstListImp.Create;
-    LedObj.Host := bjEnv.Host;
+    LedObj.Host := Env.Host;
     try
       LedPList := LedObj.GetLedPackedList;
 //      CashLedLedList := LedObj.GetCashLedPackedList;
@@ -885,7 +848,7 @@ begin
   if not Assigned(ItemPList) then
   begin
     ledObj := TbjMstListImp.Create;
-    LedObj.Host := bjEnv.Host;
+    LedObj.Host := Env.Host;
     try
       ItemPList := LedObj.GetItemPackedList;
     finally
@@ -904,7 +867,7 @@ begin
   if not Assigned(UnitPList) then
   begin
     ledObj := TbjMstListimp.Create;
-    LedObj.Host := bjEnv.Host;
+    LedObj.Host := Env.Host;
     try
       UnitPList := LedObj.GetUnitPackedList;
     finally
@@ -923,7 +886,7 @@ begin
   if not Assigned(ItemGroupPList) then
   begin
     ledObj := TbjMstListImp.Create;
-    LedObj.Host := bjEnv.Host;
+    LedObj.Host := Env.Host;
     try
       ItemGroupPList := LedObj.GetItemGroupPackedList;
     finally
@@ -942,7 +905,7 @@ begin
   if not Assigned(CategoryPList) then
   begin
     ledObj := TbjMstListImp.Create;
-    LedObj.Host := bjEnv.Host;
+    LedObj.Host := Env.Host;
     try
       CategoryPList := LedObj.GetCategoryPACKEDList;;
     finally
@@ -961,7 +924,7 @@ begin
   if not Assigned(GodownPList) then
   begin
     ledObj := TbjMstListImp.Create;
-    LedObj.Host := bjEnv.Host;
+    LedObj.Host := Env.Host;
     try
       GodownPList := LedObj.GetGodownPackedList;
     finally
@@ -986,9 +949,9 @@ begin
     xLdg.NewChild2('REPORTNAME', 'All Masters');
     xLdg := xLdg.NewChild('STATICVARIABLES','');
     xLdg.NewChild2('SVEXPORTFORMAT', '$$SysName:XML');
-    if length(bjEnv.FFirm) > 0 then
+    if length(Env.FFirm) > 0 then
     begin
-      xLdg.NewChild2('SVCURRENTCOMPANY',bjEnv.Firm);
+      xLdg.NewChild2('SVCURRENTCOMPANY',Env.Firm);
     end;
   { STATICVARIABLES }
       xLdg := xLdg.GetParent;
@@ -1013,10 +976,10 @@ begin
     xvou.NewChild2('REPORTNAME', 'All Masters');
     xvou := xvou.NewChild('STATICVARIABLES','');
     xvou.NewChild2('SVEXPORTFORMAT', '$$SysName:XML');
-    if length(bjEnv.FFirm) > 0 then
+    if length(Env.FFirm) > 0 then
     begin
-      xvou.NewChild2('SVCURRENTCOMPANY',bjEnv.Firm);
-      
+      xvou.NewChild2('SVCURRENTCOMPANY',Env.Firm);
+
     end;
   { STATICVARIABLES }
       xVou := xVou.GetParent;
@@ -1041,7 +1004,7 @@ begin
   end;
   xmlHeader('V');
 
-    sid := bjEnv.GUID+'-'+ RightStr('00000000' +
+    sid := Env.GUID+'-'+ RightStr('00000000' +
       vchid, 8);
 
   xvou := xvou.NewChild('TALLYMESSAGE','');
@@ -1310,7 +1273,7 @@ begin
     CashBankPList := TStringList.Create;
     try
       Obj.ToPack := False;
-      Obj.Host := bjEnv.Host;
+      Obj.Host := Env.Host;
       CashBankPList.Text := Obj.GetCashBankText(True);
       CashBankPList.Sorted := True;
     Finally
@@ -1548,13 +1511,13 @@ end;
 
 function TbjMstExp.LPost: string;
 begin
-  bjEnv.Client.Host := bjEnv.Host;
-  bjEnv.Client.xmlRequestString :=  xLdg.GetXml;
+  Env.Client.Host := Env.Host;
+  Env.Client.xmlRequestString :=  xLdg.GetXml;
 { To debug }
 //  MessageDlg(xLDG.GetXML, mtInformation, [mbOK], 0);
-  if bjEnv.ToSaveXmlFile then
+  if Env.ToSaveXmlFile then
     xLdg.SaveXmlFile('Ledger.xml');
-  bjEnv.Client.post;
+  Env.Client.post;
   Result := GetTallyReply;
 
   Error := Result;
@@ -1578,19 +1541,19 @@ begin
   CheckDefGroup;
   unpack;
   xmlFooter('V');
-  bjEnv.Client.Host :=  bjEnv.Host;
-  bjEnv.Client.xmlRequestString :=  xvch.GetXml;
+  Env.Client.Host :=  Env.Host;
+  Env.Client.xmlRequestString :=  xvch.GetXml;
 { For debugging }
-  if bjEnv.ToSaveXmlFile then
+  if Env.ToSaveXmlFile then
     xvch.SaveXmlFile('Voucher.xml');
 { For debugging }
 //  MessageDlg(xvch.GetXML, mtInformation, [mbOK], 0);
-  bjEnv.Client.post;
+  Env.Client.post;
 
   xvchid.Clear;
-  xvchid.LoadXml(bjEnv.Client.GetxmlResponseString);
+  xvchid.LoadXml(Env.Client.GetxmlResponseString);
 //  MessageDlg(xvchID.GetXML, mtInformation, [mbOK], 0);
-  if bjEnv.ToSaveXmlFile then
+  if Env.ToSaveXmlFile then
     xvchid.SaveXmlFile('Tally.xml');
 
   Tallyid := xvchid.SearchForTag(nil, 'LASTVCHID');
@@ -1599,7 +1562,7 @@ begin
     tid := TallyId.GetContent;
 { If this Visual feedback is not required then set ToUpdate to false }
     Result := TId;
-    if bjEnv.ToUpdate then
+    if Env.ToUpdate then
       MessageDlg(Tid, mtInformation, [mbOK], 0);
   end;
 
@@ -1623,17 +1586,17 @@ var
   StrLedger: string;
 begin
 {
-  if Length(bjEnv.DefaultGroup) = 0 then
+  if Length(Env.DefaultGroup) = 0 then
     exit;
 }
-  if not Assigned(bjMstExp) then
+  if not Assigned(MstExp) then
     Exit;
   for i := 0 to Lines.Count-1 do
   begin
     StrLedger := pLine(Lines.Items[i])^.Ledger;
 //    if not LedgerExists(StrLedger) then
 //      CreateLedger(StrLedger, DefaultGroup, 0);
-      bjMstExp.NewLedger(StrLedger, bjEnv.DefaultGroup, 0);
+      MstExp.NewLedger(StrLedger, Env.DefaultGroup, 0);
   end;
 end;
 
@@ -1642,7 +1605,7 @@ var
   Tallyid: IbjXml;
 begin
     xLedid.Clear;
-    xLedid.LoadXml(bjEnv.Client.GetxmlResponseString);
+    xLedid.LoadXml(Env.Client.GetxmlResponseString);
 
     Tallyid := xLedid.SearchForTag(nil, 'CREATED');
     if Assigned(Tallyid) then
@@ -1659,7 +1622,7 @@ var
   Tallyid: IbjXml;
 begin
 //    xLedid.Clear;
-//    xLedid.LoadXml(bjEnv.Client.GetxmlResponseString);
+//    xLedid.LoadXml(Env.Client.GetxmlResponseString);
 
     Tallyid := xvchid.SearchForTag(nil, 'CREATED');
     if Assigned(Tallyid) then
@@ -1705,8 +1668,8 @@ Procedure TbjEnv.SetFirm(const Name: string);
 begin
   if FFirm = Name then
     exit;
-  if Assigned(bjMstExp) then
-    bjMstExp.RefreshMstLists;
+  if Assigned(MstExp) then
+    MstExp.RefreshMstLists;
   FFirm := Name;
 end;
 
@@ -1724,7 +1687,7 @@ begin
   ItemPlist.Free;
   UnitPList.Free;
   ledObj := TbjMstListImp.Create;
-  LedObj.Host := bjEnv.Host;
+  LedObj.Host := Env.Host;
   try
 //    LedObj.GetGrpLedList;
     LedPList := LedObj.GetLedPackedList;
@@ -1745,7 +1708,7 @@ begin
   CategoryPList.Free;
   GodownPList.Free;
   ledObj := TbjMstListImp.Create;
-  LedObj.Host := bjEnv.Host;
+  LedObj.Host := Env.Host;
   try
     UnitPList :=  LedObj.GetUnitPackedList;
     ItemPList := LedObj.GetItemPackedList;
@@ -1768,7 +1731,7 @@ begin
     Exit;
   Found := IsLedger(aLedger);
   if Found then
-    if bjEnv.ToUpdateMasters then
+    if Env.ToUpdateMasters then
       CreateLedger(aLedger, aParent, OpBal);
   if not Found then
   begin
@@ -1787,7 +1750,7 @@ begin
     Exit;
   Found := IsItem(aItem);
   if Found then
-    if bjEnv.ToUpdateMasters then
+    if Env.ToUpdateMasters then
       CreateItem(aItem, aBaseUnit, OpBal, OpRate);
   if not found then
   begin
@@ -1806,7 +1769,7 @@ begin
     Exit;
   Found := IsItem(aItem);
   if Found then
-    if bjEnv.ToUpdateMasters then
+    if Env.ToUpdateMasters then
       CreateHSN(aItem, aBaseUnit, aHSN, GRate);
   if not found then
   begin
@@ -1822,7 +1785,7 @@ begin
     Exit;
   Found := IsUnit(aUnit);
   if Found then
-    if bjEnv.ToUpdateMasters then
+    if Env.ToUpdateMasters then
       CreateUnit(aUnit);
   if not found then
   begin
@@ -1839,7 +1802,7 @@ begin
     Exit;
   Found := IsItemGroup(aGrp);
   if Found then
-    if bjEnv.ToUpdateMasters then
+    if Env.ToUpdateMasters then
       CreateItemGroup(aGrp, aParent);
   if not found then
   begin
@@ -1856,7 +1819,7 @@ begin
     Exit;
   Found := IsCategory(aCategory);
   if Found then
-    if bjEnv.ToUpdateMasters then
+    if Env.ToUpdateMasters then
       CreateCategory(aCategory, aParent);
   if not found then
   begin
@@ -1873,7 +1836,7 @@ begin
     Exit;
   Found := IsGodown(aGdn);
   if Found then
-    if bjEnv.ToUpdateMasters then
+    if Env.ToUpdateMasters then
       CreateGodown(aGdn, aParent);
   if not found then
   begin
@@ -1890,7 +1853,7 @@ begin
     Exit;
   Found := IsLedger(aLedger);
   if Length(aState) = 0 then
-    aState := bjEnv.DefaultGSTState;
+    aState := Env.DefaultGSTState;
   if not Found then
   begin
      CreateParty(aLedger, aParent, aGSTN, aState);
@@ -1951,24 +1914,24 @@ end;
 
 procedure TbjMstExp.SetEnv(aEnv: TbjEnv);
 begin
-  FbjEnv := aEnv;
+  FEnv := aEnv;
 // if Assigned(aEnv) then
 //  aEnv.bjMstExp := Self;
 end;
 
 procedure TbjVchExp.SetEnv(aEnv: TbjEnv);
 begin
-  FbjEnv := aEnv;
+  FEnv := aEnv;
 end;
 
 procedure TbjVchExp.SetMst(aMst: TbjMstExp);
 begin
-  FbjMstExp := aMst;
+  FMstExp := aMst;
 end;
 
 procedure TbjEnv.SetMst(aMst: TbjMstExp);
 begin
-  FbjMstExp := aMst;
+  FMstExp := aMst;
 end;
 {
 procedure Register;
