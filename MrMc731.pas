@@ -270,6 +270,7 @@ TbjMrMc = class(TinterfacedObject, IbjXlExp, IbjMrMc)
     
     Tally_11: boolean;
     UdefStateName: string;
+    RoundOffMethod: string;
 {    ToCreateMasters: boolean; }
     Env: TbjEnv;
     dsl: TbjDSLParser;
@@ -287,7 +288,6 @@ TbjMrMc = class(TinterfacedObject, IbjXlExp, IbjMrMc)
     property IsExpItemMst: Boolean read FIsExpItemMst write FIsExpItemMst;
     property Firm: string read FFirm write setFirm;
     PROPERTY Host: string read FHost write SetHost;
-    property RoundOfftoNext: boolean read FRoundOfftoNext write FRoundOfftoNext;
     property IsGstSetting: boolean write SetGstLedSetting;
     property XmlStr: string write SetXmlstr;
     property TableName: string read FTableName write FTableName;
@@ -1122,7 +1122,7 @@ begin
       mtInformation, [mbOK], 0);
 
     StatusMsg := InttoStr(ProcessedCount) + ' Vouchers processed; ' +
-    InttoStr(SCount) + ' Success. Check Tally.xls'
+    InttoStr(SCount) + ' Success. ' + InttoStr(Mins*60+Secs) + ' Seconds.'
 
 
 
@@ -1229,7 +1229,6 @@ begin
     invamt);
   IsInventoryAssigned := True;
   VchExp.InvVch := True;
-  RoundOfftoNext := True;
 end;
 
 procedure TbjMrMc.CreateColLedger;
@@ -1763,21 +1762,35 @@ var
   statmsg: string;
   RoundOffAmount: Double;
 begin
-  RoundOffAmount := Round(Vtotal) - VTotal;
-  if RoundOffAmount < 0 then
-  if (VchType = 'Sales') or (VchType = 'Purchase') then
-  if RoundOfftoNext then
+  RoundOffAmount := Trunc(Vtotal) - VTotal;
+  if RoundOffMethod = ' ' then
+    RoundOffAmount :=  0;
+  if RoundOffMethod = 'W' then
   begin
-    RoundOffAmount := RoundOffAmount + 1;
-    VTotal := VTotal + RoundOffAmount;
+    if Abs(RoundOffAmount) > 0.5 then
+      RoundOffMethod := 'N';
+  end;
+  if RoundOffMethod = 'N' then
+  begin
+//  if (VchType = 'Sales') or (VchType = 'Purchase') then
+    if RoundOffAmount < 0 then
+    begin
+      RoundOffAmount :=  RoundOffAmount + 1;
+      VTotal := VTotal + 1;
+    end
+    else if RoundOffAmount > 0 then
+    begin
+      RoundOffAmount := RoundOffAmount - 1;
+      VTotal := VTotal - 1;
+    end;
   end;
 {  CheckErrStr := '(FOR OBJECT: '; }
   vchAction := 'Create';
   if Abs(VTotal) >= 0.01 then
   begin
-    if dsl.RoundToLimit > 0 then
+    if RoundOffAmount <> 0 then
     begin
-    VchExp.AddLine(RoundOffName, - Round(VTotal));
+    VchExp.AddLine(RoundOffName, - trunc(VTotal));
       VchExp.AddLine('RoundOff', RoundOffAmount);
     end
     else
