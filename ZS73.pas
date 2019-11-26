@@ -96,6 +96,7 @@ type
 //    FVchType: string;
 //    FLedState: string;
     FAlias: string;
+    FMailingName: string;
 //    FLedgerGroup: string;
     FGroup: string;
     FGodown: string;
@@ -115,8 +116,8 @@ type
     ItemGroupPList: TStringList;
     CategoryPList: TStringList;
     GodownPList: TStringList;
-//    ToSaveXMLFile: boolean;
-    TallyVersion: string;
+
+
     Error: string;
     procedure XmlHeader(const tgt:string);
     procedure XmlFooter(const tgt:string);
@@ -161,6 +162,7 @@ type
     { Published declarations }
 //    property Ledgerlias: string read FLedgerAlias write FLedgerAlias;
     property Alias: string write FAlias;
+    property MailingName: string write FMailingName;
 //    property LedgerGroup: string read FLedgerGroup write FLedgerGroup;
 //    property VchType: string write FVchType;
     property Group: string write FGroup;
@@ -181,6 +183,7 @@ type
     FWSType: string;
     FInvVch: boolean;
     FVchNarration: string;
+    FVchChequeNo: string;
     FVchNo: string;
     FVchRef: string;
     FBillRef: string;
@@ -206,9 +209,8 @@ type
     IsVchTypeMatched: Boolean;
     DrCrTotal: double;
     RefLedger: string;
-//    ToSaveXMLFile: boolean;
     CrLine, DrLine: integer;
-    TallyVersion: string;
+
     Error: string;
     CashBankPList: TStringList;
 //    procedure GetVchType(const aName: string);
@@ -225,7 +227,6 @@ type
     procedure CheckDefGroup;
     function  GetTallyReply: string;
     procedure CheckError;
-//    function GetEnv: TbjEnv;
     procedure SetEnv(aEnv: TbjEnv);
 //    function GetMst: TbjMstExp;
     procedure SetMst(aMst: TbjMstExp);
@@ -252,6 +253,7 @@ type
     property VchType: string read FVchType write FVchType;
     property InvVch: boolean read FInvVch write FInvVch;
     property VchNarration: string read FVchNarration write FVchNarration;
+    property VchChequeNo: string read FVchChequeNo write FVchChequeNo;
     property VchNo: string read FVchNo write FVchNo;
     property VchRef: string read FVchRef write FVchRef;
     property BillRef: string read FBillRef write FBillRef;
@@ -497,7 +499,6 @@ begin
     xLdg.NewChild2('GSTRATE', GetHalfof(TaxRate));
   { RATEDETAILS.LIST }
     xLdg := xLdg.GetParent;
-(*
     xLdg := xLdg.NewChild('RATEDETAILS.LIST', '');
     xLdg.NewChild2('GSTRATEDUTYHEAD', 'State Tax');
     xLdg.NewChild2('GSTRATE', GetHalfof(TaxRate));
@@ -666,6 +667,13 @@ begin
   xLdg := xLdg.NewChild('STOCKITEM','');
   xLdg.AddAttribute('NAME', Item);
   xLdg.AddAttribute('ACTION','Create');
+  If Length(FMailingName) > 0 then
+  begin
+    xLdg := xLdg.NewChild('MAILINGNAME.LIST','');
+    xLdg.NewChild2('MAILINGNAME', FMailingName );
+    { MAILINGNAME.LIST }
+    xLdg := xLdg.GetParent;
+  end;
   If Length(FGroup) > 0 then
   xLdg.NewChild2('PARENT', FGroup );
   If Length(Fcategory) > 0 then
@@ -710,6 +718,13 @@ begin
   xLdg := xLdg.NewChild('STOCKITEM','');
   xLdg.AddAttribute('NAME', Item);
   xLdg.AddAttribute('ACTION','Create');
+  If Length(FMailingName) > 0 then
+  begin
+    xLdg := xLdg.NewChild('MAILINGNAME.LIST','');
+    xLdg.NewChild2('MAILINGNAME', FMailingName );
+    { MAILINGNAME.LIST }
+    xLdg := xLdg.GetParent;
+  end;
   If Length(FGroup) > 0 then
   xLdg.NewChild2('PARENT', FGroup );
   If Length(Fcategory) > 0 then
@@ -996,6 +1011,8 @@ end;
 procedure TbjVchExp.SetVchHeader;
 var
   sid: string;
+  Item: pLine;
+  i: Integer;
 begin
   if IsContra then
   begin
@@ -1043,6 +1060,18 @@ begin
 //    xvou.NewChild2('ISINVOICE','Yes')
 //    else
 //    IsInv := True;
+
+  CrLine := 0;
+  DrLine := 0;
+  for i := 0 to Lines.Count-1 do
+  begin
+    Item := Lines.Items[i];
+    if Item^.Amount > 0 then
+      CrLine := CrLine + 1;
+    if Item^.Amount < 0 then
+      DrLine := DrLine + 1;
+  end;
+
     if (WSType = 'Sales')  and (DrLine > 1) then
       InvVch := False;
     if (WSType = 'Purchase')  and (CrLine > 1) then
@@ -1358,6 +1387,7 @@ begin
     end;
     IsVchTypeMatched := True;
   end;
+{
   CrLine := 0;
   DrLine := 0;
   for i := 0 to Lines.Count-1 do
@@ -1368,6 +1398,7 @@ begin
     if Item^.Amount < 0 then
       DrLine := DrLine + 1;
   end;
+}  
   ClearLines;
   partyidx := -1;
   partyamt := 0;
@@ -1419,6 +1450,16 @@ begin
     xvou.NewChild2('AMOUNT', FormatFloat(TallyAmtPicture,
     pLine(Lines.Items[idx])^.Amount));
 
+  if Length(vchChequeNo) > 0 then
+  begin
+    xvou := xvou.NewChild('BANKALLOCATIONS.LIST','');
+    xvou.NewChild2('INSTRUMENTDATE', VchDate);
+    xvou.NewChild2('TRANSACTIONTYPE', 'Cheque');
+    xvou.NewChild2('INSTRUMENTNUMBER', vchChequeNo);
+    xvou.NewChild2('AMOUNT', FormatFloat(TallyAmtPicture, pLine(Lines.Items[idx])^.Amount));
+  { BANKALLOCATIONS.LIST }
+    xVou := xVou.GetParent;
+  end;
   if Length(pLine(Lines.Items[idx])^.Ref) > 0 then
   begin
     xvou := xvou.NewChild('BILLALLOCATIONS.LIST','');

@@ -59,6 +59,7 @@ RCPT ='<Voucher>'+
 '</BillRef>'+
 '<RoundOff>'+
 '<Alias>Party Ledger</Alias>'+
+'<Group>Sundry Debtors</Group>'+
 '</RoundOff>'+
 '+<LEDGER>'+
 '<Alias>Receipt Ledger</Alias>'+
@@ -102,6 +103,7 @@ PYMT = '<Voucher>'+
 '</LEDGER>'+
 '<RoundOff>'+
 '<Alias>Party Ledger</Alias>'+
+'<Group>Sundry Creditors</Group>'+
 '</RoundOff>'+
 '<VTYPE>>'+
 '<Alias>VTYPE</Alias>'+
@@ -178,6 +180,9 @@ BANK = '<Voucher>'+
 '<Alias>WITHDRAWALS</Alias>'+
 '<Type>Payment</Type>'+
 '</DrAmtCol>'+
+'<ChequeNo>'+
+'<Alias>ChequeNo</Alias>'+
+'</ChequeNo>'+
 
 '<RoundOff>'+
 '<Alias>BANK LEDGER</Alias>'+
@@ -244,7 +249,7 @@ MYSALE = '<Voucher>'+
 '<Alias>Voucher No</Alias>'+
 '</VoucherNo>'+
 '<VoucherRef>'+
-'<Alias>Voucher Ref</Alias>'+
+'<Alias>Invoice_No</Alias>'+
 '</VoucherRef>'+
 '<BillRef>'+
 '<Alias>Bill Ref</Alias>'+
@@ -266,7 +271,8 @@ MYSALE = '<Voucher>'+
 '<GSTN>'+
 '<Alias>GSTN</Alias>'+
 '</GSTN>'+
-'<RoundTo>1</RoundTo>'+
+
+//'<RoundTo>1</RoundTo>'+
 '</RoundOff>'+
 '+<LEDGER>'+
 '<Default>GST 3% Sales</Default>'+
@@ -571,7 +577,7 @@ MYPURC = '<Voucher>'+
 '<Alias>Voucher Date</Alias>'+
 '</VoucherDate>'+
 '<VoucherRef>'+
-'<Alias>Voucher Ref</Alias>'+
+'<Alias>Invoice_No</Alias>'+
 '</VoucherRef>'+
 '<BillRef>'+
 '<Alias>Bill Ref</Alias>'+
@@ -593,7 +599,7 @@ MYPURC = '<Voucher>'+
 '<GSTN>'+
 '<Alias>GSTN</Alias>'+
 '</GSTN>'+
-'<RoundTo>1</RoundTo>'+
+//'<RoundTo>1</RoundTo>'+
 '</RoundOff>'+
 
 
@@ -903,7 +909,7 @@ SBILL = '<Voucher>'+
 '<Alias>Voucher No</Alias>'+
 '</VoucherNo>'+
 '<VoucherRef>'+
-'<Alias>Voucher Ref</Alias>'+
+'<Alias>Invoice_No</Alias>'+
 '</VoucherRef>'+
 '<BillRef>'+
 '<Alias>Bill Ref</Alias>'+
@@ -921,7 +927,7 @@ SBILL = '<Voucher>'+
 '<GSTN>'+
 '<Alias>GSTN</Alias>'+
 '</GSTN>'+
-'<RoundTo>1</RoundTo>'+
+//'<RoundTo>1</RoundTo>'+
 '</RoundOff>'+
 
 '+<LEDGER>'+
@@ -1024,7 +1030,7 @@ PBILL = '<Voucher>'+
 '<Alias>Voucher No</Alias>'+
 '</VoucherNo>'+
 '<VoucherRef>'+
-'<Alias>Voucher Ref</Alias>'+
+'<Alias>Invoice_No</Alias>'+
 '</VoucherRef>'+
 '<BillRef>'+
 '<Alias>Bill Ref</Alias>'+
@@ -1046,7 +1052,7 @@ PBILL = '<Voucher>'+
 '<GSTN>'+
 '<Alias>GSTN</Alias>'+
 '</GSTN>'+
-'<RoundTo>1</RoundTo>'+
+//'<RoundTo>1</RoundTo>'+
 '</RoundOff>'+
 
 '+<LEDGER>'+
@@ -1184,7 +1190,7 @@ GSTSALE = '<Voucher>'+
 '<Alias>Voucher No</Alias>'+
 '</VoucherNo>'+
 '<VoucherRef>'+
-'<Alias>Voucher Ref</Alias>'+
+'<Alias>Invoice_No</Alias>'+
 '</VoucherRef>'+
 '<BillRef>'+
 '<Alias>Bill Ref</Alias>'+
@@ -1199,7 +1205,7 @@ GSTSALE = '<Voucher>'+
 '<GSTN>'+
 '<Alias>GSTN</Alias>'+
 '</GSTN>'+
-'<RoundTo>1</RoundTo>'+
+//'<RoundTo>1</RoundTo>'+
 '</RoundOff>'+
 
 '<NARRATION>>'+
@@ -1479,7 +1485,7 @@ GSTPURC = '<Voucher>'+
 '<Alias>Voucher Date</Alias>'+
 '</VoucherDate>'+
 '<VoucherRef>'+
-'<Alias>Voucher Ref</Alias>'+
+'<Alias>Invoice_No</Alias>'+
 '</VoucherRef>'+
 '<BillRef>'+
 '<Alias>Bill Ref</Alias>'+
@@ -1494,7 +1500,7 @@ GSTPURC = '<Voucher>'+
 '<GSTN>'+
 '<Alias>GSTN</Alias>'+
 '</GSTN>'+
-'<RoundTo>1</RoundTo>'+
+//'<RoundTo>1</RoundTo>'+
 '</RoundOff>'+
 
 '<NARRATION>>'+
@@ -1784,6 +1790,9 @@ INVMASTER = '<Voucher>'+
 '</LEDGER>'+
 '<ITEM>'+
 '<Alias>Item</Alias>'+
+'<MAILINGNAME>'+
+'<Alias>PartNo</Alias>'+
+'</MAILINGNAME>'+
 '<HSN>>'+
 '<Alias>HSN</Alias>'+
 '</HSN>'+
@@ -1829,7 +1838,7 @@ CNOTE = '<Voucher>'+
 '<Alias>Voucher No</Alias>'+
 '</VoucherNo>'+
 '<VoucherRef>'+
-'<Alias>Voucher Ref</Alias>'+
+'<Alias>Invoice_No</Alias>'+
 '</VoucherRef>'+
 '<BillRef>'+
 '<Alias>Bill Ref</Alias>'+
@@ -1844,7 +1853,7 @@ CNOTE = '<Voucher>'+
 '<GSTN>'+
 '<Alias>GSTN</Alias>'+
 '</GSTN>'+
-'<RoundTo>1</RoundTo>'+
+//'<RoundTo>1</RoundTo>'+
 '</RoundOff>'+
 
 '<NARRATION>>'+
@@ -2121,7 +2130,7 @@ DNOTE = '<Voucher>'+
 '<Alias>Voucher No</Alias>'+
 '</VoucherNo>'+
 '<VoucherRef>'+
-'<Alias>Voucher Ref</Alias>'+
+'<Alias>Invoice_No</Alias>'+
 '</VoucherRef>'+
 '<BillRef>'+
 '<Alias>Bill Ref</Alias>'+
@@ -2136,7 +2145,7 @@ DNOTE = '<Voucher>'+
 '<GSTN>'+
 '<Alias>GSTN</Alias>'+
 '</GSTN>'+
-'<RoundTo>1</RoundTo>'+
+//'<RoundTo>1</RoundTo>'+
 '</RoundOff>'+
 
 '<NARRATION>>'+

@@ -85,7 +85,7 @@ TbjDSLParser = class
     RoundOffCol: string;
 
     { Public declarations }
-    RoundToLimit: Integer;
+//  RoundToLimit: Integer;
     RoundOffGroup: string;
 {    Amt: array [1..COLUMNLIMIT] of double; }
 
@@ -102,7 +102,6 @@ TbjDSLParser = class
     ULedgerName: array [1..COLUMNLIMIT] of string;
     UAmountName: array [1..COLUMNLIMIT] of string;
     UAmount2Name: array [1..COLUMNLIMIT] of string;
-//    UAmount3Name: array [1..COLUMNLIMIT] of string;
   { Used for Row Ledgers Triggered only when alias is defined in template}
     UMstGroupName: string;
     LedgerGroup: array [1..COLUMNLIMIT] of string;
@@ -113,6 +112,7 @@ TbjDSLParser = class
     UGSTNName: array [1..COLUMNLIMIT + 1] of string;
     UGroupName: array [1..COLUMNLIMIT ] of string;
     UAliasName: string;
+    UMailingName: string;
     UGodownName: string;
     UCategoryName: string;
     USubGroupName: string;
@@ -124,6 +124,7 @@ TbjDSLParser = class
     UVoucherDateName: string;
     UBillRefName: string;
     UTallyIDName: string;
+    UChequeNoName: string;
 
     UAssessableName: array [1..COLUMNLIMIT] of string;
 
@@ -136,6 +137,7 @@ TbjDSLParser = class
     ToCheckInvCols: boolean;
 //    IsAmt1Defined: boolean;
     IsNarrationDefined: boolean;
+    IsChequeNoDefined: boolean;
     IsTallyIdDefined: boolean;
     UidName: string;
     IsIDGenerated: Boolean;
@@ -157,6 +159,7 @@ TbjDSLParser = class
     IsHSNDefined: boolean;
     IsUnitDefined: boolean;
     IsAliasDefined: Boolean;
+    IsMailingNameDefined: Boolean;
     IsGodownDefined: Boolean;
     IsCategoryDefined: Boolean;
     IsGroupDefined: Boolean;
@@ -194,7 +197,6 @@ TbjMrMc = class(TinterfacedObject, IbjXlExp, IbjMrMc)
     FdynPgLen: integer;
     FVchType: string;
     FWSType: string;
-    FRoundOfftoNext: boolean;
     FIsExpItemMst: Boolean;
     FIsCheckLedMst: Boolean;
     FFirm: string;
@@ -207,6 +209,7 @@ TbjMrMc = class(TinterfacedObject, IbjXlExp, IbjMrMc)
     IsIdOnlyChecked: boolean;
 { Non Default }
     NarrationColValue: string;
+    ChequeNoColValue: string;
     Amt: array [1..COLUMNLIMIT] of double;
 
 { if exosts value if not di}
@@ -320,7 +323,8 @@ begin
   UDateName := 'DATE';
   UVTypeName := 'VTYPE';
   UNarrationName := 'NARRATION';
-  UVoucherRefName := 'Voucher Ref';
+  UChequeNoName := 'ChequeNo';
+  UVoucherRefName := 'VoucherRef';
   UVoucherDateName := 'Voucher Date';
   UVchNoColName := 'VoucherNo';
   UBillRefName := 'Bill Ref';
@@ -331,6 +335,7 @@ begin
   UQtyName := 'Qty';
   URateName := 'Rate';
   UAliasName := 'Alias';
+  UMailingName := 'PartNo';
   UGodownName := 'Godown';
   UCategoryName := 'Category';
   USubGroupName := 'SubGroup';
@@ -376,7 +381,7 @@ var
   dcfg, xxcfg: IbjXml;
   dItem: pDict;
 begin
-  if Assigned(FUpdate) then
+//  if Assigned(FUpdate) then
     FUpdate('Processing Xml');
   cfgn.LoadXML(XmlStr);
   cfg := Cfgn.SearchForTag(nil, 'Voucher');
@@ -443,9 +448,9 @@ AutoCreateMst affects default group only
     if Length(str) > 0 then
       RoundOffGroup := str;
     DiRoundOff := xCfg.GetChildContent('Default');
-    str := xCfg.GetChildContent('RoundTo');
-    if Length(str) > 0 then
-      RoundToLimit := StrToInt(str);
+//  str := xCfg.GetChildContent('RoundTo');
+//  if Length(str) > 0 then
+//    RoundToLimit := StrToInt(str);
 
     xxCfg := xcfg.SearchForTag(nil, 'GSTN');
     if Assigned(xxCfg) then
@@ -549,10 +554,10 @@ AutoCreateMst affects default group only
       IsDaybook  := True;
   end;
 
-  xCfg := cfg.SearchForTag(nil, 'Voucher Ref');
+  xCfg := cfg.SearchForTag(nil, UVoucherRefName);
   if Assigned(xCfg) then
   begin
-    str := xCfg.GetContent;
+    str := xCfg.GetChildContent('Alias');
     if Length(str) > 0 then
     begin
       UVoucherRefName := str;
@@ -568,6 +573,18 @@ AutoCreateMst affects default group only
       UBillRefName := str;
     end;
   end;
+  xCfg := Cfg.SearchForTag(nil, UChequeNoName);
+  if Assigned(xCfg) then
+  begin
+    xxCfg := xCfg.SearchForTag(nil, 'Alias');
+    if xxCfg <> nil then
+    begin
+      str := xxCfg.GetContent;
+      if Length(str) > 0 then
+        UChequeNoName  := str;
+    end;
+  end;
+
   xCfg := nil;
   for i := 1 to COLUMNLIMIT do
   begin
@@ -763,11 +780,6 @@ end;
 procedure TbjDSLParser.CheckColName;
 var
   i, j: integer;
-//dItem: pDict;
-//  str: string;
-//strMsg: string;
-//LedgerColValue: string;
-//DeclaredLedgers: integer;
 begin
 //DeclaredLedgers := 0;
   if kadb.FindField(UIdName) <> nil then
@@ -789,6 +801,8 @@ begin
     IsBillRefDefined := True;
   if kadb.FindField(UNarrationName) <> nil then
     IsNarrationDefined := True;
+  if kadb.FindField(UChequeNoName) <> nil then
+    IsChequeNoDefined := True;
   if kadb.FindField(UItemName) <> nil then
     IsItemDefined := True;
   if kadb.FindField(UHSNName) <> nil then
@@ -797,6 +811,8 @@ begin
     IsUnitDefined := True;
   if kadb.FindField(UAliasName) <> nil then
     IsAliasDefined := True;
+  if kadb.FindField(UMailingName) <> nil then
+    IsMailingNameDefined := True;
   if kadb.FindField(UGodownName) <> nil then
     IsGodownDefined := True;
   if kadb.FindField(UCategoryName) <> nil then
@@ -844,8 +860,6 @@ begin
   begin
       if kadb.FindField(ULedgerName[j]) <> nil then
         IsLedgerDefined[j] := True;
-//      if dsl.IsLedgerDeclared[j] then
-//        DeclaredLedgers := j;
   end;
   for i := 1 to COLUMNLIMIT+1 do
   begin
@@ -884,39 +898,11 @@ begin
   VchExp.MstExp := MstExp;
   xmlFile := copy(Application.ExeName, 1, Pos('.exe', Application.ExeName)-1) + '.xml';
 
-//  Cfgn := CreatebjXmlDocument;
 {  UNarration := '';}
 {  Amt1 := '';}
   dsl := TbjDSLParser.Create;
-//  dsl.XmlStr := XmlStr;
   notoskip := 0;
   ProcessedCount := 0;;
-(*
-  UIdName := 'ID';
-  LedgerTag := 'LEDGER';
-  for i:= 1 to COLUMNLIMIT do
-    ULedgerName[i] := 'LEDGER';
-  for i:= 1 to COLUMNLIMIT do
-    UAmountName[i] := 'AMOUNT';
-  for i:= 1 to COLUMNLIMIT do
-    AmountType[i] := 'Dr';
-  UDateName := 'DATE';
-  UVTypeName := 'VTYPE';
-  UNarrationName := 'NARRATION';
-  UVoucherRefName := 'Voucher Ref';
-  UVoucherDateName := 'Voucher Date';
-  UVchNoColName := 'VoucherNo';
-  inventoryTag := 'INVENTORY';
-  UItemName := 'Item';
-  UHSNName := 'HSN';
-  UUnitName := 'Unit';
-  UQtyName := 'Qty';
-  URateName := 'Rate';
-  UCategoryName := 'Category';
-  USubGroupName := 'SubGroup';
-  UTallyIDName := 'TALLYID';
-  UMstGroupName := 'GROUP';
-*)
   FToLog := True;
   FdynPgLen := PgLen + Random(20);
 end;
@@ -927,32 +913,11 @@ begin
   MstExp.Free;
   Env.Free;
   dsl.Free;
-(*
-{ +1 for RoundOff }
-  for i:= 1 to COLUMNLIMIT+1 do
-    if Assigned(LedgerDict[i]) then
-    begin
-{ TList finalizes items }
-
-    for j := 0 to LedgerDict[i].Count-1 do
-    begin
-      ditem := LedgerDict[i].Items[j];
-      ditem^.TokenCol := '';
-      ditem^.Token := '';
-      ditem^.Value := '';
-      Dispose(ditem);
-    end;
-
-  LedgerDict[i].Clear;
-  LedgerDict[i].Free;
-  end;
-*)
   if Assigned(kadb) then
   if kadb.ToSaveFile then
     if Length(ReportFileName) > 0 then
       kadb.Save(ReportFileName);
   kadb.Free;
-//  Cfgn.Clear;
   inherited;
 end;
 
@@ -976,7 +941,7 @@ passing Windows Exception as it is }
     kadb.XLSFileName := dbname;
     kadb.SetSheet(FTablename);
     kadb.ToSaveFile := True;
-    if Assigned(FUpdate) then
+//    if Assigned(FUpdate) then
       FUpdate('Reading '+ TableName);
     flds := TStringList.Create;
     kadb.ParseXml(dsl.Cfgn, flds);
@@ -999,7 +964,6 @@ var
   i, j: integer;
   dItem: pDict;
   str: string;
-//  strMsg: string;
   LedgerColValue: string;
   DeclaredLedgers: integer;
 begin
@@ -1009,8 +973,6 @@ begin
 { if a Column is defined it should exist in Table }
   for j := 1 to COLUMNLIMIT do
   begin
-//      if kadb.FindField(dsl.ULedgerName[j]) <> nil then
-//        dsl.IsLedgerDefined[j] := True;
       if dsl.IsLedgerDeclared[j] then
         DeclaredLedgers := j;
   end;
@@ -1039,7 +1001,6 @@ begin
     end;
   end;
 // Ledger Creation should be done only when necessary
-//  SetLength(strMsg, 50);
 { Create Default Ledgers }
   for i := 1 to COLUMNLIMIT do
   begin
@@ -1309,15 +1270,18 @@ AutoCreateMst does not affect explicit group or roundoff group
               MstExp.NewGST(LedgerColValue, GroupColValue, aToken)
             else
               MstExp.NewLedger(LedgerColValue, GroupColValue, 0);
-            if Assigned(FUpdate) then
+//            if Assigned(FUpdate) then
               FUpdate('Ledger: ' + LedgerColValue);
         end;
       end;
     end;
   end;
   for i := 1 to COLUMNLIMIT do
+{
     if (Length(dsl.LedgerGroup[i]) > 0) then
       if dsl.IsLedgerDefined[i] then
+}
+    if dsl.IsInvDefined[i] then
         CreateItem(i);
 
   if Length(dsl.RoundOffGroup) > 0 then
@@ -1333,7 +1297,7 @@ AutoCreateMst does not affect explicit group or roundoff group
       end
       else
         MstExp.NewLedger(LedgerColValue, dsl.RoundOffGroup, 0);
-        if Assigned(FUpdate) then
+//        if Assigned(FUpdate) then
           FUpdate('Ledger: ' + LedgerColValue);
     end;
 end;
@@ -1363,14 +1327,13 @@ begin
   if dsl.IsHSNDefined then
   begin
     HSNColValue := kadb.GetFieldString('HSN');
-//    GRate := kadb.GetFieldString('Tax_rate');
     GRate := kadb.GetFieldToken('Tax_rate');
     MstExp.NewHSN(ItemColValue, UnitColValue, HSNColValue, GRate);
   end
   else
     MstExp.NewItem(ItemColValue,
     UnitColValue , 0, 0);
-    if Assigned(FUpdate) then
+//    if Assigned(FUpdate) then
       FUpdate('Item: ' + ItemColValue);
 end;
 
@@ -1401,7 +1364,7 @@ begin
       kadb.SetFieldVal('ID', IDstr);
     end;
   end;
-  if Assigned(FUpdate) then
+//  if Assigned(FUpdate) then
     FUpdate('ID: '+ IDstr);
 end;
 
@@ -1470,7 +1433,8 @@ end;
 procedure TbjMrMc.ExpItemMst;
 var
   dbItem, dbUnit: string;
-  dbAlias, dbGodown, dbParent, dbCategory: string;
+  dbAlias, dbMailingName: string;
+  dbGodown, dbParent, dbCategory: string;
   dbHSN: string;
   OBal, ORate: Double;
   GRate: string;
@@ -1489,6 +1453,11 @@ begin
   begin
     dbAlias := kadb.GetFieldString(dsl.UAliasName);
     MstExp.Alias := dbAlias;
+  end;
+  if dsl.IsMailingNameDefined then
+  begin
+    dbMailingName := kadb.GetFieldString(dsl.UMailingName);
+    MstExp.MailingName := dbMailingName;
   end;
   if dsl.IsGodownDefined then
   begin
@@ -1531,7 +1500,7 @@ begin
   end
   else
     MstExp.NewItem(dbItem, dbUnit, OBal, ORate);
-  if Assigned(FUpdate) then
+//  if Assigned(FUpdate) then
     FUpdate('Item: ' + dbItem);
 end;
 
@@ -1565,7 +1534,7 @@ AutoCreateMst does not affect explicit group or roundoff group
     else
       MstExp.NewLedger(LedgerColValue,
         GroupColValue, OB);
-    if Assigned(FUpdate) then
+//    if Assigned(FUpdate) then
       FUpdate('Ledger: ' + LedgerColValue);
   end;
 end;
@@ -1599,6 +1568,8 @@ begin
   VchExp.VchType := typeColValue;
   VchExp.WSType := WSType;
   VchExp.VchID := tid;
+  VchExp.VchChequeNo := ChequeNoColValue;
+  ChequeNoColValue := '';
   RoundOffName := GetRoundOffName;
   notoskip := 0;
 end;
@@ -1638,6 +1609,9 @@ begin
   if IsNarrationDefined then
     NarrationColValue := kadb.GetFieldString(UNarrationName);
 }
+  if dsl.IsChequeNoDefined then
+    if not kadb.IsEmptyField(dsl.UChequeNoName) then
+    ChequeNoColValue := kadb.GetFieldString(dsl.UChequeNoName);
 end;
 
 {
@@ -1795,7 +1769,7 @@ begin
     RoundOffAmount := RoundOffAmount + 1;
     VTotal := VTotal + RoundOffAmount;
   end;
-//  CheckErrStr := '(FOR OBJECT: ';
+{  CheckErrStr := '(FOR OBJECT: '; }
   vchAction := 'Create';
   if Abs(VTotal) >= 0.01 then
   begin
@@ -1811,8 +1785,8 @@ begin
     VchExp.VchNarration := NarrationColValue;
   StatMsg := VchExp.Post(VchAction, True);
   VTotal := 0;
-  if Assigned(FUpdate) then
-    FUpdate('Tally Vch ID: ' + Statmsg);
+//  if Assigned(FUpdate) then
+    FUpdate('Voucher: ' + Statmsg);
   ProcessedCount := ProcessedCount + 1;
 
   for i := 1 to notoskip do
@@ -1827,17 +1801,6 @@ begin
     if StatMsg <> '0' then
       SCount := Scount + 1;
 end;
-
-{
-procedure TbjMrMc.SetColumnFormat(const colname: string; const fmt:integer);
-var
-aCol: TColumn;
-begin
-    aCol := kadb.GetFieldObj(ColName);
-    if Assigned(aCol) then
-    aCol.FormatStringIndex := fmt;
-end;
-}
 
 procedure TbjMrMc.SetFirm(const aFirm: string);
 begin
@@ -1970,8 +1933,9 @@ var
 begin
   if (aFailure = 0) then
     Exit;
-  if MessageDlg('Copy Unposted only to Tally.xls?', mtWarning, mbYesNoCancel, 0) <> mrYes then
-    Exit;
+//  if MessageDlg('Copy Unposted only to Tally.xls?', mtWarning, mbYesNoCancel, 0) <> mrYes then
+//    Exit;
+//  KAdb.Save('.\Data\Response.xls');
 
   kadb.SetFieldFormat('Tax_rate', 35);
   kadb.SetFieldFormat('DATE', 14);
