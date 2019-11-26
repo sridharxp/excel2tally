@@ -222,7 +222,8 @@ TbjMrMc = class(TinterfacedObject, IbjXlExp, IbjMrMc)
     VchAction: string;
     IsInventoryAssigned: Boolean;
     RoundOffName: string;
-
+    StartTime, EndTime, Elapsed: double;
+    Hrs, Mins, Secs, Msecs: word;
     MstExp: TbjMstExp;
     VchExp: TbjVchExp;
     procedure OpenFile;
@@ -391,7 +392,6 @@ begin
   DataFolder := xcfg.GetChildContent('Folder');
   Database := xcfg.GetChildContent('Database');
   if Length(DataFolder + Database) > 0 then
-//  if Length(dbName) = 0 then
     dbName := DataFolder + Database;
   VList  := xcfg.GetChildContent('VoucherList');
   if (Length(Vlist) > 0) then
@@ -410,7 +410,6 @@ begin
 {
 AutoCreateMst affects default group only
 }
-//  if ToAutoCreateMst  then
     DefGroup := xcfg.GetChildContent('DefaultGroup');
 { Round of tag moved from Ledger to Data }
   str := xcfg.GetChildContent('IsMultiRow');
@@ -781,7 +780,6 @@ procedure TbjDSLParser.CheckColName;
 var
   i, j: integer;
 begin
-//DeclaredLedgers := 0;
   if kadb.FindField(UIdName) <> nil then
   begin
     IsIdDefined := True;
@@ -904,7 +902,7 @@ begin
   notoskip := 0;
   ProcessedCount := 0;;
   FToLog := True;
-  FdynPgLen := PgLen + Random(20);
+  FdynPgLen := PgLen + Random(24);
 end;
 
 destructor TbjMrMc.Destroy;
@@ -1048,6 +1046,7 @@ procedure TbjMrMc.Execute;
 var
   StatusMsg: string;
 begin
+  StartTime := Time;
   ProcessedCount := 0;
   dsl.DeclareColName;
   OpenFile;
@@ -1116,6 +1115,9 @@ begin
       notoskip := notoskip + 1;
   end;
   WriteStatus;
+  EndTime := Time;
+  Elapsed := EndTime - StartTime;
+  DecodeTime(Elapsed, Hrs, Mins, Secs, MSecs);
   MessageDlg(InttoStr(ProcessedCount) + ' Vouchers processed',
       mtInformation, [mbOK], 0);
 
@@ -1125,7 +1127,7 @@ begin
 
 
 
-  if Assigned(FUpdate) then
+//  if Assigned(FUpdate) then
     FUpdate(StatusMsg);
   Filter(ProcessedCount - SCount);
 end;
