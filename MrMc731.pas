@@ -123,6 +123,9 @@ TbjDSLParser = class
     UVoucherRefName: string;
     UVoucherDateName: string;
     UBillRefName: string;
+    UOBalName: string;
+    UMobileName: string;
+    UeMailName: string;
     UTallyIDName: string;
     UChequeNoName: string;
 
@@ -136,6 +139,9 @@ TbjDSLParser = class
     URateName: string;
     ToCheckInvCols: boolean;
 //    IsAmt1Defined: boolean;
+    IsOBalDefined: boolean;
+    IsMobileDefined: boolean;
+    IseMailDefined: boolean;
     IsNarrationDefined: boolean;
     IsChequeNoDefined: boolean;
     IsTallyIdDefined: boolean;
@@ -340,6 +346,9 @@ begin
   UGodownName := 'Godown';
   UCategoryName := 'Category';
   USubGroupName := 'SubGroup';
+  uOBalName := 'O_Balance';
+  UMobileName := 'Mobile';
+  UeMailName := 'EMail';
   UTallyIDName := 'TALLYID';
   UMstGroupName := 'GROUP';
 end;
@@ -584,6 +593,28 @@ AutoCreateMst affects default group only
     end;
   end;
 
+  xCfg := Cfg.SearchForTag(nil, UMobileName);
+  if Assigned(xCfg) then
+  begin
+    xxCfg := xCfg.SearchForTag(nil, 'Alias');
+    if xxCfg <> nil then
+    begin
+      str := xxCfg.GetContent;
+      if Length(str) > 0 then
+        UMobileName  := str;
+    end;
+  end;
+  xCfg := Cfg.SearchForTag(nil, UeMailName);
+  if Assigned(xCfg) then
+  begin
+    xxCfg := xCfg.SearchForTag(nil, 'Alias');
+    if xxCfg <> nil then
+    begin
+      str := xxCfg.GetContent;
+      if Length(str) > 0 then
+        UeMailName  := str;
+    end;
+  end;
   xCfg := nil;
   for i := 1 to COLUMNLIMIT do
   begin
@@ -819,6 +850,12 @@ begin
     IsGroupDefined := True;
   if kadb.FindField(USubGroupName) <> nil then
     IsSubGroupDefined := True;
+  if kadb.FindField(UobALName) <> nil then
+    IsobALDefined := True;
+  if kadb.FindField(UMobileName) <> nil then
+    IsMobileDefined := True;
+  if kadb.FindField(UeMailName) <> nil then
+    IseMailDefined := True;
 { Check for TallyId }
   if kadb.FindField(UTallyIDName) <> nil then
     IstALLYidDefined := True
@@ -1374,8 +1411,9 @@ var
   dbkLed, wLed, dbGSTN, wGSTN: string;
   IsThere: boolean;
   dbAlias: string;
-  OBal: double;
+  wOBal: double;
   ToAutoCreateMst: boolean;
+  wMobile, weMail: string;
 begin
   if not dsl.IsMListDeclared then
     Exit;
@@ -1383,8 +1421,15 @@ begin
     Exit;
   ToAutoCreateMst := False;  
   kadb.SetFieldVal('TALLYID', ' - ');
-  OBal := kadb.GetFieldFloat('O_Balance');
-  MstExp.OBal := OBal;
+  if dsl.IsOBalDefined then
+  wOBal := kadb.GetFieldFloat(dsl.UOBalName);
+  MstExp.OBal := wOBal;
+  if dsl.IsMobileDefined then
+    wMobile := kadb.GetFieldString(dsl.UMobileName);
+  MstExp.Mobile := wMobile;
+  if dsl.IseMailDefined then
+    weMail := kadb.GetFieldString(dsl.UeMailName);
+  MstExp.eMail := weMail;
   if dsl.IsLedgerdefined[1] then
   dbkLed := kadb.GetFieldString('Ledger');
   if dsl.IsAliasDefined then
@@ -1437,7 +1482,7 @@ var
   dbAlias, dbMailingName: string;
   dbGodown, dbParent, dbCategory: string;
   dbHSN: string;
-  OBal, ORate: Double;
+  wOBal, ORate: Double;
   GRate: string;
 begin
   if not dsl.IsMListDeclared then
@@ -1487,20 +1532,21 @@ begin
       MstExp.Group := dbParent;
   end;
   dbItem := kadb.GetFieldString('Item');
-  OBal := kadb.GetFieldFloat('O_Balance');
+  if dsl.IsOBalDefined then
+  wOBal := kadb.GetFieldFloat(dsl.UOBalName);
   ORate := kadb.GetFieldFloat('O_Rate');
   GRate := kadb.GetFieldString('GSTRate');
-  MstExp.OBal := OBal;
+  MstExp.OBal := wOBal;
   MstExp.ORate := ORate;
   if dsl.IsHSNDefined then
   begin
     dbHSN := kadb.GetFieldString('HSN');
-    MstExp.OBal := OBal;
+    MstExp.OBal := wOBal;
     MstExp.ORate := ORate;
     MstExp.NewHSN(dbItem, dbUnit, dbHSN, GRate);
   end
   else
-    MstExp.NewItem(dbItem, dbUnit, OBal, ORate);
+    MstExp.NewItem(dbItem, dbUnit, wOBal, ORate);
 //  if Assigned(FUpdate) then
     FUpdate('Item: ' + dbItem);
 end;

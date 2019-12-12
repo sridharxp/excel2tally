@@ -1775,6 +1775,12 @@ ACCMASTER = '<Voucher>'+
 '<O_BALANCE>'+
 '<Alias>O_Balance</Alias>'+
 '</O_BALANCE>'+
+'<Mobile>'+
+'<Alias>Mobile</Alias>'+
+'</Mobile>'+
+'<EMail>'+
+'<Alias>EMail</Alias>'+
+'</EMail>'+
 '</LEDGER>'+
 '</Voucher>';
 

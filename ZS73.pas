@@ -69,11 +69,10 @@ type
     procedure SetMst(aMst: TbjMstExp);
   public
     { Public declarations }
-    FToUpdate: boolean;
+    FNotifyVchID: boolean;
     ToSaveXMLFile: boolean;
     ToUpdateMasters: boolean;
     TallyVersion: string;
-    Error: string;
     constructor Create;
     destructor Destroy; override;
     function IsTLic(const authentication: string): boolean;
@@ -85,7 +84,7 @@ type
     property GUID: String read FGUID write SetGUID;
     property Host: string  read FHost write SetHost;
     property DefaultGroup: string read FDefaultGroup write SetDefaultGroup;
-    property ToUpdate: boolean read FToUpdate write FToUpdate;
+    property NotifyVchID: boolean read FNotifyVchID write FNotifyVchID;
     property MstExp: TbjMstExp read FMstExp write SetMst;
     property DefaultGSTState: string read FDefaultGSTState write FDefaultGSTState;
   end;
@@ -104,6 +103,8 @@ type
     FEnv: TbjEnv;
     FOBal: double;
     FORate: double;
+    FMobile: string;
+    FeMail: string;
   protected
     { Protected declarations }
     xLdg: IbjXml;
@@ -118,7 +119,6 @@ type
     GodownPList: TStringList;
 
 
-    Error: string;
     procedure XmlHeader(const tgt:string);
     procedure XmlFooter(const tgt:string);
     function CreateLedger(const Ledger, Parent: string; const OpBal: double ): boolean;
@@ -134,7 +134,7 @@ type
     function IsItemGroup(const Grp: string): boolean;
     function IsCategory(const aCategory: string): boolean;
     function IsGodown(const Gdn: string): boolean;
-    function  GetTallyReply: string;
+//    function  GetTallyReply: string;
     procedure CheckError;
     procedure SetEnv(aEnv: TbjEnv);
   public
@@ -172,6 +172,8 @@ type
     property Env: TbjEnv read FEnv write SetEnv;
     property OBal: double write FOBal;
     property ORate: double write FORate;
+    property Mobile: string write FMobile;
+    property eMail: string write FeMail;
   end;
 
   TbjVchExp = class
@@ -211,7 +213,7 @@ type
     RefLedger: string;
     CrLine, DrLine: integer;
 
-    Error: string;
+//    Error: string;
     CashBankPList: TStringList;
 //    procedure GetVchType(const aName: string);
     procedure CheckVchType(const ledger; const Amount: double);
@@ -225,7 +227,7 @@ type
     procedure AttachAssessable(const rled: string);
     procedure AddInDirect(const idx: integer);
     procedure CheckDefGroup;
-    function  GetTallyReply: string;
+//    function  GetTallyReply: string;
     procedure CheckError;
     procedure SetEnv(aEnv: TbjEnv);
 //    function GetMst: TbjMstExp;
@@ -299,7 +301,7 @@ begin
   fGuID := appguid;
   FTLic := '711031608';
   ToSaveXMLFile := False;
-  FToUpdate := False;
+  FNotifyVchID := False;
   FDefaultGSTState := 'Tamil Nadu';
 end;
 
@@ -418,7 +420,11 @@ begin
   xLdg.NewChild2('NAME', FAlias );
   { NAME.LIST }
   xLdg := xLdg.GetParent;
+  if Length(FeMail) > 0 then
+    xLdg.NewChild2('EMAIL', FeMail);
   xLdg.NewChild2('PARENT', parent );
+  if Length(FMobile) > 0 then
+    xLdg.NewChild2('LEDGERMOBILE', FMobile);
 {  if OpBal > 0 then }
     xLdg.NewChild2('OPENINGBALANCE', FormatFloat(TallyAmtPicture, FOBal));
   { LEDGER }
@@ -630,6 +636,8 @@ begin
   xLdg.NewChild2('NAME', FAlias );
   { NAME.LIST }
   xLdg := xLdg.GetParent;
+  if Length(FeMail) > 0 then
+    xLdg.NewChild2('EMAIL', FeMail);
   xLdg.NewChild2('SALESTAXNUMBER', GSTN);
   xLdg.NewChild2('COUNTRYNAME', 'India');
   if Length(GSTN) > 0 then
@@ -637,6 +645,8 @@ begin
   else
     xLdg.NewChild2('GSTREGISTRATIONTYPE', 'Unregistered');
   xLdg.NewChild2('PARENT', parent );
+  if Length(FMobile) > 0 then
+    xLdg.NewChild2('LEDGERMOBILE', FMobile);
   xLdg.NewChild2('OPENINGBALANCE', FormatFloat(TallyAmtPicture, FOBal));
   if Length(GSTN) > 0 then
     xLdg.NewChild2('PARTYGSTIN', GSTN);
@@ -1559,9 +1569,9 @@ begin
   if Env.ToSaveXmlFile then
     xLdg.SaveXmlFile('Ledger.xml');
   Env.Client.post;
-  Result := GetTallyReply;
+//  Result := GetTallyReply;
 
-  Error := Result;
+//  Error := Result;
 
   CheckError;
 {  xvch.Clear;}
@@ -1603,7 +1613,7 @@ begin
     tid := TallyId.GetContent;
 { If this Visual feedback is not required then set ToUpdate to false }
     Result := TId;
-    if Env.ToUpdate then
+    if Env.NotifyVchID then
       MessageDlg(Tid, mtInformation, [mbOK], 0);
   end;
 
@@ -1641,6 +1651,7 @@ begin
   end;
 end;
 
+{
 function TbjMstExp.GetTallyReply: string;
 var
   Tallyid: IbjXml;
@@ -1656,8 +1667,8 @@ begin
     if Assigned(Tallyid) then
       Result := TallyId.GetContent;
 end;
-
-
+}
+(*
 function TbjVchExp.GetTallyReply: string;
 var
   Tallyid: IbjXml;
@@ -1673,7 +1684,7 @@ begin
     if Assigned(Tallyid) then
       Result := TallyId.GetContent;
 end;
-
+*)
 { Vissual Feedback has nothing to do with checking Tally Serial No }
 function TbjEnv.IsTLic(const authentication: string): boolean;
 var
