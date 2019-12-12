@@ -31,6 +31,7 @@ uses
   Client,
   license,
   MstListImp,
+  Repet,
   Math,
   Controls,
   VchLib;
@@ -43,6 +44,11 @@ const
 
 type
   TbjMstExp = class;
+  GSTNRec = Record
+    Name: string;
+    GSTN: string;
+  end;
+  pGSTNRec = ^GSTNRec;
 
   TbjEnv = class
   private
@@ -56,6 +62,7 @@ type
     FExportDependentMasters: boolean;
     FMstExp: TbjMstExp;
     FDefaultGSTState: string;
+    FMergeDupLed4GSTN: boolean;
   protected
     { Protected declarations }
     FTLic: string;
@@ -87,6 +94,7 @@ type
     property NotifyVchID: boolean read FNotifyVchID write FNotifyVchID;
     property MstExp: TbjMstExp read FMstExp write SetMst;
     property DefaultGSTState: string read FDefaultGSTState write FDefaultGSTState;
+    property MergeDupLed4GSTN: boolean read FMergeDupLed4GSTN write FMergeDupLed4GSTN;
   end;
 
   TbjMstExp = class
@@ -117,7 +125,7 @@ type
     ItemGroupPList: TStringList;
     CategoryPList: TStringList;
     GodownPList: TStringList;
-
+    GSTNList: TList;
 
     procedure XmlHeader(const tgt:string);
     procedure XmlFooter(const tgt:string);
@@ -144,7 +152,10 @@ type
     function IsLedger(Const Ledger: string): boolean;
     procedure NewLedger(const aLedger, aParent: string; OpBal: double);
 //    procedure NewParty(const aLedger, aParent, aGSTN: string; aState: string = 'Tamil Nadu');
-    procedure NewParty(const aLedger, aParent, aGSTN: string; aState: string);
+    function GetGSTNParty(const aGSTN: string): string;
+    function GetDupPartyGSTN(const aDup: string): string;
+//    procedure NewParty(const aLedger, aParent, aGSTN: string; aState: string);
+    function NewParty(const aLedger, aParent, aGSTN: string; aState: string): string;
     procedure NewGST(const aLedger, aParent: string; const TaxRate: string);
     function GetHalfof(const TaxRate: string): string;
     function IsItem(const Item: string): boolean;
@@ -322,6 +333,9 @@ begin
 end;
 
 destructor TbjMstExp.Destroy;
+var
+  i: integer;
+  item: pGSTNRec;
 begin
   xLed.Clear;
   xLedid.Clear;
@@ -332,6 +346,18 @@ begin
   CategoryPList.Free;
   LedPList.Free;
   LedGroupPList.Free;
+  if Assigned(GSTNList) then
+  begin
+  for i := 0 to GSTNList.Count-1 do
+  begin
+    item := GSTNList.Items[i];
+    item.Name := '';
+    item.GSTN := '';
+    Dispose(item);
+  end;
+  GSTNList.Clear;
+  end;
+  GSTNList.Free;
   inherited;
 end;
 
@@ -1322,6 +1348,7 @@ begin
    if IsContra then
    if not CashBankPList.Find(ledger, idx) then
      IsContra := False;
+//  if (WsType = 'Purchase') or (WsType = 'Sales') then
   for Step := 1 to Lines.Count do
   begin
     Item := Lines.Items[Step - 1];
@@ -1734,6 +1761,9 @@ end;
 procedure TbjMstExp.RefreshMstLists;
 var
   Ledobj: TbjMstListImp;
+  Rpet: TRpetGSTN;
+  i: integer;
+  item: pGSTNRec;
 begin
   LedPList.Free;
   ItemPlist.Free;
@@ -1747,6 +1777,26 @@ begin
     UnitPList := LedObj.GetUnitPackedList;
   finally
     ledobj.Free;
+  end;
+  if Assigned(GSTNList) then
+  begin
+  for i := 0 to GSTNList.Count-1 do
+  begin
+    item := GSTNList.Items[i];
+    item.Name := '';
+    item.GSTN := '';
+    Dispose(item);
+  end;
+  GSTNList.Clear;
+  end
+  else
+    GSTNList := TList.Create;
+  Rpet := TRpetGSTN.Create;
+  try
+  Rpet.Host := Env.Host;
+  Rpet.GetList(GSTNList);
+  finally
+    Rpet.Free;
   end;
 end;
 
@@ -1897,19 +1947,68 @@ begin
   end;
 end;
 
-procedure TbjMstExp.NewParty(const aLedger, aParent, aGSTN: string; aState: string);
+//procedure TbjMstExp.NewParty(const aLedger, aParent, aGSTN: string; aState: string);
+function TbjMstExp.NewParty(const aLedger, aParent, aGSTN: string; aState: string): string;
 var
   Found: boolean;
+  UserDefined: string;
+  item: pGSTNRec;
+  dupName: boolean;
+  sameName: boolean;
 begin
+  dupName := False;
+  sameName := fALSE;
   If Length(aLedger) = 0 then
     Exit;
-  Found := IsLedger(aLedger);
   if Length(aState) = 0 then
     aState := Env.DefaultGSTState;
+  if Length(aGSTN) > 0 then
+  begin
+    UserDefined := GetGSTNParty(aGSTN);
+    if Length(UserDefined) > 0 then
+      dupName := True;;
+  end;
+  if dupName then
+  begin
+    if Env.MergeDupLed4GSTN then
+     begin
+       if aLedger <> UserDefined then
+         Result := UserDefined;
+       Exit;
+     end;
+  end;
+  Found := IsLedger(aLedger);
   if not Found then
   begin
+    if not Env.MergeDupLed4GSTN then
+      CreateParty(aLedger, aParent, aGSTN, aState)
+    else if not (dupName) then
      CreateParty(aLedger, aParent, aGSTN, aState);
      LedPList.Add(PackStr(aLedger));
+     if Length(aGSTN) > 0 then
+     begin
+       item := new(pGSTNRec);
+       item.Name := aLedger;
+       item.GSTN := aGSTN;
+       gstnlIST.Add(item);
+    end;
+  end
+  else if not dupName then
+  begin
+    if Length(aGSTN) > 0 then
+    begin
+      if Env.MergeDupLed4GSTN then
+        if not IsLedger(aLedger+'_'+aGSTN) then
+          CreateParty(aLedger+'_'+aGSTN, aParent, aGSTN, aState);
+      item := new(pGSTNRec);
+      if Env.MergeDupLed4GSTN then
+        item.Name := aLedger+'_'+aGSTN
+      else
+        item.Name := aLedger;
+      item.GSTN := aGSTN;
+       gstnlIST.Add(item);
+      Result := aLedger+'_'+aGSTN;
+    end;
   end;
 end;
 
@@ -1984,6 +2083,60 @@ end;
 procedure TbjEnv.SetMst(aMst: TbjMstExp);
 begin
   FMstExp := aMst;
+end;
+function TbjMstExp.GetGSTNParty(const aGSTN: string): string;
+var
+  Rpet: TRpetGSTN;
+  i: integer;
+  item: pGSTNRec;
+begin
+  if not Assigned(GSTNList) then
+  begin
+  Rpet := TRpetGSTN.Create;
+  try
+    Rpet.Host := Env.Host;
+    Rpet.GetList(GSTNList);
+  finally
+    Rpet.Free;
+  end;
+  end;
+  Result := '';
+  for i := 0 to GSTNList.Count-1 do
+  begin
+    item := GSTNList.Items[i];
+    if item.GSTN = aGSTN then
+    begin
+      Result := item.Name;
+      break;
+    end;
+  end;
+end;
+function TbjMstExp.GetDupPartyGSTN(const aDup: string): string;
+var
+  Rpet: TRpetGSTN;
+  i: integer;
+  item: pGSTNRec;
+begin
+  if not Assigned(GSTNList) then
+  begin
+  Rpet := TRpetGSTN.Create;
+  try
+    Rpet.Host := Env.Host;
+    Rpet.GetList(GSTNList);
+  finally
+    Rpet.Free;
+  end;
+  end;
+  Result := '';
+  for i := 0 to GSTNList.Count-1 do
+  begin
+    item := GSTNList.Items[i];
+    if item.Name = aDup then
+    begin
+      Result := item.GSTN;
+      break;
+    end;
+  end;
 end;
 {
 procedure Register;
