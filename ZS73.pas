@@ -1331,6 +1331,7 @@ var
   step: integer;
   idx: integer;
   Obj: TbjMstListImp;
+//  oLedger, oGSTN: string;
 begin
   if not Assigned(CashBankPList) then
   begin
@@ -1349,6 +1350,13 @@ begin
    if not CashBankPList.Find(ledger, idx) then
      IsContra := False;
 //  if (WsType = 'Purchase') or (WsType = 'Sales') then
+//    if Env.MergeDupLed4GSTN then
+//    begin
+//      oLedger := '';
+//      oGSTN :=   MstExp.GetDupPartyGSTN(Ledger);
+//      if Length(oGSTN) > 0 then
+//      oLedger := MstExp.GetGSTNParty(oGSTN);
+//    end;
   for Step := 1 to Lines.Count do
   begin
     Item := Lines.Items[Step - 1];
@@ -1363,7 +1371,8 @@ begin
   end;
   Item := new(pLine);
   Item^.Ledger :=  Ledger;
-
+//  if Length(oLedger) > 0 then
+//    Item^.Ledger :=  oLedger;
   Item^.Amount :=  Amount;
 //  if Length(Ref) > 0 then
   Item^.Ref :=  Ref;
@@ -2092,6 +2101,7 @@ var
 begin
   if not Assigned(GSTNList) then
   begin
+//    GSTNList := TList.Create;
   Rpet := TRpetGSTN.Create;
   try
     Rpet.Host := Env.Host;

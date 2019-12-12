@@ -42,7 +42,6 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs,
   DB,
   xlstbl,
   XlExp,
@@ -52,7 +51,8 @@ uses
   PClientFns,
   DateFns,
   XLSWorkbook,
-  bjXml3_1;
+  bjXml3_1,
+  Dialogs;
 
 {$DEFINE xlstbl}
 
@@ -208,6 +208,7 @@ TbjMrMc = class(TinterfacedObject, IbjXlExp, IbjMrMc)
     FFirm: string;
     FHost: string;
     FIsGstSetting: Boolean;
+    FMergeDupLed4GSTN: boolean;
   protected
     missingledgers: Integer;
     IDstr: string;
@@ -230,6 +231,9 @@ TbjMrMc = class(TinterfacedObject, IbjXlExp, IbjMrMc)
     RoundOffName: string;
     StartTime, EndTime, Elapsed: double;
     Hrs, Mins, Secs, Msecs: word;
+    ToAutoCreateMst: boolean;
+    AskAgainToAutoCreateMst: boolean;
+    AskedOnce: boolean;
     MstExp: TbjMstExp;
     VchExp: TbjVchExp;
     procedure OpenFile;
@@ -262,6 +266,7 @@ TbjMrMc = class(TinterfacedObject, IbjXlExp, IbjMrMc)
     procedure SetGSTSetting;
     procedure SetGstLedSetting(const doit: boolean);
     procedure SetXmlstr(const aStr: string);
+    procedure SetMergeDupLed4GSTN(const aChoice: boolean);
   public
     { Public declarations }
 
@@ -297,6 +302,7 @@ TbjMrMc = class(TinterfacedObject, IbjXlExp, IbjMrMc)
     property IsGstSetting: boolean write SetGstLedSetting;
     property XmlStr: string write SetXmlstr;
     property TableName: string read FTableName write FTableName;
+    property MergeDupLed4GSTN: boolean read FMergeDupLed4GSTN write SetMergeDupLed4GSTN;
   end;
 
 { Level refers to TokenCol }
@@ -928,6 +934,7 @@ begin
   MstExp := TbjMstExp.Create;
   MstExp.Env := Env;
   Env.MstExp := MstExp;
+  Env.MergeDupLed4GSTN := FMergeDupLed4GSTN;
   VchExp := TbjVchExp.Create;
   VchExp.Env := Env;
   VchExp.MstExp := MstExp;
@@ -940,6 +947,7 @@ begin
   ProcessedCount := 0;;
   FToLog := True;
   FdynPgLen := PgLen + Random(24);
+  askAgainToAutoCreateMst := True;
 end;
 
 destructor TbjMrMc.Destroy;
@@ -951,7 +959,7 @@ begin
   if Assigned(kadb) then
   if kadb.ToSaveFile then
     if Length(ReportFileName) > 0 then
-      kadb.Save(ReportFileName);
+      kadb.SaveAs(ReportFileName);
   kadb.Free;
   inherited;
 end;
@@ -1276,6 +1284,7 @@ var
   GroupColValue: string;
   GSTNColValue: string;
   atoken: string;
+  oLedger: string;
 begin
 {
 AutoCreateMst does not affect explicit group or roundoff group
@@ -1297,8 +1306,16 @@ AutoCreateMst does not affect explicit group or roundoff group
         begin
           GSTNColValue := kadb.GetFieldString(dsl.UGSTNName[i]);
           StateColValue := GetGSTState(GSTNColValue);
+          if not MergeDupLed4GSTN then
           MstExp.NewParty(LedgerColValue, GroupColValue, GSTNColValue,
+            StateColValue)
+          else
+          begin
+          oLedger := MstExp.NewParty(LedgerColValue, GroupColValue, GSTNColValue,
             StateColValue);
+            if Length(oLedger) > 0 then
+              kadb.SetFieldVal(dsl.ULedgerName[i], oLedger);
+          end;
         end
         else if dsl.IsLedgerDefined[i] then
         begin
@@ -1330,8 +1347,16 @@ AutoCreateMst does not affect explicit group or roundoff group
       begin
         GSTNColValue := kadb.GetFieldString(dsl.UGSTNName[COLUMNLIMIT+1]);
         StateColValue := GetGSTState(GSTNColValue);
+        if not MergeDupLed4GSTN then
         MstExp.NewParty(LedgerColValue, dsl.RoundOffGroup, GSTNColValue,
+        StateColValue)
+          else
+          begin
+          oLedger := MstExp.NewParty(LedgerColValue, dsl.RoundOffGroup, GSTNColValue,
         StateColValue);
+            if Length(oLedger) > 0 then
+              kadb.SetFieldVal(dsl.RoundOffCol, oLedger);
+          end;
       end
       else
         MstExp.NewLedger(LedgerColValue, dsl.RoundOffGroup, 0);
@@ -1412,14 +1437,15 @@ var
   IsThere: boolean;
   dbAlias: string;
   wOBal: double;
-  ToAutoCreateMst: boolean;
+//  ToAutoCreateMst: boolean;
   wMobile, weMail: string;
 begin
   if not dsl.IsMListDeclared then
     Exit;
   if not IsCheckLedMst then
     Exit;
-  ToAutoCreateMst := False;  
+  wOBal := 0;
+//  ToAutoCreateMst := False;
   kadb.SetFieldVal('TALLYID', ' - ');
   if dsl.IsOBalDefined then
   wOBal := kadb.GetFieldFloat(dsl.UOBalName);
@@ -1442,10 +1468,15 @@ begin
   IsThere := MstExp.IsLedger(dbkLed);
   if not IsThere then
   begin
-  if MessageDlg('Create missing Ledger ' + dbkLed +'?', mtConfirmation, mbOKCancel, 0) = mrCancel then
+    if AskAgainToAutoCreateMst then
+      if MessageDlg('Create missing Ledger ' + dbkLed +' ?', mtConfirmation, mbOKCancel, 0) = mrCancel then
     ToAutoCreateMst := False
   else
     ToAutoCreateMst := True;
+    if not AskedOnce then
+      if MessageDlg('Continue asking' + ' ?', mtConfirmation, mbOKCancel, 0) = mrCancel then
+        askAgainToAutoCreateMst := False;
+    AskedOnce := True;
   end;
   if not IsThere  then
   begin
@@ -1489,6 +1520,7 @@ begin
     Exit;
   if not IsExpItemMst then
     Exit;
+  wOBal := 0;
   dbUnit := '';
   if dsl.IsUnitDefined then
   begin
@@ -1558,6 +1590,7 @@ var
   LedgerColValue: string;
   GroupColValue: string;
   GSTNColValue: string;
+  oLedger: string;
 begin
   OB := 0;
   if not dsl.IsGroupDeclared[1] then
@@ -1573,10 +1606,18 @@ AutoCreateMst does not affect explicit group or roundoff group
     begin
       GSTNColValue := kadb.GetFieldString(dsl.UGSTNName[1]);
       StateColValue := GetGSTState(GSTNColValue);
+      if not MergeDupLed4GSTN then
       MstExp.NewParty(LedgerColValue,
         GroupColValue,
         GSTNColValue,
         StateColValue)
+      else
+      begin
+          oLedger := MstExp.NewParty(LedgerColValue, GroupColValue, GSTNColValue,
+            StateColValue);
+            if Length(oLedger) > 0 then
+              kadb.SetFieldVal(dsl.ULedgerName[1], oLedger);
+      end;
     end
     else
       MstExp.NewLedger(LedgerColValue,
@@ -1633,17 +1674,15 @@ begin
 { Find if user set has Voucher type }
     TypeColValue := kadb.GetFieldString(dsl.UVTypeName);
 { For reusing Templates }
-  if Length(TypeColValue) = 0 then
-    TypeColValue := FVchType;
 { With VchType this should not be needed }
-  if Length(TypeColValue) = 0 then
-    TypeColValue := dsl.DiTypeValue;
 {
   Bank has only two types
   Daybook has all types
   VchUpdate has defaults to Voucher Type Journal
 }
   if dsl.IsCrDrAmtColsDefined then
+  begin
+  if Length(TypeColValue) = 0 then
   begin
     if kadb.GetFieldFloat(dsl.CrAmtCol) > 0 then
       if Length(dsl.CrAmtColType) > 0 then
@@ -1652,6 +1691,11 @@ begin
       if Length(dsl.DrAmtColType) > 0 then
         TypeColValue := dsl.DrAmtColType;
   end;
+  end;
+  if Length(TypeColValue) = 0 then
+    TypeColValue := FVchType;
+  if Length(TypeColValue) = 0 then
+    TypeColValue := dsl.DiTypeValue;
 {
   if IsNarrationDefined then
     NarrationColValue := kadb.GetFieldString(UNarrationName);
@@ -1876,6 +1920,11 @@ begin
      ClientFns := TbjGSTClientFns.Create;
   ClientFns.Host := Host;
   Env.Host := Host;
+end;
+procedure TbjMrMc.SetMergeDupLed4GSTN(const aChoice: Boolean);
+begin
+  FMergeDupLed4GSTN := aChoice;
+  Env.MergeDupLed4GSTN := aChoice;
 end;
 
 procedure TbjMrMc.SetXmlstr(const aStr: string);
