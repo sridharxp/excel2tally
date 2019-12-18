@@ -133,7 +133,7 @@ begin
   while Assigned(LedNode) do
   begin
 //ShowMessage(LedNode.GetXML);
-    ParentNode := OResult.SearchforTag(LedNode, 'PARENT');
+    ParentNode := LedNode.SearchforTag(nil, 'PARENT');
     if not Assigned(ParentNode) then
       continue;
     grp := ParentNode.GetContent;
@@ -143,14 +143,13 @@ begin
       LedNode := OResult.SearchforTag(LedNode, 'LEDGER');
       Continue;
     end;
-    GSTNNode := OResult.SearchForTag(LedNode, 'PARTYGSTIN');
+    GSTNNode := LedNode.SearchForTag(nil, 'PARTYGSTIN');
     if Assigned(GSTNNode) then
       if Length(GSTNNode.GetContent) > 0 then
       begin
         item := new(pGSTNRec);
         item.GSTN := GSTNNode.GetContent;
         item.Name := LedNode.GetAttrValue('NAME');
-//    GSTNList.Add(item);
         aList.Add(item);
       end;
     LedNode := OResult.SearchforTag(LedNode, 'LEDGER');
