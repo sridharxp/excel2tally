@@ -191,8 +191,8 @@ BANK = '<Voucher>'+
 '</RoundOff>'+
 
 '<VTYPE>>'+
-'<Default>Receipt</Default>'+
-//'<Alias>VCH TYPE</Alias>'+
+'<Alias>VTYPE</Alias>'+
+'<Default>Journal</Default>'+
 '</VTYPE>'+
 '<NARRATION>>'+
 '<Alias>NARRATION</Alias>'+
@@ -215,6 +215,9 @@ DAYBOOK = '<Voucher>'+
 '<DATE>'+
 '<Alias>DATE</Alias>'+
 '</DATE>'+
+'<VoucherNo>'+
+'<Alias>Voucher No</Alias>'+
+'</VoucherNo>'+
 '<CrAmtCol>'+
 '<Alias>CREDIT AMOUNT</Alias>'+
 '</CrAmtCol>'+
@@ -547,6 +550,9 @@ MYSALE = '<Voucher>'+
 '<HSN>>'+
 '<Alias>HSN</Alias>'+
 '</HSN>'+
+'<Batch>>'+
+'<Alias>Batch</Alias>'+
+'</Batch>'+
 '<UNIT>>'+
 '<Alias>Unit</Alias>'+
 '</UNIT>'+
@@ -879,6 +885,9 @@ MYPURC = '<Voucher>'+
 '<HSN>>'+
 '<Alias>HSN</Alias>'+
 '</HSN>'+
+'<Batch>>'+
+'<Alias>Batch</Alias>'+
+'</Batch>'+
 '<UNIT>>'+
 '<Alias>Unit</Alias>'+
 '</UNIT>'+
@@ -1120,7 +1129,7 @@ PBILL = '<Voucher>'+
 
 '<VTYPE>>'+
 '<Alias>VTYPE</Alias>'+
-'<Default>Sales</Default>'+
+'<Default>Purchase</Default>'+
 '</VTYPE>'+
 
 '<INVENTORY>>'+
@@ -1454,6 +1463,9 @@ GSTSALE = '<Voucher>'+
 '<HSN>>'+
 '<Alias>HSN</Alias>'+
 '</HSN>'+
+'<Batch>>'+
+'<Alias>Batch</Alias>'+
+'</Batch>'+
 '<UNIT>>'+
 '<Alias>Unit</Alias>'+
 '</UNIT>'+
@@ -1737,6 +1749,9 @@ GSTPURC = '<Voucher>'+
 '<HSN>>'+
 '<Alias>HSN</Alias>'+
 '</HSN>'+
+'<Batch>>'+
+'<Alias>Batch</Alias>'+
+'</Batch>'+
 '<UNIT>>'+
 '<Alias>Unit</Alias>'+
 '</UNIT>'+
@@ -1802,6 +1817,9 @@ INVMASTER = '<Voucher>'+
 '<HSN>>'+
 '<Alias>HSN</Alias>'+
 '</HSN>'+
+//'<Batch>>'+
+//'<Alias>Batch</Alias>'+
+//'</Batch>'+
 '<GSTRate>>'+
 '<Alias>GSTRate</Alias>'+
 '</GSTRate>'+
@@ -2106,6 +2124,9 @@ CNOTE = '<Voucher>'+
 '<HSN>>'+
 '<Alias>HSN</Alias>'+
 '</HSN>'+
+'<Batch>>'+
+'<Alias>Batch</Alias>'+
+'</Batch>'+
 '<UNIT>>'+
 '<Alias>Unit</Alias>'+
 '</UNIT>'+
@@ -2386,6 +2407,9 @@ DNOTE = '<Voucher>'+
 '<HSN>>'+
 '<Alias>HSN</Alias>'+
 '</HSN>'+
+'<Batch>>'+
+'<Alias>Batch</Alias>'+
+'</Batch>'+
 '<UNIT>>'+
 '<Alias>Unit</Alias>'+
 '</UNIT>'+

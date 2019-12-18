@@ -77,7 +77,7 @@ type
   public
     { Public declarations }
     FNotifyVchID: boolean;
-    ToSaveXMLFile: boolean;
+    IsSaveXMLFileOn: boolean;
     ToUpdateMasters: boolean;
     TallyVersion: string;
     constructor Create;
@@ -85,8 +85,6 @@ type
     function IsTLic(const authentication: string): boolean;
     procedure SetGUID(const ID: string);
     Procedure SetDefaultGroup(const aName: string);
-  published
-    { Published declarations }
     property Firm: String read FFirm write SetFirm;
     property GUID: String read FGUID write SetGUID;
     property Host: string  read FHost write SetHost;
@@ -113,6 +111,7 @@ type
     FORate: double;
     FMobile: string;
     FeMail: string;
+    FIsBatchwiseOn: boolean;
   protected
     { Protected declarations }
     xLdg: IbjXml;
@@ -134,7 +133,6 @@ type
     function CreateGST(const Ledger, Parent: string; Const TaxRate: string ): boolean;
     function CreateItem(const Item, BaseUnit: string; const OpBal, OpRate: double): boolean;
     function CreateHSN(const Item, BaseUnit, aHSN: string; const GRate: string): boolean;
-//    function CreateItem(const Item, BaseUnit: string; const OBal, ORate: double): boolean;
     function CreateUnit(const ItemUnit: string): boolean;
     function CreateItemGroup(const Grp, Parent: string): boolean;
     function CreateCategory(const aCategory, Parent: string): boolean;
@@ -142,7 +140,6 @@ type
     function IsItemGroup(const Grp: string): boolean;
     function IsCategory(const aCategory: string): boolean;
     function IsGodown(const Gdn: string): boolean;
-//    function  GetTallyReply: string;
     procedure CheckError;
     procedure SetEnv(aEnv: TbjEnv);
   public
@@ -151,10 +148,8 @@ type
     destructor Destroy; override;
     function IsLedger(Const Ledger: string): boolean;
     procedure NewLedger(const aLedger, aParent: string; OpBal: double);
-//    procedure NewParty(const aLedger, aParent, aGSTN: string; aState: string = 'Tamil Nadu');
     function GetGSTNParty(const aGSTN: string): string;
     function GetDupPartyGSTN(const aDup: string): string;
-//    procedure NewParty(const aLedger, aParent, aGSTN: string; aState: string);
     function NewParty(const aLedger, aParent, aGSTN: string; aState: string): string;
     procedure NewGST(const aLedger, aParent: string; const TaxRate: string);
     function GetHalfof(const TaxRate: string): string;
@@ -169,9 +164,6 @@ type
     function LPost: string;
     procedure RefreshMstLists;
     procedure RefreshInvLists;
-  published
-    { Published declarations }
-//    property Ledgerlias: string read FLedgerAlias write FLedgerAlias;
     property Alias: string write FAlias;
     property MailingName: string write FMailingName;
 //    property LedgerGroup: string read FLedgerGroup write FLedgerGroup;
@@ -185,6 +177,7 @@ type
     property ORate: double write FORate;
     property Mobile: string write FMobile;
     property eMail: string write FeMail;
+    property IsBatchwiseOn: boolean write FIsBatchwiseOn;
   end;
 
   TbjVchExp = class
@@ -205,6 +198,7 @@ type
     FMstExp: TbjMStExp;
     Fvchid: string;
     FIsContra: boolean;
+    FBatch: string;
   protected
     { Protected declarations }
     Lines: TList;
@@ -214,7 +208,6 @@ type
     partyamt: double;
     busidx: integer;
     busamt: double;
-//    VChID: string;
     VchAction: string;
     xvou: IbjXml;
     xvch: IbjXml;
@@ -224,7 +217,6 @@ type
     RefLedger: string;
     CrLine, DrLine: integer;
 
-//    Error: string;
     CashBankPList: TStringList;
 //    procedure GetVchType(const aName: string);
     procedure CheckVchType(const ledger; const Amount: double);
@@ -238,7 +230,6 @@ type
     procedure AttachAssessable(const rled: string);
     procedure AddInDirect(const idx: integer);
     procedure CheckDefGroup;
-//    function  GetTallyReply: string;
     procedure CheckError;
     procedure SetEnv(aEnv: TbjEnv);
 //    function GetMst: TbjMstExp;
@@ -255,10 +246,10 @@ type
     function AddLine(const Ledger: string; const Amount: double): double;
     function AddLinewithRef(const Ledger: string; const Amount: double; const Ref, RefType: string): double;
     function SetAssessable(const aAmount: double): double;
-    function SetInvLine(const Item: string; const Qty, Rate, Amount: double): double;
+//    function SetInvLine(const Item: string; const Qty, Rate, Amount: double): double;
+    function SetInvLine(const Item: string; const Qty, Rate, Amount: double; const Batch:string): double;
     function Post(const Action: string; wem: boolean): string;
   published
-    { Published declarations }
     property VchID: string read FVchID write SetVchID;
     property vchDate: string read FVchDate write FVchDate;
     property vch_Date: string read FVch_Date write FVch_Date;
@@ -274,6 +265,7 @@ type
     property Env: TbjEnv read FEnv write SetEnv;
     property MstExp: TbjMstExp read FMstExp write SetMst;
     property IsContra: boolean read FIsContra write FIsContra;
+    property Batch: string write FBatch;
   end;
 
   TLine = Record
@@ -290,6 +282,7 @@ type
     Qty: double;
     Rate: double;
     Amount: double;
+    Batch: string;
   end;
   PInvLine = ^TInvline;
 
@@ -303,7 +296,7 @@ implementation
 
 Constructor TbjEnv.Create;
 begin
-//  Inherited;
+  Inherited;
   FDomain := '127.0.0.1';
   Fport := 9000;
   FHost := 'http://'+FDomain+':'+InttoStr(FPort);
@@ -311,7 +304,7 @@ begin
   FExportDependentMasters := False;
   fGuID := appguid;
   FTLic := '711031608';
-  ToSaveXMLFile := False;
+  IsSaveXMLFileOn := False;
   FNotifyVchID := False;
   FDefaultGSTState := 'Tamil Nadu';
 end;
@@ -324,9 +317,10 @@ end;
 
 Constructor TbjMstExp.Create;
 begin
-//  Inherited;
+  Inherited;
   xLed := CreatebjXmlDocument;
   xLedid := CreatebjXmlDocument;
+//  GSTNList := TList.Create;
 //  xvchid := CreatebjXmlDocument;
 //  if not Assigned(bjEnv) then
 //    bjEnv := TbjEnv.Create;
@@ -363,7 +357,7 @@ end;
 
 Constructor TbjVchExp.Create;
 begin
-//  Inherited;
+  Inherited;
   xvch := CreatebjXmlDocument;
   xvchid := CreatebjXmlDocument;
   Lines := TList.Create;
@@ -721,6 +715,10 @@ begin
   { NAME.LIST }
   xLdg := xLdg.GetParent;
   xLdg.NewChild2('BASEUNITS', BaseUnit );
+{
+  if FIsBatchwiseOn then
+  xldg.NewChild2('IsBatchWiseOn', 'Yes');
+}
   xLdg.NewChild2('OPENINGBALANCE', FormatFloat(TallyAmtPicture, FOBal)+' '+BaseUnit);
   if FORate > 0 then
     xLdg.NewChild2('OPENINGRATE', FormatFloat(TallyAmtPicture,FORate)+'/'+BaseUnit);;
@@ -729,7 +727,7 @@ begin
     xLdg := xLdg.NewChild('BATCHALLOCATIONS.LIST','');
     xLdg.NewChild2('GODOWNNAME', FGodown );
     xLdg.NewChild2('BATCHNAME', 'Primary Batch');
-    xLdg.NewChild2('BATCHNAME', 'Primary Batch');
+//    xLdg.NewChild2('BATCHNAME', 'Primary Batch');
     xLdg.NewChild2('OPENINGBALANCE', FormatFloat(TallyAmtPicture, FOBal)+' '+BaseUnit);
   { BATCHALLOCATIONS }
     xLdg := xLdg.GetParent;
@@ -778,6 +776,9 @@ begin
   { NAME.LIST }
   xLdg := xLdg.GetParent;
   xLdg.NewChild2('BASEUNITS', BaseUnit );
+//  ShowMessage(FormatFloat(TallyAmtPicture, FOBal)+' '+BaseUnit);
+  if FIsBatchwiseOn then
+  xldg.NewChild2('IsBatchWiseOn', 'Yes');
   xLdg.NewChild2('OPENINGBALANCE', FormatFloat(TallyAmtPicture, FOBal)+' '+BaseUnit);
   if FORate > 0 then
     xLdg.NewChild2('OPENINGRATE', FormatFloat(TallyAmtPicture,FORate)+'/'+BaseUnit);;
@@ -786,7 +787,7 @@ begin
   xLdg := xLdg.NewChild('BATCHALLOCATIONS.LIST','');
   xLdg.NewChild2('GODOWNNAME', FGodown );
   xLdg.NewChild2('BATCHNAME', 'Primary Batch');
-  xLdg.NewChild2('BATCHNAME', 'Primary Batch');
+//  xLdg.NewChild2('BATCHNAME', 'Primary Batch');
   if FORate > 0 then
   xLdg.NewChild2('OPENINGBALANCE', FormatFloat(TallyAmtPicture, FORate)+' '+BaseUnit);
   { BATCHALLOCATIONS }
@@ -1288,8 +1289,10 @@ begin
   RefLedger := Ledger;
   Result := DrCrTotal;
 end;
-
+{
 function TbjVchExp.SetInvLine(const Item: string; const Qty, Rate, Amount: double): double;
+}
+function TbjVchExp.SetInvLine(const Item: string; const Qty, Rate, Amount: double; const Batch: string): double;
 var
   pline: pInvLine;
 begin
@@ -1300,10 +1303,10 @@ begin
   pline^.Ledger :=  RefLedger;
   pline^.Item :=  Item;
 
-//  if Length(Item) > 0 then
   pline^.Qty :=  Qty;
   pline^.Rate :=  Rate;
   pline^.Amount :=  Amount;
+  pline^.Batch :=  Batch;
   ILines.Add(pline);
   Result := Amount;
 end;
@@ -1331,7 +1334,6 @@ var
   step: integer;
   idx: integer;
   Obj: TbjMstListImp;
-//  oLedger, oGSTN: string;
 begin
   if not Assigned(CashBankPList) then
   begin
@@ -1349,14 +1351,6 @@ begin
    if IsContra then
    if not CashBankPList.Find(ledger, idx) then
      IsContra := False;
-//  if (WsType = 'Purchase') or (WsType = 'Sales') then
-//    if Env.MergeDupLed4GSTN then
-//    begin
-//      oLedger := '';
-//      oGSTN :=   MstExp.GetDupPartyGSTN(Ledger);
-//      if Length(oGSTN) > 0 then
-//      oLedger := MstExp.GetGSTNParty(oGSTN);
-//    end;
   for Step := 1 to Lines.Count do
   begin
     Item := Lines.Items[Step - 1];
@@ -1371,12 +1365,9 @@ begin
   end;
   Item := new(pLine);
   Item^.Ledger :=  Ledger;
-//  if Length(oLedger) > 0 then
-//    Item^.Ledger :=  oLedger;
   Item^.Amount :=  Amount;
 //  if Length(Ref) > 0 then
   Item^.Ref :=  Ref;
-//  if Length(RefType) > 0 then
   Item^.RefType :=  RefType;
   Lines.Add(Item);
   Result := Amount;
@@ -1540,6 +1531,18 @@ begin
       xvou.NewChild2('ACTUALQTY', FormatFloat(TallyQtyPicture, pInvLine(iLines.Items[idx])^.Qty));
       xvou.NewChild2('BILLEDQTY', FormatFloat(TallyQtyPicture, pInvLine(iLines.Items[idx])^.Qty));
       xvou.NewChild2('RATE', FormatFloat(TallyAmtPicture, pInvLine(iLines.Items[idx])^.Rate));
+      if Length(pInvLine(iLines.Items[idx])^.Batch) > 0 then
+      begin
+      xvou := xvou.NewChild('BATCHALLOCATIONS.LIST', '');
+      xvou.NewChild2('GODOWNNAME', 'Main Location');
+      xvou.NewChild2('BATCHNAME', pInvLine(iLines.Items[idx])^.Batch);
+      xvou.NewChild2('AMOUNT', FormatFloat(TallyAmtPicture, pInvLine(iLines.Items[idx])^.Amount));
+      xvou.NewChild2('ACTUALQTY', FormatFloat(TallyQtyPicture, pInvLine(iLines.Items[idx])^.Qty));
+      xvou.NewChild2('BILLEDQTY', FormatFloat(TallyQtyPicture, pInvLine(iLines.Items[idx])^.Qty));
+    { BATCHALLOCATIONS.LIST }
+      xvou := xvou.GetParent;
+      end
+      else
       xvou.NewChild2('GODOWNNAME', 'Main Location');
     { INVENTORYALLOCATIONS.LIST }
       xvou := xvou.GetParent;
@@ -1562,36 +1565,6 @@ function TbjVchExp.AddLinewithRef(const Ledger: string; const Amount: double; co
 begin
 //  CheckVchType(Ledger, Amount);
   Pack(Ledger, Amount, Ref, RefType);
-{
-  if IsVchTypeMatched then
-  begin
-    if partyamt = 0 then
-    begin
-      partyamt := Abs(Amount);
-      partyidx := Lines.Count;
-    end
-    else
-    if Abs(Amount) > partyamt then
-    begin
-      partyamt := Abs(Amount);
-      partyidx := Lines.Count;
-    end;
-  end
-  else
-  begin
-    if busamt = 0 then
-    begin
-      busamt := Abs(Amount);
-      busidx := Lines.Count;
-    end
-    else
-    if Abs(Amount) > busamt then
-    begin
-      busamt := Abs(Amount);
-      busidx := Lines.Count;
-    end;
-  end;
-}
   DrCrTotal := DrCrTotal + amount;
   Result := DrCrTotal;
 end;
@@ -1602,12 +1575,10 @@ begin
   Env.Client.xmlRequestString :=  xLdg.GetXml;
 { To debug }
 //  MessageDlg(xLDG.GetXML, mtInformation, [mbOK], 0);
-  if Env.ToSaveXmlFile then
+  if Env.IsSaveXmlFileOn then
     xLdg.SaveXmlFile('Ledger.xml');
   Env.Client.post;
 //  Result := GetTallyReply;
-
-//  Error := Result;
 
   CheckError;
 {  xvch.Clear;}
@@ -1631,7 +1602,7 @@ begin
   Env.Client.Host :=  Env.Host;
   Env.Client.xmlRequestString :=  xvch.GetXml;
 { For debugging }
-  if Env.ToSaveXmlFile then
+  if Env.IsSaveXmlFileOn then
     xvch.SaveXmlFile('Voucher.xml');
 { For debugging }
 //  MessageDlg(xvch.GetXML, mtInformation, [mbOK], 0);
@@ -1639,8 +1610,7 @@ begin
 
   xvchid.Clear;
   xvchid.LoadXml(Env.Client.GetxmlResponseString);
-//  MessageDlg(xvchID.GetXML, mtInformation, [mbOK], 0);
-  if Env.ToSaveXmlFile then
+  if Env.IsSaveXmlFileOn then
     xvchid.SaveXmlFile('Tally.xml');
 
   Tallyid := xvchid.SearchForTag(nil, 'LASTVCHID');
@@ -1662,7 +1632,6 @@ begin
      Result := Lerr;
   end;
 
-//Dll Function should be simple to use, So no debug info
   CheckError;
   xvch.Clear;
 end;
@@ -1672,10 +1641,6 @@ var
   i: integer;
   StrLedger: string;
 begin
-{
-  if Length(Env.DefaultGroup) = 0 then
-    exit;
-}
   if not Assigned(MstExp) then
     Exit;
   for i := 0 to Lines.Count-1 do
@@ -1687,40 +1652,6 @@ begin
   end;
 end;
 
-{
-function TbjMstExp.GetTallyReply: string;
-var
-  Tallyid: IbjXml;
-begin
-    xLedid.Clear;
-    xLedid.LoadXml(Env.Client.GetxmlResponseString);
-
-    Tallyid := xLedid.SearchForTag(nil, 'CREATED');
-    if Assigned(Tallyid) then
-      Result := TallyId.GetContent;
-
-    Tallyid := xLedid.SearchForTag(nil, 'ALTERED');
-    if Assigned(Tallyid) then
-      Result := TallyId.GetContent;
-end;
-}
-(*
-function TbjVchExp.GetTallyReply: string;
-var
-  Tallyid: IbjXml;
-begin
-//    xLedid.Clear;
-//    xLedid.LoadXml(Env.Client.GetxmlResponseString);
-
-    Tallyid := xvchid.SearchForTag(nil, 'CREATED');
-    if Assigned(Tallyid) then
-      Result := TallyId.GetContent;
-
-    Tallyid := xvchid.SearchForTag(nil, 'ALTERED');
-    if Assigned(Tallyid) then
-      Result := TallyId.GetContent;
-end;
-*)
 { Vissual Feedback has nothing to do with checking Tally Serial No }
 function TbjEnv.IsTLic(const authentication: string): boolean;
 var
@@ -1780,7 +1711,6 @@ begin
   ledObj := TbjMstListImp.Create;
   LedObj.Host := Env.Host;
   try
-//    LedObj.GetGrpLedList;
     LedPList := LedObj.GetLedPackedList;
     ItemPList := LedObj.GetItemPackedList;
     UnitPList := LedObj.GetUnitPackedList;

@@ -70,9 +70,8 @@ Declared refers to Xml (rule) Object
 Defined refers to Worksheet Template;
 defines Mandatory or Optional column
 }
-//TbjDSLParser = class(TinterfacedObject, IbjDSLParser)
-TbjDSLParser = class
-    { Private declarations }
+TbjDSLParser = class(TinterfacedObject, IbjDSLParser)
+  { Private declarations }
   private
     FIsMListDeclared: Boolean;
     FIsVListDeclared: Boolean;
@@ -788,15 +787,14 @@ AutoCreateMst affects default group only
       if Length(str) > 0 then
         URateName := str;
     end;
-{
-    xxCfg := xCfg.SearchForTag(nil, UItemAmtName);
+
+    xxCfg := xCfg.SearchForTag(nil, UBatchName);
     if Assigned(xxCfg) then
     begin
       str := xxCfg.GetChildContent('Alias');
       if Length(str) > 0 then
-        UItemAmtName := str;
+        UBatchName := str;
     end;
-}
   end;
 //Shifted from ChckcolNames as this is Xml file specific
 { If Ledger is definded corresponding amount column should be defined }
@@ -822,6 +820,7 @@ procedure TbjDSLParser.CheckColName;
 var
   i, j: integer;
 begin
+  FUPdate('Checking worksheet columns');
   if kadb.FindField(UIdName) <> nil then
   begin
     IsIdDefined := True;
@@ -937,7 +936,7 @@ begin
   Inherited;
   Env := TbjEnv.Create;
 {  SetDebugMode; }
-  Env.ToSaveXmlFile := False;
+  Env.IsSaveXmlFileOn := False;
   MstExp := TbjMstExp.Create;
   MstExp.Env := Env;
   Env.MstExp := MstExp;
@@ -991,7 +990,7 @@ passing Windows Exception as it is }
     kadb.XLSFileName := dbname;
     kadb.SetSheet(FTablename);
     kadb.ToSaveFile := True;
-    FUpdate('Reading '+ TableName);
+    FUpdate('Reading '+ TableName + ' worksheet');
     flds := TStringList.Create;
     kadb.ParseXml(dsl.Cfgn, flds);
     if not flds.Find('ID', idx) then
@@ -1275,8 +1274,7 @@ begin
   BatchColValue :=  kadb.GetFieldString('Batch');
   if (Length(ItemColValue) > 0) and
     (not kadb.IsEmptyField(dsl.UQtyName)) then
-//    VchExp.SetInvLine(ItemColValue,
-    VchExp.SetBatchLine(ItemColValue,
+    VchExp.SetInvLine(ItemColValue,
     kadb.GetFieldFloat(dsl.UQtyName),
     kadb.GetFieldFloat(dsl.URateName),
     invamt, BatchColValue);
@@ -1393,6 +1391,11 @@ begin
     UnitColValue := kadb.GetFieldString(dsl.UUnitName);
     MstExp.NewUnit(UnitColValue);
   end;
+  if dsl.IsBatchDefined then
+  if Length(kadb.GetFieldString(dsl.UBatchName)) > 0 then
+    MstExp.IsBatchwiseOn := True
+  else
+    MstExp.IsBatchwiseOn := False;
   if dsl.IsHSNDefined then
   begin
     HSNColValue := kadb.GetFieldString('HSN');
@@ -1579,6 +1582,11 @@ begin
   MstExp.OBal := wOBal;
   MstExp.ORate := ORate;
 //  MstExp.Batch := dbBatch;
+  if dsl.IsBatchDefined then
+  if Length(kadb.GetFieldString(dsl.UBatchName)) > 0 then
+    MstExp.IsBatchwiseOn := True
+  else
+    MstExp.IsBatchwiseOn := False;
   if dsl.IsHSNDefined then
   begin
     dbHSN := kadb.GetFieldString('HSN');
