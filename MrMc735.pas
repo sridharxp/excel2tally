@@ -65,7 +65,11 @@ type
   Tfnupdate = procedure(const msg: string);
 
 
-{ Declared refers to Xml rule; Defined refers to Template }
+{
+Declared refers to Xml (rule) Object
+Defined refers to Worksheet Template;
+defines Mandatory or Optional column
+}
 //TbjDSLParser = class(TinterfacedObject, IbjDSLParser)
 TbjDSLParser = class
     { Private declarations }
@@ -134,6 +138,7 @@ TbjDSLParser = class
     InventoryTag: string;
     UItemName: string;
     UHSNName: string;
+    UBatchName: string;
     UUnitName: string;
     UQtyName: string;
     URateName: string;
@@ -164,6 +169,7 @@ TbjDSLParser = class
     IsBillRefDefined: boolean;
     IsItemDefined: boolean;
     IsHSNDefined: boolean;
+    IsBatchDefined: boolean;
     IsUnitDefined: boolean;
     IsAliasDefined: Boolean;
     IsMailingNameDefined: Boolean;
@@ -279,7 +285,7 @@ TbjMrMc = class(TinterfacedObject, IbjXlExp, IbjMrMc)
     SCount: integer;
     FUpdate: TfnUpdate;
 
-    IsUnLocked: boolean;
+  
     Tally_11: boolean;
     UdefStateName: string;
     RoundOffMethod: string;
@@ -345,6 +351,7 @@ begin
   inventoryTag := 'INVENTORY';
   UItemName := 'Item';
   UHSNName := 'HSN';
+  UBatchName := 'Batch';
   UUnitName := 'Unit';
   UQtyName := 'Qty';
   URateName := 'Rate';
@@ -840,6 +847,8 @@ begin
     IsItemDefined := True;
   if kadb.FindField(UHSNName) <> nil then
     IsHSNDefined := True;
+  if kadb.FindField(UBatchName) <> nil then
+    IsBatchDefined := True;
   if kadb.FindField(UUnitName) <> nil then
     IsUnitDefined := True;
   if kadb.FindField(UAliasName) <> nil then
@@ -1148,9 +1157,9 @@ begin
     if IsIdOnlyChecked then
       Continue;
 
-    if  not (IsUnLocked or Tally_11) then
-        if ProcessedCount > FDynPgLen then
-        raise Exception.Create('Demo Limit '+ inttostr(FdynPgLen) + ' Exceeded');
+
+
+
     kadb.Next;
     if not kadb.Eof then
       notoskip := notoskip + 1;
@@ -1161,10 +1170,10 @@ begin
   DecodeTime(Elapsed, Hrs, Mins, Secs, MSecs);
   MessageDlg(InttoStr(ProcessedCount) + ' Vouchers processed',
       mtInformation, [mbOK], 0);
-  if IsUnLocked then
-    StatusMsg := InttoStr(ProcessedCount) + ' Vouchers processed; ' +
-    InttoStr(SCount) + ' Success. ' + InttoStr(Mins*60+Secs) + ' Seconds.'
-  else
+
+
+
+
     StatusMsg := InttoStr(ProcessedCount) + '/' + InttoStr(FdynPgLen) +
     ' Vouchers processed; ' +
     InttoStr(SCount) + ' Success. ' + InttoStr(Mins*60+Secs) + ' Seconds.';
@@ -1248,6 +1257,7 @@ end;
 procedure TbjMrMc.ProcessItem(const level: integer; InvAmt: double);
 var
   ItemColValue: string;
+  BatchColValue: string;
 begin
   if not  dsl.IsInvDefined[level] then
     Exit;
@@ -1261,12 +1271,15 @@ begin
     Exit;
 { InvAmt for Purchase }
   ItemColValue := kadb.GetFieldString(dsl.UItemName);
+  if dsl.IsBatchDefined then
+  BatchColValue :=  kadb.GetFieldString('Batch');
   if (Length(ItemColValue) > 0) and
     (not kadb.IsEmptyField(dsl.UQtyName)) then
-    VchExp.SetInvLine(ItemColValue,
+//    VchExp.SetInvLine(ItemColValue,
+    VchExp.SetBatchLine(ItemColValue,
     kadb.GetFieldFloat(dsl.UQtyName),
     kadb.GetFieldFloat(dsl.URateName),
-    invamt);
+    invamt, BatchColValue);
   IsInventoryAssigned := True;
   VchExp.InvVch := True;
 end;
@@ -1504,6 +1517,7 @@ var
   dbAlias, dbMailingName: string;
   dbGodown, dbParent, dbCategory: string;
   dbHSN: string;
+//  dbBatch: string;
   wOBal, ORate: Double;
   GRate: string;
 begin
@@ -1513,6 +1527,7 @@ begin
     Exit;
   wOBal := 0;
   dbUnit := '';
+  oRate := 0;
   if dsl.IsUnitDefined then
   begin
     dbUnit := kadb.GetFieldString('Unit');
@@ -1557,15 +1572,18 @@ begin
   dbItem := kadb.GetFieldString('Item');
   if dsl.IsOBalDefined then
   wOBal := kadb.GetFieldFloat(dsl.UOBalName);
+//  if dsl.IsBatchDefined then
+//    dbBatch := kadb.GetFieldString('Batch');
   ORate := kadb.GetFieldFloat('O_Rate');
   GRate := kadb.GetFieldString('GSTRate');
   MstExp.OBal := wOBal;
   MstExp.ORate := ORate;
+//  MstExp.Batch := dbBatch;
   if dsl.IsHSNDefined then
   begin
     dbHSN := kadb.GetFieldString('HSN');
-    MstExp.OBal := wOBal;
-    MstExp.ORate := ORate;
+//    MstExp.OBal := wOBal;
+//    MstExp.ORate := ORate;
     MstExp.NewHSN(dbItem, dbUnit, dbHSN, GRate);
   end
   else
@@ -1840,16 +1858,19 @@ var
   i: integer;
   statmsg: string;
   RoundOffAmount: Double;
+  Thisalso: boolean;
 begin
+  Thisalso := False;
   RoundOffAmount := Trunc(Vtotal) - VTotal;
   if RoundOffMethod = ' ' then
     RoundOffAmount :=  0;
   if RoundOffMethod = 'W' then
   begin
     if Abs(RoundOffAmount) > 0.5 then
-      RoundOffMethod := 'N';
+//      RoundOffMethod := 'N';
+      thisalso := True;
   end;
-  if RoundOffMethod = 'N' then
+  if (RoundOffMethod = 'N') or thisalso then
   begin
 //  if (VchType = 'Sales') or (VchType = 'Purchase') then
     if RoundOffAmount < 0 then
@@ -2048,6 +2069,7 @@ begin
   kadb.SetFieldFormat('GSTN', 35);
   kadb.SetFieldFormat('Item', 35);
   kadb.SetFieldFormat('HSN', 35);
+  kadb.SetFieldFormat('Batch', 35);
   kadb.SetFieldFormat('Unit', 35);
   kadb.SetFieldFormat('Bank Ledger', 35);
   kadb.SetFieldFormat('Sales_Ledger', 35);
