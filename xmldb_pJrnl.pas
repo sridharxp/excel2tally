@@ -31,7 +31,7 @@ uses
   Dialogs;
 
 type
-  Tfnupdate = procedure(const AMsg: string);
+  Tfnupdate = procedure(const aMsg: string);
 
 type
   TbjPJrnl = class
@@ -47,11 +47,8 @@ type
   protected
     rDB: string;
     xDB: string;
-    yDB: string;
     Client: TbjClient;
-    aID: Ibjxml;
-    vID: Ibjxml;
-    lID: Ibjxml;
+    rDoc: Ibjxml;
     rTotal: double;
     Env: TbjEnv;
     MstExp: TbjMstExp;
@@ -59,7 +56,7 @@ type
   public
     { Public declarations }
     ndups: Integer;
-    SaveXMLFile: boolean;
+    IsSaveXMLFileOn: boolean;
     TallyVersion: string;
 {    ImportNoDups: Boolean; }
     CurDt: string;
@@ -89,7 +86,7 @@ Constructor TbjPJrnl.Create;
 begin
   FHost := 'http://127.0.0.1:9000';
   Client := TbjClient.Create;
-  SaveXMLFile := True;
+{  IsSaveXMLFileOn := True; }
   Env := TbjEnv.Create;
 {  Env.IsSaveXmlFileOn := True; }
   MstExp := TbjMstExp.Create;
@@ -98,6 +95,7 @@ begin
   VchExp := TbjVchExp.Create;
   VchExp.Env := Env;
   VchExp.MstExp := MstExp;
+  rDoc := CreatebjXmlDocument;
 end;
 
 
@@ -125,38 +123,45 @@ end;
 
 procedure TbjPJrnl.Process;
 var
-  rDoc: Ibjxml;
-  rID: Ibjxml;
-  rAmtID: IbjXml;
-  crStr, drStr: string;
+  DtID: Ibjxml;
+  contraID, crAmtID, drAmtID: IbjXml;
+  contra, crStr, drStr: string;
 begin
   rTotal := 0;
   GetVchRgr;
-  rDoc := CreatebjXmlDocument;
+  rDoc.Clear;
   rDoc.LoadXML(rDB);
-  rID := rDoc.SearchForTag(nil, 'DSPVCHDATE');
-  while Assigned(rID) do
+  DtID := rDoc.SearchForTag(nil, 'DSPVCHDATE');
+  if not Assigned(DtID) then
+    Exit;
+  while Assigned(DtID) do
   begin
-    rAmtID := rDoc.SearchForTag(rID, 'DSPVCHCRAMT');
-    IF Assigned(rAmtID) then
+    drAmtID := rDoc.SearchForTag(DtID, 'DSPVCHDRAMT');
+    IF Assigned(drAmtID) then
     begin
-      crStr := rAmtID.GetContent;
-      if Length(crStr) > 0 then
-      rTotal := rTotal + StrtoFloat(crStr);
-    end;
-    rAmtID := rDoc.SearchForTag(rID, 'DSPVCHDRAMT');
-    IF Assigned(rAmtID) then
-    begin
-      drStr := rAmtID.GetContent;
+      drStr := drAmtID.GetContent;
       if Length(drStr) > 0 then
       rTotal := rTotal + StrtoFloat(drStr);
+      drStr := '';
+//    ShowMessage(floattostr(rtotal));
     end;
-
-    CurDt := rID.GetContent;
+    crAmtID := rDoc.SearchForTag(DrAmtID, 'DSPVCHCRAMT');
+    IF Assigned(crAmtID) then
+    begin
+      crStr := crAmtID.GetContent;
+//    ShowMessage(crStr);
+      if Length(crStr) > 0 then
+      rTotal := rTotal + StrtoFloat(crStr);
+      crStr := '';
+    end;
+    contraID := rDoc.SearchForTag(crAmtID, 'DSPVCHLEDACCOUNT');
+    IF Assigned(contraID) then
+    begin
+      contra := contraID.GetContent;
+    end;
+    CurDt := DtID.GetContent;
     FUpdate(FrmLed + ' ' + CurDt);
-//    GetVouXML;
-//    ReplDupItem;
-  rID := rDoc.SearchForTag(rID, 'DSPVCHDATE');
+    DtID := rDoc.SearchForTag(crAmtID, 'DSPVCHDATE');
   end;
   PostJrnl;
 end;
@@ -182,8 +187,13 @@ begin
   '</REQUESTDESC>'+
   '</EXPORTDATA></BODY></ENVELOPE>';
 
-  if SaveXMLFile then
-      Client.xmlResponsefile := 'VouRgr.xml';
+  if IsSaveXMLFileOn then
+  begin
+      rDoc.LoadXML(FxReq);
+      rDoc.SaveXmlFile('LedVch.xml');
+  end;
+  if IsSaveXMLFileOn then
+      Client.xmlResponsefile := 'LedVchRgr.xml';
   Client.Host := FHost;
   Client.xmlRequestString := Fxreq;
   Client.post;
@@ -202,7 +212,7 @@ begin
   VchExp.AddLine(ToLed, rTotal);
   VChExp.VchNarration := 'Finalizing...';
   VchExp.Post('Create', True);
-
+  rTotal := 0;
   ndups := ndups + 1;
 end;
 
