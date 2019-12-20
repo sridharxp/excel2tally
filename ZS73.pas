@@ -112,6 +112,7 @@ type
     FMobile: string;
     FeMail: string;
     FIsBatchwiseOn: boolean;
+    FUserDesc: string;
   protected
     { Protected declarations }
     xLdg: IbjXml;
@@ -178,6 +179,7 @@ type
     property Mobile: string write FMobile;
     property eMail: string write FeMail;
     property IsBatchwiseOn: boolean write FIsBatchwiseOn;
+    property UserDesc: string read FUserDesc write FUserDesc;
   end;
 
   TbjVchExp = class
@@ -247,7 +249,7 @@ type
     function AddLinewithRef(const Ledger: string; const Amount: double; const Ref, RefType: string): double;
     function SetAssessable(const aAmount: double): double;
 //    function SetInvLine(const Item: string; const Qty, Rate, Amount: double): double;
-    function SetInvLine(const Item: string; const Qty, Rate, Amount: double; const Batch:string): double;
+    function SetInvLine(const Item: string; const Qty, Rate, Amount: double; const Batch, UserDesc:string): double;
     function Post(const Action: string; wem: boolean): string;
   published
     property VchID: string read FVchID write SetVchID;
@@ -283,6 +285,7 @@ type
     Rate: double;
     Amount: double;
     Batch: string;
+    UserDesc: string;
   end;
   PInvLine = ^TInvline;
 
@@ -708,6 +711,8 @@ begin
   xLdg.NewChild2('PARENT', FGroup );
   If Length(Fcategory) > 0 then
     xLdg.NewChild2('CATEGORY', FCategory );
+  If Length(FUserDesc) > 0 then
+    xLdg.NewChild2('DESCRIPTION', FUserDesc );
   xLdg := xLdg.NewChild('NAME.LIST','');
   xLdg.NewChild2('NAME', Item );
   If Length(FAlias) > 0 then
@@ -765,10 +770,11 @@ begin
     xLdg.NewChild2('CATEGORY', FCategory );
 // GST
   If Length(aHSN) > 0 then
-  begin
     xLdg.NewChild2('GSTAPPLICABLE', #4 +' Applicable' );
+  If Length(FUserDesc) > 0 then
+    xLdg.NewChild2('DESCRIPTION', FUserDesc );
+  If Length(aHSN) > 0 then
     xLdg.NewChild2('GSTTYPEOFSUPPLY', 'Goods');
-  end;
   xLdg := xLdg.NewChild('NAME.LIST','');
   xLdg.NewChild2('NAME', Item );
   If Length(FAlias) > 0 then
@@ -1292,7 +1298,7 @@ end;
 {
 function TbjVchExp.SetInvLine(const Item: string; const Qty, Rate, Amount: double): double;
 }
-function TbjVchExp.SetInvLine(const Item: string; const Qty, Rate, Amount: double; const Batch: string): double;
+function TbjVchExp.SetInvLine(const Item: string; const Qty, Rate, Amount: double; const Batch, UserDesc: string): double;
 var
   pline: pInvLine;
 begin
@@ -1307,6 +1313,7 @@ begin
   pline^.Rate :=  Rate;
   pline^.Amount :=  Amount;
   pline^.Batch :=  Batch;
+  pLine^.UserDesc := UserDesc;
   ILines.Add(pline);
   Result := Amount;
 end;
@@ -1522,11 +1529,16 @@ begin
     if pInvLine(iLines.Items[idx])^.Ledger <> rled then
       Continue;
     xvou := xvou.NewChild('INVENTORYALLOCATIONS.LIST', '');
+    xvou := xvou.NewChild('BASICUSERDESCRIPTION.LIST', '');
+    xvou.NewChild2('BASICUSERDESCRIPTION', pInvLine(iLines.Items[idx])^.UserDesc);
+    { BASICUSERDESCRIPTION.LIST }
+      xvou := xvou.GetParent;
+    xvou.NewChild2('STOCKITEMNAME', pInvLine(iLines.Items[idx])^.Item);
     if pInvLine(iLines.Items[idx])^.Amount < 0 then
       xvou.NewChild2('ISDEEMEDPOSITIVE', 'Yes')
     else
       xvou.NewChild2('ISDEEMEDPOSITIVE', 'No');
-      xvou.NewChild2('STOCKITEMNAME', pInvLine(iLines.Items[idx])^.Item);
+//      xvou.NewChild2('STOCKITEMNAME', pInvLine(iLines.Items[idx])^.Item);
       xvou.NewChild2('AMOUNT', FormatFloat(TallyAmtPicture, pInvLine(iLines.Items[idx])^.Amount));
       xvou.NewChild2('ACTUALQTY', FormatFloat(TallyQtyPicture, pInvLine(iLines.Items[idx])^.Qty));
       xvou.NewChild2('BILLEDQTY', FormatFloat(TallyQtyPicture, pInvLine(iLines.Items[idx])^.Qty));
@@ -1896,7 +1908,7 @@ var
   sameName: boolean;
 begin
   dupName := False;
-  sameName := fALSE;
+  sameName := False;
   If Length(aLedger) = 0 then
     Exit;
   if Length(aState) = 0 then

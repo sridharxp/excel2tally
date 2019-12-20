@@ -173,7 +173,8 @@ type
     procedure Prior;
     procedure First;
     procedure Last;
-    procedure Save(const aName: string);
+    procedure Save;
+    procedure SaveAs(const aName: string);
     procedure AtSay(const acol: Integer; const aMsg: Variant);
     constructor Create;
     destructor Destroy; override;
@@ -222,7 +223,18 @@ end;
   Inherited;
 end;
 
-procedure TbjXLSTable.Save(const aName  : string);
+procedure TbjXLSTable.Save;
+begin
+{$IFDEF SM }
+  if Length(FXlsFileName) > 0 then
+    XL.SaveAs(FXlsFileName);
+{$ENDIF SM }
+{$IFDEF LIBXL }
+  Workbook.Save(PChar(FXlsFileName));
+{$ENDIF LIBXL}
+end;
+
+procedure TbjXLSTable.SaveAs(const aName  : string);
 begin
 {$IFDEF SM }
   XL.SaveAs(AName);
@@ -233,71 +245,53 @@ begin
 end;
 
 //procedure TbjXLSTable.SetXLSFile(const aName  : string);
-procedure TbjXLSTable.SetXLSFile(const aName  : string);
+procedure TbjXLSTable.SetXLSFile(const aName: string);
 begin
 {$IFDEF SM }
   if Assigned(XL) then
+  if Owner then
+  begin
     XL.Clear;
-  FXLSFileName := aName;
-  if not Assigned(XL) then
-  begin
-    XL := TXLSFile.Create;
-    FOwner := True;
-  end;
-
-  if FileExists(FXLSFileName) then
-  begin
-    XL.OpenFile(FXLSFileName);
-  end
-  else
-    Exit;
-  Workbook := XL.Workbook;
-  WorkSheet := Workbook.Sheets[0];
-//  IDate:= Workbook.FormatStrings.AddFormat('dd/mm/yyyy');
-{$ENDIF SM }
-{$IFDEF LIBXL }
-  FXLSFileName := aName;
-  Workbook := TBinBook.Create;
-  Workbook.setKey('Sri', 'windows-21212c060ecde40e64bf6569abo5p2h2');
-  if FileExists(aName) then
-  begin
-    Workbook.load(pChar(aName));
-    FOwner := True;
-  end
-  else
-    Exit;
-  WorkSheet := Workbook.getSheet(0);
-{$ENDIF LIBXL}
-end;
-
-procedure TbjXLSTable.NewFile(const aName  : string);
-begin
-{$IFDEF SM }
-  if Assigned(XL) then
-    XL.Clear;
-  FXLSFileName := aName;
-  if not Assigned(XL) then
-  begin
     XL.Free;
   end;
+  FXLSFileName := aName;
   XL := TXLSFile.Create;
   FOwner := True;
 
+  if FileExists(FXLSFileName) then
+    XL.OpenFile(FXLSFileName);
   Workbook := XL.Workbook;
 //  WorkSheet := Workbook.Sheets[0];
 {$ENDIF SM }
 {$IFDEF LIBXL }
   FXLSFileName := aName;
+  FOwner := True;
   Workbook := TBinBook.Create;
   Workbook.setKey('Sri', 'windows-21212c060ecde40e64bf6569abo5p2h2');
-    FOwner := True;
+  if FileExists(aName) then
+    Workbook.load(pChar(aName));
 //  WorkSheet := Workbook.getSheet(0);
 {$ENDIF LIBXL}
 end;
 
+procedure TbjXLSTable.NewFile(const aName  : string);
+begin
+  SetXlsFile('');
+  FXLSFileName := aName;
+end;
+
 procedure TbjXLSTable.close;
 begin
-  SetXLSFile('');
+  if not Owner then
+  begin
+    Xl := nil;
+    Exit;
+  end;
+  if Assigned(XL) then
+  begin
+    Xl.Clear;
+    Xl.Free;
+  end;
 end;
 
 procedure TbjXLSTable.SetSheet(const aSheet: string);
@@ -738,24 +732,27 @@ end;
 procedure TbjXLSTable.Insert;
 begin
   if LastRow = -1 then
-  Last;
+    Last;
+  if not IsEmpty then
   CurrentRow := LastRow + 1;
+  LastRow := -1;
 end;
 
 procedure TbjXLSTable.Delete;
 begin
-//  if LastRow > 1then
-//      LastRow := LastRow - 1;
-  if not IsEmpty then
-    LastRow := - 1
-  else
-  begin
-    EOF := True;
-    Exit;
-  end;
 {$IFDEF SM }
   WorkSheet.Rows.DeleteRows(FO_row + CurrentRow, FO_row + CurrentRow);
 {$ENDIF SM }
+  if CurrentRow > 1 then
+  CurrentRow := LastRow - 1
+  else
+    BOF := True;
+  if IsEmpty then
+  begin
+    EOF := True;
+//    Prior;
+  end;
+  LastRow := -1;
 end;
 
 procedure TbjXLSTable.ClearRow;

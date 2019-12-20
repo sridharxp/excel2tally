@@ -138,6 +138,7 @@ TbjDSLParser = class(TinterfacedObject, IbjDSLParser)
     UItemName: string;
     UHSNName: string;
     UBatchName: string;
+    UUserDescName: string;
     UUnitName: string;
     UQtyName: string;
     URateName: string;
@@ -169,6 +170,7 @@ TbjDSLParser = class(TinterfacedObject, IbjDSLParser)
     IsItemDefined: boolean;
     IsHSNDefined: boolean;
     IsBatchDefined: boolean;
+    IsUserDescDefined: boolean;
     IsUnitDefined: boolean;
     IsAliasDefined: Boolean;
     IsMailingNameDefined: Boolean;
@@ -295,7 +297,7 @@ TbjMrMc = class(TinterfacedObject, IbjXlExp, IbjMrMc)
     constructor Create;
     destructor Destroy; override;
     procedure Execute;
-  published
+//  published
 { Logging is optional }
     property ToLog: boolean read FToLog write FToLog;
 { Auto Create Master is optional }
@@ -351,6 +353,7 @@ begin
   UItemName := 'Item';
   UHSNName := 'HSN';
   UBatchName := 'Batch';
+  UUserDescName := 'ItemDesc';
   UUnitName := 'Unit';
   UQtyName := 'Qty';
   URateName := 'Rate';
@@ -795,6 +798,14 @@ AutoCreateMst affects default group only
       if Length(str) > 0 then
         UBatchName := str;
     end;
+
+    xxCfg := xCfg.SearchForTag(nil, UUserDescName);
+    if Assigned(xxCfg) then
+    begin
+      str := xxCfg.GetChildContent('Alias');
+      if Length(str) > 0 then
+        UUserDescName := str;
+    end;
   end;
 //Shifted from ChckcolNames as this is Xml file specific
 { If Ledger is definded corresponding amount column should be defined }
@@ -848,6 +859,8 @@ begin
     IsHSNDefined := True;
   if kadb.FindField(UBatchName) <> nil then
     IsBatchDefined := True;
+  if kadb.FindField(UUserDescName) <> nil then
+    IsUserDescDefined := True;
   if kadb.FindField(UUnitName) <> nil then
     IsUnitDefined := True;
   if kadb.FindField(UAliasName) <> nil then
@@ -1257,6 +1270,7 @@ procedure TbjMrMc.ProcessItem(const level: integer; InvAmt: double);
 var
   ItemColValue: string;
   BatchColValue: string;
+  UserDescColValue: string;
 begin
   if not  dsl.IsInvDefined[level] then
     Exit;
@@ -1272,12 +1286,14 @@ begin
   ItemColValue := kadb.GetFieldString(dsl.UItemName);
   if dsl.IsBatchDefined then
   BatchColValue :=  kadb.GetFieldString('Batch');
+  if dsl.IsUserDescDefined then
+  UserDescColValue :=  kadb.GetFieldString(dsl.UUserDescName);
   if (Length(ItemColValue) > 0) and
     (not kadb.IsEmptyField(dsl.UQtyName)) then
     VchExp.SetInvLine(ItemColValue,
     kadb.GetFieldFloat(dsl.UQtyName),
     kadb.GetFieldFloat(dsl.URateName),
-    invamt, BatchColValue);
+    invamt, BatchColValue, UserDescColValue);
   IsInventoryAssigned := True;
   VchExp.InvVch := True;
 end;
@@ -1587,6 +1603,8 @@ begin
     MstExp.IsBatchwiseOn := True
   else
     MstExp.IsBatchwiseOn := False;
+  if dsl.IsUserDescDefined then
+    MstExp.UserDesc := kadb.GetFieldString(dsl.UUserDescName);
   if dsl.IsHSNDefined then
   begin
     dbHSN := kadb.GetFieldString('HSN');
@@ -1880,7 +1898,6 @@ begin
   end;
   if (RoundOffMethod = 'N') or thisalso then
   begin
-//  if (VchType = 'Sales') or (VchType = 'Purchase') then
     if RoundOffAmount < 0 then
     begin
       RoundOffAmount :=  RoundOffAmount + 1;
@@ -2078,6 +2095,7 @@ begin
   kadb.SetFieldFormat('Item', 35);
   kadb.SetFieldFormat('HSN', 35);
   kadb.SetFieldFormat('Batch', 35);
+  kadb.SetFieldFormat('UserDesc', 35);
   kadb.SetFieldFormat('Unit', 35);
   kadb.SetFieldFormat('Bank Ledger', 35);
   kadb.SetFieldFormat('Sales_Ledger', 35);
