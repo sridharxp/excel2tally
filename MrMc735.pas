@@ -52,6 +52,7 @@ uses
   DateFns,
   XLSWorkbook,
   bjXml3_1,
+  Repet,
   Dialogs;
 
 {$DEFINE xlstbl}
@@ -127,6 +128,8 @@ TbjDSLParser = class(TinterfacedObject, IbjDSLParser)
     UVoucherDateName: string;
     UBillRefName: string;
     UOBalName: string;
+    UORateName: string;
+    UAddressName: string;
     UMobileName: string;
     UeMailName: string;
     UTallyIDName: string;
@@ -138,14 +141,16 @@ TbjDSLParser = class(TinterfacedObject, IbjDSLParser)
     UItemName: string;
     UHSNName: string;
     UBatchName: string;
+    UOBatchName: string;
     UUserDescName: string;
     UUnitName: string;
     UQtyName: string;
     URateName: string;
     ToCheckInvCols: boolean;
-//    IsAddressDefined: boolean;
+    IsAddressDefined: boolean;
 //    IsLedgerPhoneDefined: boolean;
     IsOBalDefined: boolean;
+    IsORateDefined: boolean;
     IsMobileDefined: boolean;
     IseMailDefined: boolean;
     IsNarrationDefined: boolean;
@@ -170,6 +175,7 @@ TbjDSLParser = class(TinterfacedObject, IbjDSLParser)
     IsItemDefined: boolean;
     IsHSNDefined: boolean;
     IsBatchDefined: boolean;
+    IsOBatchDefined: boolean;
     IsUserDescDefined: boolean;
     IsUnitDefined: boolean;
     IsAliasDefined: Boolean;
@@ -294,6 +300,7 @@ TbjMrMc = class(TinterfacedObject, IbjXlExp, IbjMrMc)
     Env: TbjEnv;
     dsl: TbjDSLParser;
     kadb: TbjXLSTable;
+    RpetObj: TRpetGSTN;
     constructor Create;
     destructor Destroy; override;
     procedure Execute;
@@ -352,17 +359,20 @@ begin
   inventoryTag := 'INVENTORY';
   UItemName := 'Item';
   UHSNName := 'HSN';
-  UBatchName := 'Batch';
+  UBatchName := 'BATCH';
   UUserDescName := 'ItemDesc';
   UUnitName := 'Unit';
   UQtyName := 'Qty';
   URateName := 'Rate';
   UAliasName := 'Alias';
   UMailingName := 'PartNo';
-  UGodownName := 'Godown';
+  UGodownName := 'GODOWN';
   UCategoryName := 'Category';
   USubGroupName := 'SubGroup';
-  uOBalName := 'O_Balance';
+  uOBalName := 'O_BALANCE';
+  uOBatchName := 'O_BATCH';
+  UORateName := 'O_RATE';
+  UAddressName := 'ADDRESS';
   UMobileName := 'Mobile';
   UeMailName := 'EMail';
   UTallyIDName := 'TALLYID';
@@ -605,29 +615,6 @@ AutoCreateMst affects default group only
     end;
   end;
 
-  xCfg := Cfg.SearchForTag(nil, UMobileName);
-  if Assigned(xCfg) then
-  begin
-    xxCfg := xCfg.SearchForTag(nil, 'Alias');
-    if xxCfg <> nil then
-    begin
-      str := xxCfg.GetContent;
-      if Length(str) > 0 then
-        UMobileName  := str;
-    end;
-  end;
-  xCfg := Cfg.SearchForTag(nil, UeMailName);
-  if Assigned(xCfg) then
-  begin
-    xxCfg := xCfg.SearchForTag(nil, 'Alias');
-    if xxCfg <> nil then
-    begin
-      str := xxCfg.GetContent;
-      if Length(str) > 0 then
-        UeMailName  := str;
-    end;
-  end;
-
   xCfg := nil;
   for i := 1 to COLUMNLIMIT do
   begin
@@ -807,6 +794,90 @@ AutoCreateMst affects default group only
         UUserDescName := str;
     end;
   end;
+  if IsMListDeclared then
+  begin
+    xCfg := Cfg.SearchForTag(nil, UOBalName);
+    if Assigned(xCfg) then
+    begin
+      str := xCfg.GetChildContent('Alias');
+      if Length(str) > 0 then
+        UOBalName := str;
+    end;
+
+    xxCfg := xCfg.SearchForTag(nil, UoBatchName);
+    if Assigned(xxCfg) then
+    begin
+      str := xxCfg.GetChildContent('Alias');
+      if Length(str) > 0 then
+        UoBatchName := str;
+    end;
+
+    xCfg := Cfg.SearchForTag(nil, UORateName);
+    if Assigned(xCfg) then
+    begin
+      str := xCfg.GetChildContent('Alias');
+      if Length(str) > 0 then
+        UORateName := str;
+    end;
+
+    xCfg := Cfg.SearchForTag(nil, UGodownName);
+    if Assigned(xCfg) then
+    begin
+      str := xCfg.GetChildContent('Alias');
+      if Length(str) > 0 then
+        UGodownName := str;
+    end;
+
+    xCfg := Cfg.SearchForTag(nil, UCategoryName);
+    if Assigned(xxCfg) then
+    begin
+      str := xxCfg.GetChildContent('Alias');
+      if Length(str) > 0 then
+        UCategoryName := str;
+    end;
+
+    xCfg := Cfg.SearchForTag(nil, USubGroupName);
+    if Assigned(xxCfg) then
+    begin
+      str := xxCfg.GetChildContent('Alias');
+      if Length(str) > 0 then
+        USubGroupName := str;
+    end;
+
+
+    xCfg := Cfg.SearchForTag(nil, UAddressName);
+    if Assigned(xxCfg) then
+    begin
+      str := xxCfg.GetChildContent('Alias');
+      if Length(str) > 0 then
+        UAddressName := str;
+    end;
+
+    xCfg := Cfg.SearchForTag(nil, UMobileName);
+    if Assigned(xCfg) then
+    begin
+      xxCfg := xCfg.SearchForTag(nil, 'Alias');
+      if xxCfg <> nil then
+      begin
+        str := xxCfg.GetContent;
+        if Length(str) > 0 then
+          UMobileName  := str;
+      end;
+    end;
+
+    xCfg := Cfg.SearchForTag(nil, UeMailName);
+    if Assigned(xCfg) then
+    begin
+    xxCfg := xCfg.SearchForTag(nil, 'Alias');
+    if xxCfg <> nil then
+    begin
+      str := xxCfg.GetContent;
+      if Length(str) > 0 then
+        UeMailName  := str;
+      end;
+    end;
+
+  end;
 //Shifted from ChckcolNames as this is Xml file specific
 { If Ledger is definded corresponding amount column should be defined }
 { gaps should not exist }
@@ -820,7 +891,8 @@ AutoCreateMst affects default group only
     end;
   end;
 
-{ Mandtory Minimum Columns }
+{ Mandtory Column }
+  if IsVListDeclared then
   if not IsLedgerDeclared[1] then
     raise Exception.Create(ULedgerName[1] + ' Column is required');
 end;
@@ -869,18 +941,27 @@ begin
     IsMailingNameDefined := True;
   if kadb.FindField(UGodownName) <> nil then
     IsGodownDefined := True;
-  if kadb.FindField(UCategoryName) <> nil then
-    IsCategoryDefined := True;
-  if kadb.FindField(UMstGroupName) <> nil then
-    IsGroupDefined := True;
-  if kadb.FindField(USubGroupName) <> nil then
-    IsSubGroupDefined := True;
-  if kadb.FindField(UobALName) <> nil then
-    IsobALDefined := True;
-  if kadb.FindField(UMobileName) <> nil then
-    IsMobileDefined := True;
-  if kadb.FindField(UeMailName) <> nil then
-    IseMailDefined := True;
+  if IsMListDeclared then
+  begin
+    if kadb.FindField(UobALName) <> nil then
+      IsobALDefined := True;
+    if kadb.FindField(UoBatchName) <> nil then
+      IsoBatchDefined := True;
+    if kadb.FindField(UAddressName) <> nil then
+      IsAddressDefined := True;
+    if kadb.FindField(UMobileName) <> nil then
+      IsMobileDefined := True;
+    if kadb.FindField(UeMailName) <> nil then
+      IseMailDefined := True;
+    if kadb.FindField(UCategoryName) <> nil then
+      IsCategoryDefined := True;
+    if kadb.FindField(UMstGroupName) <> nil then
+      IsGroupDefined := True;
+    if kadb.FindField(USubGroupName) <> nil then
+      IsSubGroupDefined := True;
+    if kadb.FindField(UrATEname) <> nil then
+      IsORateDefined := True;
+  end;
 { Check for TallyId }
   if kadb.FindField(UTallyIDName) <> nil then
     IstALLYidDefined := True
@@ -899,10 +980,12 @@ begin
   if kadb.FindField(RoundOffCol) <> nil then
     IsRoundOffColDefined := True;
 
-  if Length(DiLedgerValue[1]) = 0 then
-  CheckColumn(ULedgerName[1]);
-  if not IsMListDeclared then
+  if IsVListDeclared then
   begin
+    if Length(DiLedgerValue[1]) = 0 then
+      CheckColumn(ULedgerName[1]);
+//  if not IsMListDeclared then
+//  begin
     if Length(DiDateValue) = 0 then
       CheckColumn(UDateName);
     if Length(DiTypeValue) = 0 then
@@ -980,6 +1063,7 @@ begin
     if Length(ReportFileName) > 0 then
       kadb.SaveAs(ReportFileName);
   kadb.Free;
+  RpetObj.Free;
   inherited;
 end;
 
@@ -1218,9 +1302,9 @@ begin
   if dsl.IsNarrationDefined then
   begin
     if Length(NarrationColValue) > 0 then
-    NarrationColValue := NarrationColValue + ' ' + Trim(kadb.GetFieldString(dsl.UNarrationName))
+    NarrationColValue := NarrationColValue + ' ' + kadb.GetFieldString(dsl.UNarrationName)
     else
-    NarrationColValue := Trim(kadb.GetFieldString(dsl.UNarrationName));
+    NarrationColValue := (kadb.GetFieldString(dsl.UNarrationName));
   end;
   LedgerColvalue := Getledger(1);
   Amt[1] := GetAmt(1);
@@ -1460,19 +1544,24 @@ var
   IsThere: boolean;
   dbAlias: string;
   wOBal: double;
-//  ToAutoCreateMst: boolean;
-  wMobile, weMail: string;
+  wAddress, wMobile, weMail: string;
 begin
   if not dsl.IsMListDeclared then
     Exit;
   if not IsCheckLedMst then
     Exit;
   wOBal := 0;
-//  ToAutoCreateMst := False;
+  if not Assigned(RpetObj) then
+  begin
+    RpetObj := TRpetGSTN.Create;
+  end;
   kadb.SetFieldVal('TALLYID', ' - ');
   if dsl.IsOBalDefined then
   wOBal := kadb.GetFieldFloat(dsl.UOBalName);
   MstExp.OBal := wOBal;
+  if dsl.IsAddressDefined then
+    wAddress := kadb.GetFieldString(dsl.UAddressName);
+  MstExp.Address := wAddress;
   if dsl.IsMobileDefined then
     wMobile := kadb.GetFieldString(dsl.UMobileName);
   MstExp.Mobile := wMobile;
@@ -1488,45 +1577,53 @@ begin
   end;
   if Length(dbkLed) > 0 then
   begin
-  IsThere := MstExp.IsLedger(dbkLed);
-  if not IsThere then
-  begin
-    if AskAgainToAutoCreateMst then
-      if MessageDlg('Create missing Ledger ' + dbkLed +' ?', mtConfirmation, mbOKCancel, 0) = mrCancel then
-        ToAutoCreateMst := False
-      else
-        ToAutoCreateMst := True;
-    if not AskedOnce then
-      if MessageDlg('Continue asking' + ' ?', mtConfirmation, mbOKCancel, 0) = mrCancel then
-        askAgainToAutoCreateMst := False;
-    AskedOnce := True;
-  end;
-  if not IsThere  then
-  begin
-    if not ToAutoCreateMst then
+    dbGSTN := kadb.GetFieldString('GSTN');
+    wLed := RpetObj.GetGSTNParty(dbGSTN);
+    IsThere := MstExp.IsLedger(dbkLed);
+    if not IsThere then
     begin
-      kadb.SetFieldVal('TALLYID', 'New Ledger');
-      missingledgers := missingledgers + 1;
+      if Length(wLed) > 0 then
+      if dbkLed <> wLed then
+        Exit;
+    end;
+    if not IsThere then
+    begin
+      if AskAgainToAutoCreateMst then
+        if MessageDlg('Create missing Ledger ' + dbkLed +' ?', mtConfirmation, mbOKCancel, 0) = mrCancel then
+          ToAutoCreateMst := False
+        else
+          ToAutoCreateMst := True;
+      if not AskedOnce then
+        if MessageDlg('Continue asking' + ' ?', mtConfirmation, mbOKCancel, 0) = mrCancel then
+          askAgainToAutoCreateMst := False;
+      AskedOnce := True;
+    end;
+    if not IsThere  then
+    begin
+      if not ToAutoCreateMst then
+      begin
+        kadb.SetFieldVal('TALLYID', 'New Ledger');
+        missingledgers := missingledgers + 1;
+      end
+      else
+     begin
+        CreateGSTLedger;
+     end;
     end
     else
-      CreateGSTLedger;
-  end
-  else
-  if dsl.IsGSTNDefined[1] then
-  if not kadb.IsEmptyField('GSTN') then
-  begin
-    wGSTN := GetLedgersGSTN(dbkLed);
-    if Length(wGSTN) = 0 then
-    begin
-      kadb.SetFieldVal('TALLYID', 'Update GSTN');
-    end;
-    dbGSTN := kadb.GetFieldString('GSTN');
-    wLed := GetGSTNsLedger(dbGSTN);
-    if dbGSTN <> wGSTN then
-      kadb.SetFieldVal('TALLYID', 'New GSTN - Repeat Name');
-    if dbkLed <> wLed then
-      kadb.SetFieldVal('TALLYID', wLed + ' - Repeat GSTN');
-  end;
+    if dsl.IsGSTNDefined[1] then
+      if not kadb.IsEmptyField('GSTN') then
+      begin
+        wGSTN := GetLedgersGSTN(dbkLed);
+        if Length(wGSTN) = 0 then
+        begin
+          kadb.SetFieldVal('TALLYID', 'Update GSTN');
+      end;
+      if dbGSTN <> wGSTN then
+        kadb.SetFieldVal('TALLYID', 'New GSTN - Repeat Name');
+      if dbkLed <> wLed then
+        kadb.SetFieldVal('TALLYID', wLed + ' - Repeat GSTN');
+      end;
   end;
 end;
 
@@ -1536,8 +1633,8 @@ var
   dbAlias, dbMailingName: string;
   dbGodown, dbParent, dbCategory: string;
   dbHSN: string;
-//  dbBatch: string;
-  wOBal, ORate: Double;
+  dbOBatch: string;
+  wOBal, ORate: double;
   GRate: string;
 begin
   if not dsl.IsMListDeclared then
@@ -1564,42 +1661,42 @@ begin
   end;
   if dsl.IsGodownDefined then
   begin
-    dbGodown := kadb.GetFieldString('Godown');
+    dbGodown := kadb.GetFieldString(dsl.UGodownName);
     MstExp.NewGodown(dbGodown,'');
     MstExp.Godown := dbGodown;
   end;
   if dsl.IsCategoryDefined then
   begin
-    dbCategory := kadb.GetFieldString('Category');
+    dbCategory := kadb.GetFieldString(dsl.UCategoryName);
     MstExp.NewCategory(dbCategory,'');
     MstExp.Category := dbCategory;
   end;
   if dsl.IsGroupDefined then
   begin
-    dbParent := kadb.GetFieldString('Group');
+    dbParent := kadb.GetFieldString(dsl.UMstGroupName);
     MstExp.NewItemGroup(dbParent,'');
     MstExp.Group := dbParent;
   end;
   if dsl.IsSubGroupDefined then
   begin
-    dbParent := kadb.GetFieldString('SubGroup');
+    dbParent := kadb.GetFieldString(dsl.USubGroupName);
     if Length(dbParent) > 0 then
       MstExp.NewItemGroup(dbParent,
-        kadb.GetFieldString('Group'));
+        kadb.GetFieldString(dsl.UMstGroupName));
       MstExp.Group := dbParent;
   end;
   dbItem := kadb.GetFieldString('Item');
   if dsl.IsOBalDefined then
   wOBal := kadb.GetFieldFloat(dsl.UOBalName);
-//  if dsl.IsBatchDefined then
-//    dbBatch := kadb.GetFieldString('Batch');
+  if dsl.IsOBatchDefined then
+    dbOBatch := kadb.GetFieldString(dsl.UOBatchName);
   ORate := kadb.GetFieldFloat('O_Rate');
   GRate := kadb.GetFieldString('GSTRate');
   MstExp.OBal := wOBal;
   MstExp.ORate := ORate;
-//  MstExp.Batch := dbBatch;
-  if dsl.IsBatchDefined then
-  if Length(kadb.GetFieldString(dsl.UBatchName)) > 0 then
+  MstExp.OBatch := dbOBatch;
+  if dsl.IsOBatchDefined then
+  if Length(kadb.GetFieldString(dsl.UOBatchName)) > 0 then
     MstExp.IsBatchwiseOn := True
   else
     MstExp.IsBatchwiseOn := False;
@@ -1700,6 +1797,7 @@ procedure TbjMrMc.GetDefaults;
 begin
 {  GetSingleValues; }
   DateColValue := '';
+  TypeColValue := '';
   if dsl.IsDateDefined then
     if not kadb.IsEmptyField(dsl.UDateName) then
     DateColValue := kadb.GetFieldSDate(dsl.UDateName);
@@ -2037,14 +2135,18 @@ function TbjMrMc.GETDictToken(const ctr: integer): string;
 var
   i: integer;
   item: pDict;
+  rpetToken: string;
 begin
+  rpetToken := '';
   if not Assigned(dsl.LedgerDict[ctr]) then
   Exit;
   for i := 0 to dsl.LedgerDict[ctr].Count-1 do
   begin
     Item := dsl.LedgerDict[ctr].Items[i];
+    if Length(rpetToken) = 0 then
+      rpetToken := kadb.GetFieldToken(pDict(Item)^.TokenCol);
 //    if pDict(Item)^.Token = Trim(kadb.GetFieldString(pDict(Item)^.TokenCol)) then
-    if pDict(Item)^.Token = Trim(kadb.GetFieldToken(pDict(Item)^.TokenCol)) then
+    if rpetToken = pDict(Item)^.Token then
     begin
       Result := pDict(Item)^.Token;
       break;
@@ -2057,14 +2159,18 @@ function TbjMrMc.GETDictValue(const ctr: integer): string;
 var
   i: integer;
   item: pDict;
+  rpetToken: string;
 begin
+  rpetToken := '';
   if not Assigned(dsl.LedgerDict[ctr]) then
   Exit;
   for i := 0 to dsl.LedgerDict[ctr].Count-1 do
   begin
     Item := dsl.LedgerDict[ctr].Items[i];
+    if Length(rpetToken) = 0 then
+      rpetToken := kadb.GetFieldToken(pDict(Item)^.TokenCol);
 //    if (pDict(Item)^.Token = Trim(kadb.GetFieldString(pDict(Item)^.TokenCol))) then
-    if (pDict(Item)^.Token = Trim(kadb.GetFieldToken(pDict(Item)^.TokenCol))) then
+    if rpetToken = pDict(Item)^.Token then
     begin
       Result := pDict(Item)^.Value;
       break;
@@ -2150,7 +2256,7 @@ begin
     Exit;
   end;
   if (kadb.GetFieldString('Group') = 'Sundry Debtors') or
-    (kadb.GetFieldString('Group') = 'Sundry Creditor') then
+    (kadb.GetFieldString('Group') = 'Sundry Creditors') then
   begin
     MstExp.NewParty(kadb.GetFieldString('Ledger'), kadb.GetFieldString('Group'),
       kadb.GetFieldString('GSTN'), UdefStateName);
@@ -2167,6 +2273,7 @@ end;
 
 procedure TbjMrMc.SetGSTSetting;
 begin
+  FUpdate('Creating default GST ledgers...');
   if VchType = 'Sales' then
   begin
 //    MstExp.VchType := 'Sales';

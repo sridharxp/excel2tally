@@ -58,9 +58,11 @@ type
     ToCheckLedAlias: Boolean;
     CashBankLedList: TStringList;
     PartyLedList: TStringList;
+    function GetGrpLedText(const aGrp: string): string;
     constructor Create;
     destructor Destroy; override;
     function GetLedPackedList: TStringList;
+{    procedure GetGrpLedList; }
 //    function GetLedPackedList: TStringList;
     function GetItemPackedList: TStringList;
     function GetUnitPackedList: TStringList;
@@ -1026,7 +1028,7 @@ begin
   GrpPList := TStringList.Create;
 //  ItemPlist.Sorted := True;
   GetInvXML;
-  Dnode := xMst.SearchForTag(nil, 'REQUESTDATA');
+  Dnode := xInv.SearchForTag(nil, 'REQUESTDATA');
   if Assigned(DNode) then
   begin
     Children := DNode.GetNumChildren;
@@ -1057,7 +1059,7 @@ begin
   GrpPList := TStringList.Create;
 //  ItemPlist.Sorted := True;
   GetInvXML;
-  Dnode := xMst.SearchForTag(nil, 'REQUESTDATA');
+  Dnode := xInv.SearchForTag(nil, 'REQUESTDATA');
   if Assigned(DNode) then
   begin
     Children := DNode.GetNumChildren;
@@ -1080,6 +1082,10 @@ end;
 
 function TbjMstListImp.GetGodownPackedList: TStringList;
 var
+  OResult: IbjXml;
+  CollName: string;
+  strx: IbjXml;
+  gStr: string;
   DNode, RecNode: IbjXml;
   i, Children: integer;
   GodownNode: IbjXml;
@@ -1088,7 +1094,7 @@ begin
   GdnPList := TStringList.Create;
 //  ItemPlist.Sorted := True;
   GetInvXML;
-  Dnode := xMst.SearchForTag(nil, 'REQUESTDATA');
+  Dnode := xInv.SearchForTag(nil, 'REQUESTDATA');
   if Assigned(DNode) then
   begin
     Children := DNode.GetNumChildren;

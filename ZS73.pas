@@ -108,7 +108,9 @@ type
     FCategory: string;
     FEnv: TbjEnv;
     FOBal: double;
+    FOBatch: string;
     FORate: double;
+    FAddress: string;
     FMobile: string;
     FeMail: string;
     FIsBatchwiseOn: boolean;
@@ -175,7 +177,9 @@ type
 //    property LedState: string read FLedState write FLedState;
     property Env: TbjEnv read FEnv write SetEnv;
     property OBal: double write FOBal;
+    property OBatch: string write FOBatch;
     property ORate: double write FORate;
+    property Address: string write FAddress;
     property Mobile: string write FMobile;
     property eMail: string write FeMail;
     property IsBatchwiseOn: boolean write FIsBatchwiseOn;
@@ -251,7 +255,7 @@ type
 //    function SetInvLine(const Item: string; const Qty, Rate, Amount: double): double;
     function SetInvLine(const Item: string; const Qty, Rate, Amount: double; const Batch, UserDesc:string): double;
     function Post(const Action: string; wem: boolean): string;
-  published
+
     property VchID: string read FVchID write SetVchID;
     property vchDate: string read FVchDate write FVchDate;
     property vch_Date: string read FVch_Date write FVch_Date;
@@ -323,10 +327,6 @@ begin
   Inherited;
   xLed := CreatebjXmlDocument;
   xLedid := CreatebjXmlDocument;
-//  GSTNList := TList.Create;
-//  xvchid := CreatebjXmlDocument;
-//  if not Assigned(bjEnv) then
-//    bjEnv := TbjEnv.Create;
 end;
 
 destructor TbjMstExp.Destroy;
@@ -437,6 +437,11 @@ begin
   xLdg := xLdg.NewChild('LEDGER','');
   xLdg.AddAttribute('NAME', ledger);
   xLdg.AddAttribute('ACTION','Create');
+  xLdg := xLdg.NewChild('ADDRESS.LIST','');
+  If Length(FAddress) > 0 then
+  xLdg.NewChild2('ADDRESS', FAddress );
+  { ADDRESS.LIST }
+  xLdg := xLdg.GetParent;
   xLdg := xLdg.NewChild('NAME.LIST','');
   xLdg.NewChild2('NAME', ledger );
   If Length(FAlias) > 0 then
@@ -653,6 +658,11 @@ begin
   xLdg := xLdg.NewChild('LEDGER','');
   xLdg.AddAttribute('NAME', ledger);
   xLdg.AddAttribute('ACTION','Create');
+  xLdg := xLdg.NewChild('ADDRESS.LIST','');
+  If Length(FAddress) > 0 then
+  xLdg.NewChild2('ADDRESS', FAddress );
+  { ADDRESS.LIST }
+  xLdg := xLdg.GetParent;
   xLdg := xLdg.NewChild('NAME.LIST','');
   xLdg.NewChild2('NAME', ledger );
   If Length(FAlias) > 0 then
@@ -730,7 +740,13 @@ begin
   If Length(FGodown) > 0 then
   begin
     xLdg := xLdg.NewChild('BATCHALLOCATIONS.LIST','');
-    xLdg.NewChild2('GODOWNNAME', FGodown );
+    if Length(FGodown) > 0 then
+    xLdg.NewChild2('GODOWNNAME', FGodown )
+    else
+    xLdg.NewChild2('GODOWNNAME', 'Main Location' );
+    if Length(FOBatch) > 0 then
+    xLdg.NewChild2('BATCHNAME', FObatch)
+    else
     xLdg.NewChild2('BATCHNAME', 'Primary Batch');
 //    xLdg.NewChild2('BATCHNAME', 'Primary Batch');
     xLdg.NewChild2('OPENINGBALANCE', FormatFloat(TallyAmtPicture, FOBal)+' '+BaseUnit);
@@ -782,16 +798,24 @@ begin
   { NAME.LIST }
   xLdg := xLdg.GetParent;
   xLdg.NewChild2('BASEUNITS', BaseUnit );
-//  ShowMessage(FormatFloat(TallyAmtPicture, FOBal)+' '+BaseUnit);
+{
   if FIsBatchwiseOn then
   xldg.NewChild2('IsBatchWiseOn', 'Yes');
+}
   xLdg.NewChild2('OPENINGBALANCE', FormatFloat(TallyAmtPicture, FOBal)+' '+BaseUnit);
   if FORate > 0 then
     xLdg.NewChild2('OPENINGRATE', FormatFloat(TallyAmtPicture,FORate)+'/'+BaseUnit);;
   If Length(FGodown) > 0 then
   begin
   xLdg := xLdg.NewChild('BATCHALLOCATIONS.LIST','');
-  xLdg.NewChild2('GODOWNNAME', FGodown );
+//  xLdg.NewChild2('GODOWNNAME', FGodown );
+    if Length(FGodown) > 0 then
+    xLdg.NewChild2('GODOWNNAME', FGodown )
+    else
+    xLdg.NewChild2('GODOWNNAME', 'Main Location' );
+  if Length(FOBatch) > 0 then
+  xLdg.NewChild2('BATCHNAME', FOBatch)
+  else
   xLdg.NewChild2('BATCHNAME', 'Primary Batch');
 //  xLdg.NewChild2('BATCHNAME', 'Primary Batch');
   if FORate > 0 then
@@ -887,7 +911,6 @@ begin
     LedObj.Host := Env.Host;
     try
       LedPList := LedObj.GetLedPackedList;
-//      CashLedLedList := LedObj.GetCashLedPackedList;
     finally
       ledobj.Free;
     end;
@@ -1009,7 +1032,7 @@ begin
     xLdg.NewChild2('SVEXPORTFORMAT', '$$SysName:XML');
     if length(Env.FFirm) > 0 then
     begin
-      xLdg.NewChild2('SVCURRENTCOMPANY',Env.Firm);
+      xLdg.NewChild2('SVCURRENTCOMPANY',TextToXML(Env.Firm));
     end;
   { STATICVARIABLES }
       xLdg := xLdg.GetParent;
@@ -1036,7 +1059,7 @@ begin
     xvou.NewChild2('SVEXPORTFORMAT', '$$SysName:XML');
     if length(Env.FFirm) > 0 then
     begin
-      xvou.NewChild2('SVCURRENTCOMPANY',Env.Firm);
+      xvou.NewChild2('SVCURRENTCOMPANY',TextToXML(Env.Firm));
 
     end;
   { STATICVARIABLES }
@@ -1098,11 +1121,6 @@ begin
   end;
   if (WSType = 'Purchase')  or (WSType = 'Sales') then
   begin
-{    xvou.NewChild2('PERSISTEDVIEW','Invoice Voucher View'); }
-//    if FIsInvoice then
-//    xvou.NewChild2('ISINVOICE','Yes')
-//    else
-//    IsInv := True;
 
   CrLine := 0;
   DrLine := 0;
@@ -1137,26 +1155,7 @@ begin
   IsVchTypeMatched := False;
   DrCrTotal := 0;
 end;
-{
-procedure TbjVchExp.GetVchHeader(const ID, Date, Name, Narration: string);
-begin
-  if length(id) = 0 then
-    Fvchid := InttoStr(random(100000000))
-  else
-    Fvchid := id;
-  VchDate := Date;
-  GetVchType(Name);
-  VchNarration := Narration;
-end;
 
-procedure TbjVchExp.GetVchHeader(const ID: string);
-begin
-  if length(id) = 0 then
-    Fvchid := InttoStr(random(100000000))
-  else
-    Fvchid := id;
-end;
-}
 procedure TbjVchExp.SetVchID(const ID: string);
 begin
   if length(id) = 0 then
@@ -1165,29 +1164,6 @@ begin
     Fvchid := id;
   IsContra := True;
 end;
-
-{
-procedure TbjVchExp.GetVchType(const aName: string);
-begin
-   FVchType := aName;
-  if (PackStr(aName) <> Packstr('Receipt')) and
-  (PackStr(aName) <> PackStr('Payment')) and
-  (PackStr(aName) <> PackStr('Sales')) and
-  (PackStr(aName) <> PackStr('Sales Order')) and
-  (PackStr(aName) <> PackStr('Purchase')) and
-  (PackStr(aName) <> PackStr('Purchase Order')) and
-  (PackStr(aName) <> PackStr('Journal')) and
-  (PackStr(aName) <> PackStr('Contra')) and
-  (PackStr(aName) <> PackStr('Debit Note')) and
-  (PackStr(aName) <> PackStr('Credit Note')) and
-  (PackStr(aName) <> PackStr('Memorandum')) and
-  (PackStr(aName) <> PackStr('Reversing Journal')) and
-  (PackStr(aName) <> PackStr('Stock Journal')) then
-  begin
-   FVchType := 'Journal';
-  end;
-end;
-}
 
 function TbjVchExp.GetWSType: string;
 begin
@@ -1257,46 +1233,30 @@ end;
 
 function TbjVchExp.AddLine(const Ledger: string; const Amount: double): double;
 begin
-//  CheckVchType(Ledger, Amount);
-//  cAmt := Pack(Ledger, Amount,'','');
   Pack(Ledger, Amount,'','');
-{
-  if IsVchTypeMatched then
-  begin
-    if partyamt = 0 then
-    begin
-      partyamt := Abs(cAmt);
-      partyidx := Lines.Count-1;
-    end
-    else
-    if Abs(cAmt) > partyamt then
-    begin
-      partyamt := Abs(cAmt);
-      partyidx := Lines.Count-1;
-    end;
-  end
-  else
-  begin
-    if busamt = 0 then
-    begin
-      Busamt := Abs(cAmt);
-      busidx := Lines.Count-1;
-    end
-    else
-    if Lines.Count-1 <> partyidx then
-    if Abs(cAmt) > busamt then
-    begin
-      busamt := Abs(cAmt);
-      busidx := Lines.Count-1;
-    end;
-  end;
-}
   DrCrTotal := DrCrTotal + amount;
   RefLedger := Ledger;
   Result := DrCrTotal;
 end;
 {
 function TbjVchExp.SetInvLine(const Item: string; const Qty, Rate, Amount: double): double;
+var
+  pline: pInvLine;
+begin
+  Result := 0;
+   If length(RefLedger) = 0 then
+     Exit;
+  pline := new(pInvLine);
+  pline^.Ledger :=  RefLedger;
+  pline^.Item :=  Item;
+
+  pline^.Qty :=  Qty;
+  pline^.Rate :=  Rate;
+  pline^.Amount :=  Amount;
+  pline^.Batch :=  Batch;
+  ILines.Add(pline);
+  Result := Amount;
+end;
 }
 function TbjVchExp.SetInvLine(const Item: string; const Qty, Rate, Amount: double; const Batch, UserDesc: string): double;
 var
@@ -1373,7 +1333,6 @@ begin
   Item := new(pLine);
   Item^.Ledger :=  Ledger;
   Item^.Amount :=  Amount;
-//  if Length(Ref) > 0 then
   Item^.Ref :=  Ref;
   Item^.RefType :=  RefType;
   Lines.Add(Item);
@@ -1398,6 +1357,8 @@ begin
         partyidx := i;
         Item^.Ref := BillRef;
         Item^.RefType := 'New Ref';
+        if (WSType = 'Receipt')  or (WSType = 'Payment') then
+          Item^.RefType := 'Agst Ref';
       end;
     end
   end;
@@ -1431,18 +1392,7 @@ begin
     end;
     IsVchTypeMatched := True;
   end;
-{
-  CrLine := 0;
-  DrLine := 0;
-  for i := 0 to Lines.Count-1 do
-  begin
-    Item := Lines.Items[i];
-    if Item^.Amount > 0 then
-      CrLine := CrLine + 1;
-    if Item^.Amount < 0 then
-      DrLine := DrLine + 1;
-  end;
-}  
+
   ClearLines;
   partyidx := -1;
   partyamt := 0;
@@ -1905,10 +1855,10 @@ var
   UserDefined: string;
   item: pGSTNRec;
   dupName: boolean;
-  sameName: boolean;
+//  sameName: boolean;
 begin
   dupName := False;
-  sameName := False;
+//  sameName := False;
   If Length(aLedger) = 0 then
     Exit;
   if Length(aState) = 0 then
@@ -1932,10 +1882,14 @@ begin
   if not Found then
   begin
     if not Env.MergeDupLed4GSTN then
-      CreateParty(aLedger, aParent, aGSTN, aState)
+    begin
+      CreateParty(aLedger, aParent, aGSTN, aState);
+    end
     else if not (dupName) then
-     CreateParty(aLedger, aParent, aGSTN, aState);
-     LedPList.Add(PackStr(aLedger));
+    begin
+      CreateParty(aLedger, aParent, aGSTN, aState);
+    end;
+    LedPList.Add(PackStr(aLedger));
      if Length(aGSTN) > 0 then
      begin
        item := new(pGSTNRec);
@@ -2041,6 +1995,7 @@ var
   i: integer;
   item: pGSTNRec;
 begin
+{  Result := '' }
   if not Assigned(GSTNList) then
   begin
 //    GSTNList := TList.Create;
@@ -2069,8 +2024,10 @@ var
   i: integer;
   item: pGSTNRec;
 begin
+{  Result := '' }
   if not Assigned(GSTNList) then
   begin
+//    GSTNList := TList.Create;
   Rpet := TRpetGSTN.Create;
   try
     Rpet.Host := Env.Host;

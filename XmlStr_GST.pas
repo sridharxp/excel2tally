@@ -550,9 +550,12 @@ MYSALE = '<Voucher>'+
 '<HSN>>'+
 '<Alias>HSN</Alias>'+
 '</HSN>'+
-'<Batch>>'+
+'<BATCH>'+
 '<Alias>Batch</Alias>'+
-'</Batch>'+
+'</BATCH>'+
+'<UserDesc>'+
+'<Alias>UserDesc</Alias>'+
+'</UserDesc>'+
 '<UNIT>>'+
 '<Alias>Unit</Alias>'+
 '</UNIT>'+
@@ -885,9 +888,12 @@ MYPURC = '<Voucher>'+
 '<HSN>>'+
 '<Alias>HSN</Alias>'+
 '</HSN>'+
-'<Batch>>'+
+'<BATCH>>'+
 '<Alias>Batch</Alias>'+
-'</Batch>'+
+'</BATCH>'+
+'<UserDesc>'+
+'<Alias>UserDesc</Alias>'+
+'</UserDesc>'+
 '<UNIT>>'+
 '<Alias>Unit</Alias>'+
 '</UNIT>'+
@@ -1463,9 +1469,12 @@ GSTSALE = '<Voucher>'+
 '<HSN>>'+
 '<Alias>HSN</Alias>'+
 '</HSN>'+
-'<Batch>>'+
+'<BATCH>>'+
 '<Alias>Batch</Alias>'+
-'</Batch>'+
+'</BATCH>'+
+'<UserDesc>'+
+'<Alias>UserDesc</Alias>'+
+'</UserDesc>'+
 '<UNIT>>'+
 '<Alias>Unit</Alias>'+
 '</UNIT>'+
@@ -1749,9 +1758,12 @@ GSTPURC = '<Voucher>'+
 '<HSN>>'+
 '<Alias>HSN</Alias>'+
 '</HSN>'+
-'<Batch>>'+
+'<BATCH>>'+
 '<Alias>Batch</Alias>'+
-'</Batch>'+
+'</BATCH>'+
+'<UserDesc>'+
+'<Alias>UserDesc</Alias>'+
+'</UserDesc>'+
 '<UNIT>>'+
 '<Alias>Unit</Alias>'+
 '</UNIT>'+
@@ -1790,6 +1802,9 @@ ACCMASTER = '<Voucher>'+
 '<O_BALANCE>'+
 '<Alias>O_Balance</Alias>'+
 '</O_BALANCE>'+
+'<ADDRESS>'+
+'<Alias>Address</Alias>'+
+'</ADDRESS>'+
 '<Mobile>'+
 '<Alias>Mobile</Alias>'+
 '</Mobile>'+
@@ -1817,9 +1832,12 @@ INVMASTER = '<Voucher>'+
 '<HSN>>'+
 '<Alias>HSN</Alias>'+
 '</HSN>'+
-//'<Batch>>'+
-//'<Alias>Batch</Alias>'+
-//'</Batch>'+
+'<O_BATCH>>'+
+'<Alias>O_Batch</Alias>'+
+'</O_BATCH>'+
+'<UserDesc>>'+
+'<Alias>ItemDesc</Alias>'+
+'</UserDesc>'+
 '<GSTRate>>'+
 '<Alias>GSTRate</Alias>'+
 '</GSTRate>'+
@@ -1844,6 +1862,9 @@ INVMASTER = '<Voucher>'+
 '<GODOWN>'+
 '<Alias>Godown</Alias>'+
 '</GODOWN>'+
+'<CATEGORY>'+
+'<Alias>Category</Alias>'+
+'</CATEGORY>'+
 '</ITEM>'+
 '</Voucher>';
 
@@ -1858,6 +1879,9 @@ CNOTE = '<Voucher>'+
 '<ID>'+
 '<Alias>ID</Alias>'+
 '</ID>'+
+'<VoucherDate>'+
+'<Alias>Voucher Date</Alias>'+
+'</VoucherDate>'+
 '<VoucherNo>'+
 '<Alias>Voucher No</Alias>'+
 '</VoucherNo>'+
@@ -2124,9 +2148,12 @@ CNOTE = '<Voucher>'+
 '<HSN>>'+
 '<Alias>HSN</Alias>'+
 '</HSN>'+
-'<Batch>>'+
+'<BATCH>>'+
 '<Alias>Batch</Alias>'+
-'</Batch>'+
+'</BATCH>'+
+'<UserDesc>'+
+'<Alias>UserDesc</Alias>'+
+'</UserDesc>'+
 '<UNIT>>'+
 '<Alias>Unit</Alias>'+
 '</UNIT>'+
@@ -2153,6 +2180,9 @@ DNOTE = '<Voucher>'+
 '<ID>'+
 '<Alias>ID</Alias>'+
 '</ID>'+
+'<VoucherDate>'+
+'<Alias>Voucher Date</Alias>'+
+'</VoucherDate>'+
 '<VoucherNo>'+
 '<Alias>Voucher No</Alias>'+
 '</VoucherNo>'+
@@ -2407,9 +2437,12 @@ DNOTE = '<Voucher>'+
 '<HSN>>'+
 '<Alias>HSN</Alias>'+
 '</HSN>'+
-'<Batch>>'+
+'<BATCH>>'+
 '<Alias>Batch</Alias>'+
-'</Batch>'+
+'</BATCH>'+
+'<UserDesc>'+
+'<Alias>UserDesc</Alias>'+
+'</UserDesc>'+
 '<UNIT>>'+
 '<Alias>Unit</Alias>'+
 '</UNIT>'+
