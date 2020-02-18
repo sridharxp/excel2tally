@@ -34,10 +34,10 @@ CONTRA = '<Voucher>'+
 '</AmtCol>'+
 '<Group>Bank Accounts</Group>'+
 '</LEDGER>'+
-'<VTYPE>>'+
+'<VTYPE>'+
 '<Default>Contra</Default>'+
 '</VTYPE>'+
-'<NARRATION>>'+
+'<NARRATION>'+
 '<Alias>NARRATION</Alias>'+
 '</NARRATION>'+
 '</Voucher>';
@@ -69,11 +69,11 @@ RCPT ='<Voucher>'+
 '<Type>Dr</Type>'+
 '</AmtCol>'+
 '</LEDGER>'+
-'<VTYPE>>'+
+'<VTYPE>'+
 '<Alias>VTYPE</Alias>'+
 '<Default>Receipt</Default>'+
 '</VTYPE>'+
-'<NARRATION>>'+
+'<NARRATION>'+
 '<Alias>NARRATION</Alias>'+
 '</NARRATION>'+
 '</Voucher>';
@@ -105,11 +105,11 @@ PYMT = '<Voucher>'+
 '<Alias>Party Ledger</Alias>'+
 '<Group>Sundry Creditors</Group>'+
 '</RoundOff>'+
-'<VTYPE>>'+
+'<VTYPE>'+
 '<Alias>VTYPE</Alias>'+
 '<Default>Payment</Default>'+
 '</VTYPE>'+
-'<NARRATION>>'+
+'<NARRATION>'+
 '<Alias>NARRATION</Alias>'+
 '</NARRATION>'+
 '</Voucher>';
@@ -143,10 +143,10 @@ JRNL = '<Voucher>'+
 '<Alias>DEBIT GROUP</Alias>'+
 '</Group>'+
 '</LEDGER>'+
-'<VTYPE>>'+
+'<VTYPE>'+
 '<Default>Journal</Default>'+
 '</VTYPE>'+
-'<NARRATION>>'+
+'<NARRATION>'+
 '<Alias>NARRATION</Alias>'+
 '</NARRATION>'+
 '</Voucher>';
@@ -190,11 +190,11 @@ BANK = '<Voucher>'+
 '<Group>Bank Accounts</Group>'+
 '</RoundOff>'+
 
-'<VTYPE>>'+
+'<VTYPE>'+
 '<Alias>VTYPE</Alias>'+
 '<Default>Journal</Default>'+
 '</VTYPE>'+
-'<NARRATION>>'+
+'<NARRATION>'+
 '<Alias>NARRATION</Alias>'+
 '</NARRATION>'+
 '</Voucher>';
@@ -231,11 +231,11 @@ DAYBOOK = '<Voucher>'+
 '<Alias>GROUP</Alias>'+
 ' </Group>'+
 '</LEDGER>'+
-'<VTYPE>>'+
+'<VTYPE>'+
 '<Alias>VTYPE</Alias>'+
 '<Default>Journal</Default>'+
 '</VTYPE>'+
-'<NARRATION>>'+
+'<NARRATION>'+
 '<Alias>NARRATION</Alias>'+
 '</NARRATION>'+
 '</Voucher>';
@@ -539,15 +539,15 @@ MYSALE = '<Voucher>'+
 '</AmtCol>'+
 '</LEDGER>'+
 
-'<VTYPE>>'+
+'<VTYPE>'+
 '<Alias>VTYPE</Alias>'+
 '<Default>Sales</Default>'+
 '</VTYPE>'+
-'<INVENTORY>>'+
-'<ITEM>>'+
+'<INVENTORY>'+
+'<ITEM>'+
 '<Alias>Item</Alias>'+
 '</ITEM>'+
-'<HSN>>'+
+'<HSN>'+
 '<Alias>HSN</Alias>'+
 '</HSN>'+
 '<BATCH>'+
@@ -556,16 +556,16 @@ MYSALE = '<Voucher>'+
 '<UserDesc>'+
 '<Alias>UserDesc</Alias>'+
 '</UserDesc>'+
-'<UNIT>>'+
+'<UNIT>'+
 '<Alias>Unit</Alias>'+
 '</UNIT>'+
-'<QTY>>'+
+'<QTY>'+
 '<Alias>Qty</Alias>'+
 '</QTY>'+
-'<RATE>>'+
+'<RATE>'+
 '<Alias>Rate</Alias>'+
 '</RATE>'+
-'<Value>>'+
+'<Value>'+
 '<Alias>Bill_Value</Alias>'+
 '</Value>'+
 '</INVENTORY>'+
@@ -877,33 +877,33 @@ MYPURC = '<Voucher>'+
 '</AmtCol>'+
 '</LEDGER>'+
 
-'<VTYPE>>'+
+'<VTYPE>'+
 '<Alias>VTYPE</Alias>'+
 '<Default>Purchase</Default>'+
 '</VTYPE>'+
-'<INVENTORY>>'+
-'<ITEM>>'+
+'<INVENTORY>'+
+'<ITEM>'+
 '<Alias>Item</Alias>'+
 '</ITEM>'+
-'<HSN>>'+
+'<HSN>'+
 '<Alias>HSN</Alias>'+
 '</HSN>'+
-'<BATCH>>'+
+'<BATCH>'+
 '<Alias>Batch</Alias>'+
 '</BATCH>'+
 '<UserDesc>'+
 '<Alias>UserDesc</Alias>'+
 '</UserDesc>'+
-'<UNIT>>'+
+'<UNIT>'+
 '<Alias>Unit</Alias>'+
 '</UNIT>'+
-'<QTY>>'+
+'<QTY>'+
 '<Alias>Qty</Alias>'+
 '</QTY>'+
-'<RATE>>'+
+'<RATE>'+
 '<Alias>Rate</Alias>'+
 '</RATE>'+
-'<Value>>'+
+'<Value>'+
 '<Alias>Bill_Value</Alias>'+
 '</Value>'+
 '</INVENTORY>'+
@@ -1009,25 +1009,25 @@ SBILL = '<Voucher>'+
 '</AmtCol>'+
 '</LEDGER>'+
 
-'<VTYPE>>'+
+'<VTYPE>'+
 '<Alias>VTYPE</Alias>'+
 '<Default>Sales</Default>'+
 '</VTYPE>'+
 
-'<INVENTORY>>'+
-'<ITEM>>'+
+'<INVENTORY>'+
+'<ITEM>'+
 '<Alias>Item</Alias>'+
 '</ITEM>'+
-'<UNIT>>'+
+'<UNIT>'+
 '<Alias>Unit</Alias>'+
 '</UNIT>'+
-'<QTY>>'+
+'<QTY>'+
 '<Alias>Qty</Alias>'+
 '</QTY>'+
-'<RATE>>'+
+'<RATE>'+
 '<Alias>Rate</Alias>'+
 '</RATE>'+
-'<Value>>'+
+'<Value>'+
 '<Alias>Bill_Value</Alias>'+
 '</Value>'+
 '</INVENTORY>'+
@@ -1133,25 +1133,25 @@ PBILL = '<Voucher>'+
 '</AmtCol>'+
 '</LEDGER>'+
 
-'<VTYPE>>'+
+'<VTYPE>'+
 '<Alias>VTYPE</Alias>'+
 '<Default>Purchase</Default>'+
 '</VTYPE>'+
 
-'<INVENTORY>>'+
-'<ITEM>>'+
+'<INVENTORY>'+
+'<ITEM>'+
 '<Alias>Item</Alias>'+
 '</ITEM>'+
-'<UNIT>>'+
+'<UNIT>'+
 '<Alias>Unit</Alias>'+
 '</UNIT>'+
-'<QTY>>'+
+'<QTY>'+
 '<Alias>Qty</Alias>'+
 '</QTY>'+
-'<RATE>>'+
+'<RATE>'+
 '<Alias>Rate</Alias>'+
 '</RATE>'+
-'<Value>>'+
+'<Value>'+
 '<Alias>Bill_Value</Alias>'+
 '</Value>'+
 '</INVENTORY>'+
@@ -1182,10 +1182,10 @@ FINANCE = '<Voucher>'+
 '<Group>Current Liabilities</Group>'+
 '<Alias>LEDGER</Alias>'+
 '+</LEDGER>'+
-'<VTYPE>>'+
+'<VTYPE>'+
 '<Default>Receipt</Default>'+
 '</VTYPE>'+
-'<NARRATION>>'+
+'<NARRATION>'+
 '<Alias>NARRATION</Alias>'+
 '</NARRATION>'+
 '</Voucher>';
@@ -1223,7 +1223,7 @@ GSTSALE = '<Voucher>'+
 //'<RoundTo>1</RoundTo>'+
 '</RoundOff>'+
 
-'<NARRATION>>'+
+'<NARRATION>'+
 '<Alias>NARRATION</Alias>'+
 '</NARRATION>'+
 
@@ -1456,32 +1456,32 @@ GSTSALE = '<Voucher>'+
 '</AmtCol>'+
 '</LEDGER>'+
 
-'<VTYPE>>'+
+'<VTYPE>'+
 '<Alias>VTYPE</Alias>'+
 '<Default>Sales</Default>'+
 '</VTYPE>'+
 
 
-'<INVENTORY>>'+
-'<ITEM>>'+
+'<INVENTORY>'+
+'<ITEM>'+
 '<Alias>Item</Alias>'+
 '</ITEM>'+
-'<HSN>>'+
+'<HSN>'+
 '<Alias>HSN</Alias>'+
 '</HSN>'+
-'<BATCH>>'+
+'<BATCH>'+
 '<Alias>Batch</Alias>'+
 '</BATCH>'+
 '<UserDesc>'+
 '<Alias>UserDesc</Alias>'+
 '</UserDesc>'+
-'<UNIT>>'+
+'<UNIT>'+
 '<Alias>Unit</Alias>'+
 '</UNIT>'+
-'<QTY>>'+
+'<QTY>'+
 '<Alias>Qty</Alias>'+
 '</QTY>'+
-'<RATE>>'+
+'<RATE>'+
 '<Alias>Rate</Alias>'+
 '</RATE>'+
 '</INVENTORY>'+
@@ -1524,7 +1524,7 @@ GSTPURC = '<Voucher>'+
 //'<RoundTo>1</RoundTo>'+
 '</RoundOff>'+
 
-'<NARRATION>>'+
+'<NARRATION>'+
 '<Alias>NARRATION</Alias>'+
 '</NARRATION>'+
 
@@ -1746,31 +1746,31 @@ GSTPURC = '<Voucher>'+
 '</AmtCol>'+
 '</LEDGER>'+
 
-'<VTYPE>>'+
+'<VTYPE>'+
 '<Alias>VTYPE</Alias>'+
 '<Default>Purchase</Default>'+
 '</VTYPE>'+
 
-'<INVENTORY>>'+
-'<ITEM>>'+
+'<INVENTORY>'+
+'<ITEM>'+
 '<Alias>Item</Alias>'+
 '</ITEM>'+
-'<HSN>>'+
+'<HSN>'+
 '<Alias>HSN</Alias>'+
 '</HSN>'+
-'<BATCH>>'+
+'<BATCH>'+
 '<Alias>Batch</Alias>'+
 '</BATCH>'+
 '<UserDesc>'+
 '<Alias>UserDesc</Alias>'+
 '</UserDesc>'+
-'<UNIT>>'+
+'<UNIT>'+
 '<Alias>Unit</Alias>'+
 '</UNIT>'+
-'<QTY>>'+
+'<QTY>'+
 '<Alias>Qty</Alias>'+
 '</QTY>'+
-'<RATE>>'+
+'<RATE>'+
 '<Alias>Rate</Alias>'+
 '</RATE>'+
 {
@@ -1829,16 +1829,16 @@ INVMASTER = '<Voucher>'+
 '<MAILINGNAME>'+
 '<Alias>PartNo</Alias>'+
 '</MAILINGNAME>'+
-'<HSN>>'+
+'<HSN>'+
 '<Alias>HSN</Alias>'+
 '</HSN>'+
-'<O_BATCH>>'+
+'<O_BATCH>'+
 '<Alias>O_Batch</Alias>'+
 '</O_BATCH>'+
-'<UserDesc>>'+
+'<UserDesc>'+
 '<Alias>ItemDesc</Alias>'+
 '</UserDesc>'+
-'<GSTRate>>'+
+'<GSTRate>'+
 '<Alias>GSTRate</Alias>'+
 '</GSTRate>'+
 '<AliasName>'+
@@ -1904,7 +1904,7 @@ CNOTE = '<Voucher>'+
 //'<RoundTo>1</RoundTo>'+
 '</RoundOff>'+
 
-'<NARRATION>>'+
+'<NARRATION>'+
 '<Alias>NARRATION</Alias>'+
 '</NARRATION>'+
 
@@ -2137,33 +2137,33 @@ CNOTE = '<Voucher>'+
 '</AmtCol>'+
 '</LEDGER>'+
 
-'<VTYPE>>'+
+'<VTYPE>'+
 '<Default>Credit Note</Default>'+
 '</VTYPE>'+
 
-'<INVENTORY>>'+
-'<ITEM>>'+
+'<INVENTORY>'+
+'<ITEM>'+
 '<Alias>Item</Alias>'+
 '</ITEM>'+
-'<HSN>>'+
+'<HSN>'+
 '<Alias>HSN</Alias>'+
 '</HSN>'+
-'<BATCH>>'+
+'<BATCH>'+
 '<Alias>Batch</Alias>'+
 '</BATCH>'+
 '<UserDesc>'+
 '<Alias>UserDesc</Alias>'+
 '</UserDesc>'+
-'<UNIT>>'+
+'<UNIT>'+
 '<Alias>Unit</Alias>'+
 '</UNIT>'+
-'<QTY>>'+
+'<QTY>'+
 '<Alias>Qty</Alias>'+
 '</QTY>'+
-'<RATE>>'+
+'<RATE>'+
 '<Alias>Rate</Alias>'+
 '</RATE>'+
-'<Value>>'+
+'<Value>'+
 '<Alias>Return Value</Alias>'+
 '</Value>'+
 '</INVENTORY>'+
@@ -2205,7 +2205,7 @@ DNOTE = '<Voucher>'+
 //'<RoundTo>1</RoundTo>'+
 '</RoundOff>'+
 
-'<NARRATION>>'+
+'<NARRATION>'+
 '<Alias>NARRATION</Alias>'+
 '</NARRATION>'+
 
@@ -2426,38 +2426,93 @@ DNOTE = '<Voucher>'+
 '</AmtCol>'+
 '</LEDGER>'+
 
-'<VTYPE>>'+
+'<VTYPE>'+
 '<Default>Debit Note</Default>'+
 '</VTYPE>'+
 
-'<INVENTORY>>'+
-'<ITEM>>'+
+'<INVENTORY>'+
+'<ITEM>'+
 '<Alias>Item</Alias>'+
 '</ITEM>'+
-'<HSN>>'+
+'<HSN>'+
 '<Alias>HSN</Alias>'+
 '</HSN>'+
-'<BATCH>>'+
+'<BATCH>'+
 '<Alias>Batch</Alias>'+
 '</BATCH>'+
 '<UserDesc>'+
 '<Alias>UserDesc</Alias>'+
 '</UserDesc>'+
-'<UNIT>>'+
+'<UNIT>'+
 '<Alias>Unit</Alias>'+
 '</UNIT>'+
-'<QTY>>'+
+'<QTY>'+
 '<Alias>Qty</Alias>'+
 '</QTY>'+
-'<RATE>>'+
+'<RATE>'+
 '<Alias>Rate</Alias>'+
 '</RATE>'+
-'<Value>>'+
+'<Value>'+
 '<Alias>Return Value</Alias>'+
 '</Value>'+
 '</INVENTORY>'+
 '</Voucher>';
 
+StkJrnl = '<Voucher>'+
+'<Data>'+
+'<StkVchList>StkJrnl</StkVchList>'+
+'<IsMultiRow>Yes</IsMultiRow>'+
+'<IsMultiColumn>Yes</IsMultiColumn>'+
+'</Data>'+
+'<ID>'+
+'<Alias>ID</Alias>'+
+'</ID>'+
+'<DATE>'+
+'<Alias>DATE</Alias>'+
+'</DATE>'+
+'<CrITEM>'+
+'<Alias>Out Item</Alias>'+
+'</CrITEM>'+
+'<CrBATCH>'+
+'<Alias>Out Batch</Alias>'+
+'</CrBATCH>'+
+'<CrUNIT>'+
+'<Alias>Out Unit</Alias>'+
+'</CrUNIT>'+
+'<CrQTY>'+
+'<Alias>Out Qty</Alias>'+
+'</CrQTY>'+
+'<CrRATE>'+
+'<Alias>Out Rate</Alias>'+
+'</CrRATE>'+
+'<CrAMOUNT>'+
+'<Alias>Out Amount</Alias>'+
+'</CrAMOUNT>'+
+'<DrITEM>'+
+'<Alias>In Item</Alias>'+
+'</DrITEM>'+
+'<DrBATCH>'+
+'<Alias>In Batch</Alias>'+
+'</DrBATCH>'+
+'<DrUNIT>'+
+'<Alias>In Unit</Alias>'+
+'</DrUNIT>'+
+'<DrQTY>'+
+'<Alias>In Qty</Alias>'+
+'</DrQTY>'+
+'<DrRATE>'+
+'<Alias>In Rate</Alias>'+
+'</DrRATE>'+
+'<DrAMOUNT>'+
+'<Alias>In Amount</Alias>'+
+'</DrAMOUNT>'+
+'<VTYPE>'+
+'<Default>Journal</Default>'+
+'</VTYPE>'+
+'<NARRATION>'+
+'<Alias>NARRATION</Alias>'+
+'</NARRATION>'+
+'</Voucher>';
 implementation
 
 end.

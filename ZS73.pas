@@ -235,6 +235,7 @@ type
     procedure AttachInv(const rled: string);
     procedure AttachAssessable(const rled: string);
     procedure AddInDirect(const idx: integer);
+    procedure AddInOut(const idx: integer);
     procedure CheckDefGroup;
     procedure CheckError;
     procedure SetEnv(aEnv: TbjEnv);
@@ -255,6 +256,7 @@ type
 //    function SetInvLine(const Item: string; const Qty, Rate, Amount: double): double;
     function SetInvLine(const Item: string; const Qty, Rate, Amount: double; const Batch, UserDesc:string): double;
     function Post(const Action: string; wem: boolean): string;
+    function SPost(const Action: string; wem: boolean): string;
 
     property VchID: string read FVchID write SetVchID;
     property vchDate: string read FVchDate write FVchDate;
@@ -1263,6 +1265,7 @@ var
   pline: pInvLine;
 begin
   Result := 0;
+  if VchType <> 'Stock Journal' then
    If length(RefLedger) = 0 then
      Exit;
   pline := new(pInvLine);
@@ -1469,6 +1472,33 @@ begin
   xVou := xVou.GetParent;
 end;
 
+procedure TbjVchExp.AddInOut(const idx: integer);
+begin
+  if (pInvLine(iLines.Items[idx])^.Amount < 0) then
+    xvou := xvou.NewChild('INVENTORYENTRIESIN.LIST','');
+  if (pInvLine(iLines.Items[idx])^.Amount > 0 ) then
+    xvou := xvou.NewChild('INVENTORYENTRIESOUT.LIST','');
+  xvou.NewChild2('STOCKITEMNAME',pInvLine(iLines.Items[idx])^.Item);
+  if (pInvLine(iLines.Items[idx])^.Amount < 0) then
+    xvou.NewChild2('ISDEEMEDPOSITIVE','Yes');
+  if (pInvLine(iLines.Items[idx])^.Amount > 0) then
+    xvou.NewChild2('ISDEEMEDPOSITIVE','No');
+  xvou.NewChild2('RATE', FormatFloat(TallyAmtPicture, pInvLine(iLines.Items[idx])^.Rate));
+  xvou.NewChild2('AMOUNT', FormatFloat(TallyAmtPicture, pInvLine(iLines.Items[idx])^.Amount));
+  xvou.NewChild2('ACTUALQTY', FormatFloat(TallyQtyPicture, pInvLine(iLines.Items[idx])^.Qty));
+  xvou.NewChild2('BILLEDQTY', FormatFloat(TallyQtyPicture, pInvLine(iLines.Items[idx])^.Qty));
+  xvou := xvou.NewChild('BATCHALLOCATIONS.LIST','');
+    xvou.NewChild2('GODOWNNAME', 'Main Location' );
+  if Length(pInvLine(iLines.Items[idx])^.Batch) > 0 then
+    xvou.NewChild2('BATCHNAME', pInvLine(iLines.Items[idx])^.Batch)
+  else
+    xvou.NewChild2('BATCHNAME', 'Primary Batch');
+  xvou.NewChild2('AMOUNT', FormatFloat(TallyAmtPicture, pInvLine(iLines.Items[idx])^.Amount));
+  xvou.NewChild2('ACTUALQTY', FormatFloat(TallyQtyPicture, pInvLine(iLines.Items[idx])^.Qty));
+  xvou.NewChild2('BILLEDQTY', FormatFloat(TallyQtyPicture, pInvLine(iLines.Items[idx])^.Qty));
+  xVou := xVou.GetParent;
+  xVou := xVou.GetParent;
+end;
 procedure TbjVchExp.AttachInv(const rled: string);
 var
   idx: integer;
@@ -1598,6 +1628,54 @@ begin
   xvch.Clear;
 end;
 
+function TbjVchExp.SPost(const Action: string; wem: boolean): string;
+var
+  Tallyid: IbjXml;
+  LErr: string;
+  Tid: string;
+  item: pInvLine;
+  i: Integer;
+begin
+  if (vchAction <> 'Create') and
+    (vchAction <> 'Alter') and
+    (VchAction <> 'Delete') then
+  VchAction := 'Create';
+  SetVchHeader;
+  for i := 0 to ILines.Count-1 do
+  begin
+    Item := ILines.Items[i];
+    AddInOut(i);
+  end;
+  ClearLines;
+  xmlFooter('V');
+  Env.Client.Host :=  Env.Host;
+  Env.Client.xmlRequestString :=  xvch.GetXml;
+  if Env.IsSaveXmlFileOn then
+    xvch.SaveXmlFile('Voucher.xml');
+  Env.Client.post;
+  xvchid.Clear;
+  xvchid.LoadXml(Env.Client.GetxmlResponseString);
+  if Env.IsSaveXmlFileOn then
+    xvchid.SaveXmlFile('Tally.xml');
+  Tallyid := xvchid.SearchForTag(nil, 'LASTVCHID');
+  if Assigned(Tallyid) then
+  begin
+    tid := TallyId.GetContent;
+    Result := TId;
+    if Env.NotifyVchID then
+      MessageDlg(Tid, mtInformation, [mbOK], 0);
+  end;
+  if wem then
+  begin
+  Tallyid := xvchid.SearchForTag(nil, 'LINEERROR');
+  if Assigned(Tallyid) then
+      LErr := TallyId.GetContent;
+  if Length(LErr) > 0 then
+     Result := Lerr;
+  end;
+  CheckError;
+  xvch.Clear;
+end;
 procedure TbjVchExp.CheckDefGroup;
 var
   i: integer;

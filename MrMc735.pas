@@ -76,6 +76,7 @@ TbjDSLParser = class(TinterfacedObject, IbjDSLParser)
   private
     FIsMListDeclared: Boolean;
     FIsVListDeclared: Boolean;
+    FIsIListDeclared: Boolean;
   protected
 { Xml related }
     cfgn: IbjXml;
@@ -135,6 +136,16 @@ TbjDSLParser = class(TinterfacedObject, IbjDSLParser)
     UTallyIDName: string;
     UChequeNoName: string;
 
+    UInItemName: string;
+    UOutItemName: string;
+    UInUnitName: string;
+    UOutUnitName: string;
+    UInQtyName: string;
+    UOutQtyName: string;
+    UInRateName: string;
+    UOutRateName: string;
+    UInAmtName: string;
+    UOutAmtName: string;
     UAssessableName: array [1..COLUMNLIMIT] of string;
 
     InventoryTag: string;
@@ -184,6 +195,8 @@ TbjDSLParser = class(TinterfacedObject, IbjDSLParser)
     IsCategoryDefined: Boolean;
     IsGroupDefined: Boolean;
     IsSubGroupDefined: Boolean;
+    IsInItemDefined: boolean;
+    IsOutItemDefined: boolean;
     IsLedgerDefined: array [1..COLUMNLIMIT] of boolean;
     IsRoundOffColDefined: boolean;
     IsAmtDefined: array [1..COLUMNLIMIT] of boolean;
@@ -206,6 +219,7 @@ TbjDSLParser = class(TinterfacedObject, IbjDSLParser)
     destructor Destroy; override;
     property IsMListDeclared: Boolean read FIsMListDeclared write FIsMListDeclared;
     property IsVListDeclared: Boolean read FIsVListDeclared write FIsVListDeclared;
+    property IsIListDeclared: Boolean read FIsIListDeclared write FIsIListDeclared;
 end;
 
 TbjMrMc = class(TinterfacedObject, IbjXlExp, IbjMrMc)
@@ -254,6 +268,7 @@ TbjMrMc = class(TinterfacedObject, IbjXlExp, IbjMrMc)
     procedure GenerateID;
     procedure CheckLedMst;
     procedure ExpItemMst;
+    procedure ExpStkJrnl;
     procedure CreateRowLedger;
     procedure CreateColLedger;
     procedure CreateItem(const level: integer);
@@ -265,6 +280,7 @@ TbjMrMc = class(TinterfacedObject, IbjXlExp, IbjMrMc)
     function IsIDChanged: boolean;
     procedure GetDefaults;
     procedure WriteStatus;
+    procedure WriteStock;
     function GetLedger(const level: integer): string;
     function GetRoundOffName: string;
     function GetAmt(const level: integer): double;
@@ -360,7 +376,7 @@ begin
   UItemName := 'Item';
   UHSNName := 'HSN';
   UBatchName := 'BATCH';
-  UUserDescName := 'ItemDesc';
+  UUserDescName := 'UserDesc';
   UUnitName := 'Unit';
   UQtyName := 'Qty';
   URateName := 'Rate';
@@ -377,6 +393,16 @@ begin
   UeMailName := 'EMail';
   UTallyIDName := 'TALLYID';
   UMstGroupName := 'GROUP';
+  UInItemName := 'DrITEM';
+  UOutItemName := 'CrITEM';
+  UInUnitName := 'DrUNIT';
+  UOutUnitName := 'CrUNIT';
+  UInQtyName := 'DrQTY';
+  UOutQtyName := 'CrQTY';
+  UInRateName := 'DrRATE';
+  UOutRateName := 'CrRATE';
+  UInAmtName := 'DrAMOUNT';
+  UOutAmtName := 'CrAMOUNT';
 end;
 
 destructor TbjDSLParser.Destroy;
@@ -412,6 +438,7 @@ var
   Database: string;
   VList: string;
   MList: string;
+  IList: string;
   str: string;
   i: integer;
   dcfg, xxcfg: IbjXml;
@@ -440,6 +467,13 @@ begin
     if Length(TableName) = 0 then
       TableName := MList;
     IsMListDeclared := True;
+  end;
+  IList  := xcfg.GetChildContent('StkVchList');
+  if (Length(IList) > 0) then
+  begin
+    if Length(TableName) = 0 then
+      TableName := IList;
+    IsIListDeclared := True;
   end;
 {
 AutoCreateMst affects default group only
@@ -878,6 +912,79 @@ AutoCreateMst affects default group only
     end;
 
   end;
+  if IsIListDeclared then
+  begin
+    xCfg := Cfg.SearchForTag(nil, UInItemName);
+    if Assigned(xCfg) then
+    begin
+      str := xCfg.GetChildContent('Alias');
+      if Length(str) > 0 then
+        UInItemName := str;
+    end;
+    xCfg := Cfg.SearchForTag(nil, UOutItemName);
+    if Assigned(xCfg) then
+    begin
+      str := xCfg.GetChildContent('Alias');
+      if Length(str) > 0 then
+        UOutItemName := str;
+    end;
+    xCfg := Cfg.SearchForTag(nil, UInUnitName);
+    if Assigned(xCfg) then
+    begin
+      str := xCfg.GetChildContent('Alias');
+      if Length(str) > 0 then
+        UInUnitName := str;
+    end;
+    xCfg := Cfg.SearchForTag(nil, UOutUnitName);
+    if Assigned(xCfg) then
+    begin
+      str := xCfg.GetChildContent('Alias');
+      if Length(str) > 0 then
+        UOutUnitName := str;
+    end;
+    xCfg := Cfg.SearchForTag(nil, UInQtyName);
+    if Assigned(xCfg) then
+    begin
+      str := xCfg.GetChildContent('Alias');
+      if Length(str) > 0 then
+        UInQtyName := str;
+    end;
+    xCfg := Cfg.SearchForTag(nil, UOutQtyName);
+    if Assigned(xCfg) then
+    begin
+      str := xCfg.GetChildContent('Alias');
+      if Length(str) > 0 then
+        UOutQtyName := str;
+    end;
+    xCfg := Cfg.SearchForTag(nil, UInRateName);
+    if Assigned(xCfg) then
+    begin
+      str := xCfg.GetChildContent('Alias');
+      if Length(str) > 0 then
+        UInRateName := str;
+    end;
+    xCfg := Cfg.SearchForTag(nil, UOutRateName);
+    if Assigned(xCfg) then
+    begin
+      str := xCfg.GetChildContent('Alias');
+      if Length(str) > 0 then
+        UOutRateName := str;
+    end;
+    xCfg := Cfg.SearchForTag(nil, UInAmtName);
+    if Assigned(xCfg) then
+    begin
+      str := xCfg.GetChildContent('Alias');
+      if Length(str) > 0 then
+        UInAmtName := str;
+    end;
+    xCfg := Cfg.SearchForTag(nil, UOutAmtName);
+    if Assigned(xCfg) then
+    begin
+      str := xCfg.GetChildContent('Alias');
+      if Length(str) > 0 then
+        UOutAmtName := str;
+    end;
+  end;
 //Shifted from ChckcolNames as this is Xml file specific
 { If Ledger is definded corresponding amount column should be defined }
 { gaps should not exist }
@@ -961,6 +1068,13 @@ begin
       IsSubGroupDefined := True;
     if kadb.FindField(UrATEname) <> nil then
       IsORateDefined := True;
+  end;
+  if IsIListDeclared then
+  begin
+    if kadb.FindField(UInItemName) <> nil then
+      IsInItemDefined := True;
+    if kadb.FindField(UOutItemName) <> nil then
+      IsOutItemDefined := True;
   end;
 { Check for TallyId }
   if kadb.FindField(UTallyIDName) <> nil then
@@ -1260,7 +1374,10 @@ begin
     if not kadb.Eof then
       notoskip := notoskip + 1;
   end;
+  if dsl.IsVListDeclared then
   WriteStatus;
+  if dsl.IsiListDeclared then
+  WriteStoCK;
   EndTime := Time;
   Elapsed := EndTime - StartTime;
   DecodeTime(Elapsed, Hrs, Mins, Secs, MSecs);
@@ -1284,7 +1401,12 @@ begin
   FoundNewId :=  IsIDChanged;
   if not FoundNewId then
   begin
+    if dsl.IsVListDeclared then
     ProcessRow;
+    if dsl.IsIListDeclared then
+    begin
+      ExpStkJrnl;
+    end;
     IsIdOnlyChecked := False;
   end;
   if FoundNewId then
@@ -1498,7 +1620,8 @@ begin
     MstExp.IsBatchwiseOn := False;
   if dsl.IsHSNDefined then
   begin
-    HSNColValue := kadb.GetFieldString('HSN');
+//    HSNColValue := kadb.GetFieldString('HSN');
+    HSNColValue := kadb.GetFieldString(dsl.UHSNName);
     GRate := kadb.GetFieldToken('Tax_rate');
     MstExp.NewHSN(ItemColValue, UnitColValue, HSNColValue, GRate);
   end
@@ -1646,7 +1769,8 @@ begin
   oRate := 0;
   if dsl.IsUnitDefined then
   begin
-    dbUnit := kadb.GetFieldString('Unit');
+//    dbUnit := kadb.GetFieldString('Unit');
+    dbUnit := kadb.GetFieldString(dsl.UUnitName);
     MstExp.NewUnit(dbUnit);
   end;
   if dsl.IsAliasDefined then
@@ -1712,6 +1836,53 @@ begin
   else
     MstExp.NewItem(dbItem, dbUnit, wOBal, ORate);
   FUpdate('Item: ' + dbItem);
+end;
+procedure TbjMrMc.ExpStkJrnl;
+var
+  ItemColValue: string;
+  dbUnit: string;
+  BatchColValue: string;
+  UserDescColValue: string;
+begin
+  if dsl.IsNarrationDefined then
+  begin
+    if Length(NarrationColValue) > 0 then
+    NarrationColValue := NarrationColValue + ' ' + kadb.GetFieldString(dsl.UNarrationName)
+    else
+    NarrationColValue := (kadb.GetFieldString(dsl.UNarrationName));
+  end;
+  if dsl.IsOutItemDefined then
+  begin
+    dbUnit := kadb.GetFieldString(dsl.UOutUnitName);
+    MstExp.NewUnit(dbUnit);
+  end;
+  if dsl.IsInItemDefined then
+  begin
+    dbUnit := kadb.GetFieldString(dsl.UInUnitName);
+    MstExp.NewUnit(dbUnit);
+  end;
+  if dsl.IsOutItemDefined then
+  begin
+  ItemColValue := kadb.GetFieldString(dsl.UOutItemName);
+  if (Length(ItemColValue) > 0) and
+    (not kadb.IsEmptyField(dsl.UOutQtyName)) then
+    VchExp.SetInvLine(ItemColValue,
+    kadb.GetFieldFloat(dsl.UOutQtyName),
+    kadb.GetFieldFloat(dsl.UOutRateName),
+    kadb.GetFieldFloat(dsl.UOutAmtName),
+    BatchColValue, UserDescColValue);
+  end;
+  if dsl.IsInItemDefined then
+  begin
+  ItemColValue := kadb.GetFieldString(dsl.UInItemName);
+  if (Length(ItemColValue) > 0) and
+    (not kadb.IsEmptyField(dsl.UInQtyName)) then
+    VchExp.SetInvLine(ItemColValue,
+    kadb.GetFieldFloat(dsl.UInQtyName),
+    kadb.GetFieldFloat(dsl.UInRateName),
+    -kadb.GetFieldFloat(dsl.UInAmtName),
+    BatchColValue, UserDescColValue);
+  end;
 end;
 
 procedure TbjMrMc.CreateRowLedger;
@@ -2039,6 +2210,31 @@ begin
       SCount := Scount + 1;
 end;
 
+procedure TbjMrMc.WriteStock;
+var
+  i: integer;
+  statmsg: string;
+  RoundOffAmount: Double;
+  Thisalso: boolean;
+begin
+  vchAction := 'Create';
+  if dsl.IsNarrationDefined then
+    VchExp.VchNarration := NarrationColValue;
+  StatMsg := VchExp.SPost(VchAction, True);
+  FUpdate('Voucher: ' + Statmsg);
+  ProcessedCount := ProcessedCount + 1;
+  for i := 1 to notoskip do
+    kadb.Prior;
+  if ToLog then
+  if dsl.isTallyIdDefined then
+    kadb.SetFieldVal('TALLYID', statmsg);
+  for i := 1 to notoskip do
+    kadb.Next;
+  notoskip := 0;
+  if (Length(StatMsg) > 0 ) and (Length(StatMsg) < 9 )then
+    if StatMsg <> '0' then
+      SCount := Scount + 1;
+end;
 procedure TbjMrMc.SetFirm(const aFirm: string);
 begin
   FFirm := aFirm;
