@@ -58,7 +58,7 @@ uses
 {$DEFINE xlstbl}
 
 Const
-  PGLEN = 12;
+  PGLEN = 20;
   COLUMNLIMIT = 64;
   TallyAmtPicture = '############.##';
 
@@ -146,6 +146,8 @@ TbjDSLParser = class(TinterfacedObject, IbjDSLParser)
     UOutRateName: string;
     UInAmtName: string;
     UOutAmtName: string;
+    UInGodownName: string;
+    UOutGodownName: string;
     UAssessableName: array [1..COLUMNLIMIT] of string;
 
     InventoryTag: string;
@@ -403,6 +405,8 @@ begin
   UOutRateName := 'CrRATE';
   UInAmtName := 'DrAMOUNT';
   UOutAmtName := 'CrAMOUNT';
+  UInGodownName := 'DrGODOWN';
+  UOutGodownName := 'CrGODOWN';
 end;
 
 destructor TbjDSLParser.Destroy;
@@ -984,6 +988,20 @@ AutoCreateMst affects default group only
       if Length(str) > 0 then
         UOutAmtName := str;
     end;
+    xCfg := Cfg.SearchForTag(nil, UInGodownName);
+    if Assigned(xCfg) then
+    begin
+      str := xCfg.GetChildContent('Alias');
+      if Length(str) > 0 then
+        UInGodownName := str;
+    end;
+    xCfg := Cfg.SearchForTag(nil, UOutGodownName);
+    if Assigned(xCfg) then
+    begin
+      str := xCfg.GetChildContent('Alias');
+      if Length(str) > 0 then
+        UOutGodownName := str;
+    end;
   end;
 //Shifted from ChckcolNames as this is Xml file specific
 { If Ledger is definded corresponding amount column should be defined }
@@ -1162,7 +1180,7 @@ begin
   notoskip := 0;
   ProcessedCount := 0;;
   FToLog := True;
-  FdynPgLen := PgLen + Random(24);
+  FdynPgLen := PgLen + Random(29);
   askAgainToAutoCreateMst := True;
 end;
 
@@ -1477,6 +1495,7 @@ var
   ItemColValue: string;
   BatchColValue: string;
   UserDescColValue: string;
+  GodownColValue: string;
 begin
   if not  dsl.IsInvDefined[level] then
     Exit;
@@ -1490,8 +1509,10 @@ begin
     Exit;
 { InvAmt for Purchase }
   ItemColValue := kadb.GetFieldString(dsl.UItemName);
+  if dsl.IsGodownDefined then
+  GodownColValue :=  kadb.GetFieldString(dsl.UGodownName);
   if dsl.IsBatchDefined then
-  BatchColValue :=  kadb.GetFieldString('Batch');
+  BatchColValue :=  kadb.GetFieldString(dsl.UBatchName);
   if dsl.IsUserDescDefined then
   UserDescColValue :=  kadb.GetFieldString(dsl.UUserDescName);
   if (Length(ItemColValue) > 0) and
@@ -1499,7 +1520,7 @@ begin
     VchExp.SetInvLine(ItemColValue,
     kadb.GetFieldFloat(dsl.UQtyName),
     kadb.GetFieldFloat(dsl.URateName),
-    invamt, BatchColValue, UserDescColValue);
+    invamt, GodownColValue, BatchColValue, UserDescColValue);
   IsInventoryAssigned := True;
   VchExp.InvVch := True;
 end;
@@ -1613,6 +1634,9 @@ begin
     UnitColValue := kadb.GetFieldString(dsl.UUnitName);
     MstExp.NewUnit(UnitColValue);
   end;
+  if dsl.IsGodownDefined then
+  if Length(kadb.GetFieldString(dsl.UGodownName)) > 0 then
+    MstExp.NewGodown(kadb.GetFieldString(dsl.UgODOWNName),'');
   if dsl.IsBatchDefined then
   if Length(kadb.GetFieldString(dsl.UBatchName)) > 0 then
     MstExp.IsBatchwiseOn := True
@@ -1842,6 +1866,7 @@ var
   ItemColValue: string;
   dbUnit: string;
   BatchColValue: string;
+  GodownColValue: string;
   UserDescColValue: string;
 begin
   if dsl.IsNarrationDefined then
@@ -1855,33 +1880,39 @@ begin
   begin
     dbUnit := kadb.GetFieldString(dsl.UOutUnitName);
     MstExp.NewUnit(dbUnit);
+    ItemColValue := kadb.GetFieldString(dsl.UOutItemName);
+    MstExp.NewItem(ItemColValue, dbUnit, 0,0);
   end;
   if dsl.IsInItemDefined then
   begin
     dbUnit := kadb.GetFieldString(dsl.UInUnitName);
     MstExp.NewUnit(dbUnit);
+    ItemColValue := kadb.GetFieldString(dsl.UInItemName);
+    MstExp.NewItem(ItemColValue, dbUnit, 0,0);
   end;
   if dsl.IsOutItemDefined then
   begin
   ItemColValue := kadb.GetFieldString(dsl.UOutItemName);
+  GodownColValue := kadb.GetFieldString(dsl.UOutGodownName);
   if (Length(ItemColValue) > 0) and
     (not kadb.IsEmptyField(dsl.UOutQtyName)) then
     VchExp.SetInvLine(ItemColValue,
     kadb.GetFieldFloat(dsl.UOutQtyName),
     kadb.GetFieldFloat(dsl.UOutRateName),
     kadb.GetFieldFloat(dsl.UOutAmtName),
-    BatchColValue, UserDescColValue);
+    GodownColValue, BatchColValue, UserDescColValue);
   end;
   if dsl.IsInItemDefined then
   begin
   ItemColValue := kadb.GetFieldString(dsl.UInItemName);
+  GodownColValue := kadb.GetFieldString(dsl.UInGodownName);
   if (Length(ItemColValue) > 0) and
     (not kadb.IsEmptyField(dsl.UInQtyName)) then
     VchExp.SetInvLine(ItemColValue,
     kadb.GetFieldFloat(dsl.UInQtyName),
     kadb.GetFieldFloat(dsl.UInRateName),
     -kadb.GetFieldFloat(dsl.UInAmtName),
-    BatchColValue, UserDescColValue);
+    GodownColValue, BatchColValue, UserDescColValue);
   end;
 end;
 
@@ -2214,7 +2245,7 @@ procedure TbjMrMc.WriteStock;
 var
   i: integer;
   statmsg: string;
-  RoundOffAmount: Double;
+//  RoundOffAmount: Double;
   Thisalso: boolean;
 begin
   vchAction := 'Create';

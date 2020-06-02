@@ -254,7 +254,7 @@ type
     function AddLinewithRef(const Ledger: string; const Amount: double; const Ref, RefType: string): double;
     function SetAssessable(const aAmount: double): double;
 //    function SetInvLine(const Item: string; const Qty, Rate, Amount: double): double;
-    function SetInvLine(const Item: string; const Qty, Rate, Amount: double; const Batch, UserDesc:string): double;
+    function SetInvLine(const Item: string; const Qty, Rate, Amount: double; const Godown, Batch, UserDesc:string): double;
     function Post(const Action: string; wem: boolean): string;
     function SPost(const Action: string; wem: boolean): string;
 
@@ -290,6 +290,7 @@ type
     Qty: double;
     Rate: double;
     Amount: double;
+    Godown: string;
     Batch: string;
     UserDesc: string;
   end;
@@ -1034,7 +1035,8 @@ begin
     xLdg.NewChild2('SVEXPORTFORMAT', '$$SysName:XML');
     if length(Env.FFirm) > 0 then
     begin
-      xLdg.NewChild2('SVCURRENTCOMPANY',TextToXML(Env.Firm));
+//      xLdg.NewChild2('SVCURRENTCOMPANY',TextToXML(Env.Firm));
+      xLdg.NewChild2('SVCURRENTCOMPANY',Env.Firm);
     end;
   { STATICVARIABLES }
       xLdg := xLdg.GetParent;
@@ -1061,8 +1063,8 @@ begin
     xvou.NewChild2('SVEXPORTFORMAT', '$$SysName:XML');
     if length(Env.FFirm) > 0 then
     begin
-      xvou.NewChild2('SVCURRENTCOMPANY',TextToXML(Env.Firm));
-
+//      xvou.NewChild2('SVCURRENTCOMPANY',TextToXML(Env.Firm));
+      xvou.NewChild2('SVCURRENTCOMPANY',Env.Firm);
     end;
   { STATICVARIABLES }
       xVou := xVou.GetParent;
@@ -1260,7 +1262,7 @@ begin
   Result := Amount;
 end;
 }
-function TbjVchExp.SetInvLine(const Item: string; const Qty, Rate, Amount: double; const Batch, UserDesc: string): double;
+function TbjVchExp.SetInvLine(const Item: string; const Qty, Rate, Amount: double; const Godown, Batch, UserDesc: string): double;
 var
   pline: pInvLine;
 begin
@@ -1275,6 +1277,7 @@ begin
   pline^.Qty :=  Qty;
   pline^.Rate :=  Rate;
   pline^.Amount :=  Amount;
+  pline^.Godown :=  Godown;
   pline^.Batch :=  Batch;
   pLine^.UserDesc := UserDesc;
   ILines.Add(pline);
@@ -1424,6 +1427,10 @@ begin
     iitem := iLines.Items[i];
     iItem.Ledger := '';
     iItem.Item := '';
+    iItem.UserDesc := '';
+    iItem.Godown := '';
+    iItem.Batch := '';
+    iItem.UserDesc := '';
     Dispose(iItem);
   end;
   ILines.Clear;
@@ -1447,12 +1454,15 @@ begin
     xvou.NewChild2('AMOUNT', FormatFloat(TallyAmtPicture,
     pLine(Lines.Items[idx])^.Amount));
 
-  if Length(vchChequeNo) > 0 then
+  IF (wsType = 'Receipt') or (wsType = 'Payment') then
   begin
     xvou := xvou.NewChild('BANKALLOCATIONS.LIST','');
     xvou.NewChild2('INSTRUMENTDATE', VchDate);
     xvou.NewChild2('TRANSACTIONTYPE', 'Cheque');
-    xvou.NewChild2('INSTRUMENTNUMBER', vchChequeNo);
+    if Length(vchChequeNo) > 0 then
+      xvou.NewChild2('INSTRUMENTNUMBER', vchChequeNo)
+    else
+      xvou.NewChild2('INSTRUMENTNUMBER', '');
     xvou.NewChild2('AMOUNT', FormatFloat(TallyAmtPicture, pLine(Lines.Items[idx])^.Amount));
   { BANKALLOCATIONS.LIST }
     xVou := xVou.GetParent;
@@ -1488,6 +1498,9 @@ begin
   xvou.NewChild2('ACTUALQTY', FormatFloat(TallyQtyPicture, pInvLine(iLines.Items[idx])^.Qty));
   xvou.NewChild2('BILLEDQTY', FormatFloat(TallyQtyPicture, pInvLine(iLines.Items[idx])^.Qty));
   xvou := xvou.NewChild('BATCHALLOCATIONS.LIST','');
+  if Length(pInvLine(iLines.Items[idx])^.Godown) > 0 then
+    xvou.NewChild2('GODOWNNAME', pInvLine(iLines.Items[idx])^.Godown )
+  else
     xvou.NewChild2('GODOWNNAME', 'Main Location' );
   if Length(pInvLine(iLines.Items[idx])^.Batch) > 0 then
     xvou.NewChild2('BATCHNAME', pInvLine(iLines.Items[idx])^.Batch)
@@ -1526,6 +1539,9 @@ begin
       if Length(pInvLine(iLines.Items[idx])^.Batch) > 0 then
       begin
       xvou := xvou.NewChild('BATCHALLOCATIONS.LIST', '');
+      if Length(pInvLine(iLines.Items[idx])^.Godown)  > 0 then
+        xvou.NewChild2('GODOWNNAME', pInvLine(iLines.Items[idx])^.Godown)
+      else
       xvou.NewChild2('GODOWNNAME', 'Main Location');
       xvou.NewChild2('BATCHNAME', pInvLine(iLines.Items[idx])^.Batch);
       xvou.NewChild2('AMOUNT', FormatFloat(TallyAmtPicture, pInvLine(iLines.Items[idx])^.Amount));
@@ -1534,6 +1550,9 @@ begin
     { BATCHALLOCATIONS.LIST }
       xvou := xvou.GetParent;
       end
+      else
+      if Length(pInvLine(iLines.Items[idx])^.Godown)  > 0 then
+        xvou.NewChild2('GODOWNNAME', pInvLine(iLines.Items[idx])^.Godown)
       else
       xvou.NewChild2('GODOWNNAME', 'Main Location');
     { INVENTORYALLOCATIONS.LIST }
