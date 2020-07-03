@@ -134,26 +134,26 @@ var
 
 implementation
 
-uses UF, Merge3;
+uses SY, Merge3;
 
 {$R *.dfm}
 
-procedure UpdateMsg(const aMsg: string);
-begin
-  if Length(aMsg) > 0 then
-    frmTxfer.Info.Caption := aMsg;
-  Application.ProcessMessages;
-end;
 
 procedure TfrmTxfer.btnTxferClick(Sender: TObject);
 var
   xdb: TbjPJrnl;
-  mr: integer;
-  DParent, LParent: string;
-  TaxList: TStringList;
+//  mr: integer;
+//  DParent, LParent: string;
+//  TaxList: TStringList;
   idx: integer;
+  isDefault: boolean;
+  frmLedGrp, toLedGrp: string;
 begin
-  if IsImported then
+  isDefault := False;
+  if MessageDlg('Transfer to SGST, CGST, IGST ?', mtConfirmation, mbOKCancel, 0)  = mrOK then
+    isDefault := True;
+
+  if not isDefault then
   begin
   if (Length(cmbToLed.Text) = 0) or (Length(cmbFrmLed.Text) = 0) then
   begin
@@ -165,19 +165,15 @@ begin
     MessageDlg('Both From and To Ledgers are the same', mtError, [mbOK], 0);
     Exit;
   end;
-//  Obj := TbjMstListImp.Create;
-{
-  taxList := TStringList.Create;
-  taxList.Text := obj.GetGrpLedText('Duties & Taxes');
-  Obj.Free;
-  taxList.Sorted := True;
-  if (not taxList.Find(cmbfrmLed.Text, idx)) and
-    (not taxList.Find(cmbToLed.Text, idx)) then
+  frmLedGrp := GetLedgerGroup(cmbFrmLed.Text);
+  toLedGrp :=  GetLedgerGroup(cmbToLed.Text);
+  if (frmLedGrp <> toLedGrp) then
+    if not (((frmLedGrp = 'Sundry Debtors') or (frmLedGrp = 'Sundry Creditors')) and
+      ((toLedGrp = 'Sundry Debtors') or (toLedGrp = 'Sundry Creditors'))) then
   begin
-    MessageDlg('Wrong Group', mtError, [mbOK], 0);
+      MessageDlg('Groups differ', mtError, [mbOK], 0);
         Exit;
   end;
-}
   end;
   btnTxfer.Enabled := False;
   btnRefresh.Enabled := False;
@@ -186,20 +182,21 @@ begin
   frmXlExport.edtPort.Text;
   try
     xdb.FUpdate := UpdateMsg;
-    xdb.FrmDt := FormatDateTime('yyyyMMDD',DateTimePicker1.date);
-    xdb.ToDt := FormatDateTime('yyyyMMDD',DateTimePicker2.date);
+//    xdb.FrmDt := FormatDateTime('yyyyMMDD',DateTimePicker1.date);
+    xdb.FrmDt := FormatDateTime('DD-MMM-YYYY',DateTimePicker1.date);
+    xdb.ToDt :=  FormatDateTime('DD-MMM-YYYY',DateTimePicker2.date);
     if Length(Trim(xdb.FrmDt)) = 0 then
       xdb.FrmDt := FormatDateTime('yyyyMMDD',Now);
     if Length(Trim(xdb.ToDt)) = 0 then
       xdb.ToDt := FormatDateTime('yyyyMMDD',Now);
 
-    xdb.SaveXMLFile := False;
+    xdb.IsSaveXMLFileOn := False;
     xdb.Host := 'http://' + frmXlExport.edtHost.Text + ':'+
     frmXlExport.edtPort.Text;
-    if IsImported then
+    if not isDefault then
     begin
-      xdb.ToLed := cmbToLed.Text;
       xdb.FrmLed := cmbFrmLed.Text;
+      xdb.ToLed := cmbToLed.Text;
       xdb.Process;
     end
     else
@@ -316,4 +313,10 @@ begin
   SetToLed;
 end;
 
+procedure UpdateMsg(const aMsg: string);
+begin
+  if Length(aMsg) > 0 then
+    frmTxfer.Info.Caption := aMsg;
+  Application.ProcessMessages;
+end;
 end.

@@ -17,7 +17,7 @@ object frmTxfer: TfrmTxfer
   TextHeight = 13
   object Label1: TLabel
     Left = 13
-    Top = 63
+    Top = 71
     Width = 49
     Height = 13
     Caption = 'From Date'
@@ -30,7 +30,7 @@ object frmTxfer: TfrmTxfer
   end
   object Label2: TLabel
     Left = 231
-    Top = 63
+    Top = 71
     Width = 13
     Height = 13
     Caption = 'To'
@@ -43,7 +43,7 @@ object frmTxfer: TfrmTxfer
   end
   object Label3: TLabel
     Left = 13
-    Top = 137
+    Top = 145
     Width = 59
     Height = 13
     Caption = 'From Ledger'
@@ -57,7 +57,7 @@ object frmTxfer: TfrmTxfer
   object Info: TLabel
     Left = 13
     Top = 232
-    Width = 356
+    Width = 30
     Height = 13
     Caption = 'Status'
     Font.Charset = DEFAULT_CHARSET
@@ -69,7 +69,7 @@ object frmTxfer: TfrmTxfer
   end
   object Label4: TLabel
     Left = 13
-    Top = 28
+    Top = 36
     Width = 65
     Height = 13
     Caption = 'Ledger Group'
@@ -82,7 +82,7 @@ object frmTxfer: TfrmTxfer
   end
   object lblLedger: TLabel
     Left = 13
-    Top = 170
+    Top = 178
     Width = 49
     Height = 26
     Caption = 'To Ledger'#13#10
@@ -107,13 +107,26 @@ object frmTxfer: TfrmTxfer
   end
   object Label8: TLabel
     Left = 13
-    Top = 101
+    Top = 109
     Width = 44
     Height = 13
     Caption = 'Company'
     Font.Charset = ANSI_CHARSET
     Font.Color = clWindowText
     Font.Height = -12
+    Font.Name = 'MS Sans Serif'
+    Font.Style = []
+    ParentFont = False
+  end
+  object lbl1: TLabel
+    Left = 151
+    Top = 8
+    Width = 91
+    Height = 24
+    Caption = 'Monthwise'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -19
     Font.Name = 'MS Sans Serif'
     Font.Style = []
     ParentFont = False
@@ -135,7 +148,7 @@ object frmTxfer: TfrmTxfer
   end
   object DateTimePicker2: TDateTimePicker
     Left = 259
-    Top = 63
+    Top = 71
     Width = 114
     Height = 24
     Date = 43921.474290173610000000
@@ -151,7 +164,7 @@ object frmTxfer: TfrmTxfer
   end
   object cmbLedGroup: TComboBox
     Left = 105
-    Top = 28
+    Top = 36
     Width = 118
     Height = 24
     Font.Charset = DEFAULT_CHARSET
@@ -168,7 +181,7 @@ object frmTxfer: TfrmTxfer
   end
   object cmbFrmLed: TComboBox
     Left = 105
-    Top = 132
+    Top = 140
     Width = 268
     Height = 24
     Font.Charset = DEFAULT_CHARSET
@@ -184,7 +197,7 @@ object frmTxfer: TfrmTxfer
   end
   object cmbToLed: TComboBox
     Left = 105
-    Top = 167
+    Top = 175
     Width = 268
     Height = 24
     Font.Charset = DEFAULT_CHARSET
@@ -215,7 +228,7 @@ object frmTxfer: TfrmTxfer
   end
   object cmbFirm: TComboBox
     Left = 105
-    Top = 98
+    Top = 106
     Width = 268
     Height = 24
     Font.Charset = DEFAULT_CHARSET
@@ -229,7 +242,7 @@ object frmTxfer: TfrmTxfer
   end
   object DateTimePicker1: TDateTimePicker
     Left = 105
-    Top = 63
+    Top = 71
     Width = 114
     Height = 24
     Date = 43556.474290173610000000

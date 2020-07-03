@@ -160,6 +160,8 @@ type
     procedure SetCellFormat(const aField: string; aFOrmat: Integer);
 {$ENDIF SM }
     procedure SetFieldVal(const aField: string; const aValue: variant);
+    procedure SetFieldStr(const aField: string; const aValue: string);
+    procedure SetFieldNum(const aField: string; const aValue: double);
     function FindField(const aName: string): pChar;
 //    function GetFieldCol(const aName: string): integer;
     procedure SetFields(const aList: TStrings; const ToWrite: boolean);
@@ -423,17 +425,27 @@ end;
 function TbjXLSTable.GetFieldFloat(const aField: string): double;
 var
   v_vt: variant;
-  VType  : Integer;
+
   str: string;
   iValue: double;
   iCode: Integer;
+  IsFormattedStr: boolean;
 begin
-  Result := 0;
+  IsFormattedStr := False;
   v_vt := GetFieldVal(aField);
   str := V_vt;
   if Pos(',', str) > 0 then
   begin
     str := stringReplace(Str, ',', '', [rfIgnoreCase, rfReplaceAll]);
+    IsFormattedStr := True;
+  end;
+  if Pos('%', str) > 0 then
+  begin
+    str := stringReplace(Str, '%', '', [rfIgnoreCase, rfReplaceAll]);
+    IsFormattedStr := True;
+  end;
+  if IsFormattedStr  then
+  begin
     Val(Str, iValue, iCode);
     if iCode = 0 then
     begin
@@ -441,6 +453,8 @@ begin
       Exit;
     end;
   end;
+  Result := v_vt;
+{
   VType := VarType(v_vt) and VarTypeMask;
   // Set a string to match the type
   case VType of
@@ -474,6 +488,7 @@ begin
   else
     Result := 0;
   end;
+}
 end;
 function TbjXLSTable.GetFieldToken(const aField: string): string;
 var
@@ -660,6 +675,46 @@ begin
   end;
 {$ENDIF LIBXL }
 //  WorkSheet.Cells[FO_Row + CurrentRow, FO_Column + GetFieldCol(aField)].Value := Decode(aValue);
+end;
+procedure TbjXLSTable.SetFieldStr(const aField: string; const aValue: string);
+{$IFDEF SM }
+var
+  ptr: pVarData;
+{$ENDIF SM }
+begin
+  if FindField(AField) = nil then
+  begin
+    raise Exception.Create(aField + ' Column not defined');
+    Exit;
+  end;
+{$IFDEF SM }
+  ptr := FindVarData(WorkSheet.Cells[FO_Row + CurrentRow, FO_Column + GetFieldCol(aField)].Value);
+  ptr.VType := varString;
+  ptr.VString := pChar(aValue);
+{$ENDIF SM }
+{$IFDEF LIBXL }
+    WorkSheet.WriteNum(FO_row + CurrentRow, FO_Column + GetFieldCol(aField), aValue);
+{$ENDIF LIBXL }
+end;
+procedure TbjXLSTable.SetFieldNum(const aField: string; const aValue: double);
+{$IFDEF SM }
+var
+  ptr: pVarData;
+{$ENDIF SM }
+begin
+  if FindField(AField) = nil then
+  begin
+    raise Exception.Create(aField + ' Column not defined');
+    Exit;
+  end;
+{$IFDEF SM }
+  ptr := FindVarData(WorkSheet.Cells[FO_Row + CurrentRow, FO_Column + GetFieldCol(aField)].Value);
+  ptr.VType := VarDouble;
+  ptr.VDouble := aValue;
+{$ENDIF SM }
+{$IFDEF LIBXL }
+    WorkSheet.WriteStr(FO_row + CurrentRow, FO_Column + GetFieldCol(aField), pChar(string(aValue)));
+{$ENDIF LIBXL }
 end;
 procedure TbjXLSTable.AtSay(const acol: Integer; const aMsg: Variant);
 {$IFDEF LIBXL }
@@ -946,9 +1001,11 @@ end;
 
 function TbjXLSTable.IsEmptyField(const aField: string): boolean;
 var
-  v_vt: variant;
-  VType  : Integer;
+//  v_vt: variant;
+//  VType  : Integer;
+  Value: Variant;
 begin
+{
   Result := False;
   v_vt := GetFieldVal(aField);
   VType := VarType(V_vt) and VarTypeMask;
@@ -959,6 +1016,12 @@ begin
     if Length(Trim(V_vt)) = 0 then
       Result := True;
   end;
+}
+{ Comparison with UnAssigned may bot be necessary }
+  Value := GetFieldVal(aField);
+  Result := VarIsClear(Value) or VarIsEmpty(Value) or VarIsNull(Value) or (VarCompareValue(Value, Unassigned) = vrEqual);
+  if (not Result) and VarIsStr(Value) then
+    Result := Value = '';
 end;
 
 

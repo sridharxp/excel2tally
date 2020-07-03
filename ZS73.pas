@@ -34,6 +34,7 @@ uses
   Repet,
   Math,
   Controls,
+  CFig,
   VchLib;
 
 const
@@ -1126,21 +1127,24 @@ begin
   if (WSType = 'Purchase')  or (WSType = 'Sales') then
   begin
 
-  CrLine := 0;
-  DrLine := 0;
-  for i := 0 to Lines.Count-1 do
-  begin
-    Item := Lines.Items[i];
-    if Item^.Amount > 0 then
-      CrLine := CrLine + 1;
-    if Item^.Amount < 0 then
-      DrLine := DrLine + 1;
-  end;
+    CrLine := 0;
+    DrLine := 0;
+    for i := 0 to Lines.Count-1 do
+    begin
+      Item := Lines.Items[i];
+      if Item^.Amount > 0 then
+        CrLine := CrLine + 1;
+      if Item^.Amount < 0 then
+        DrLine := DrLine + 1;
+    end;
 
+    if IsVchMode4Vch then
+    begin
     if (WSType = 'Sales')  and (DrLine > 1) then
       InvVch := False;
     if (WSType = 'Purchase')  and (CrLine > 1) then
       InvVch := False;
+    end;
     if InvVch then
     xvou.NewChild2('ISINVOICE','Yes');
   end;
@@ -1509,7 +1513,10 @@ begin
   xvou.NewChild2('AMOUNT', FormatFloat(TallyAmtPicture, pInvLine(iLines.Items[idx])^.Amount));
   xvou.NewChild2('ACTUALQTY', FormatFloat(TallyQtyPicture, pInvLine(iLines.Items[idx])^.Qty));
   xvou.NewChild2('BILLEDQTY', FormatFloat(TallyQtyPicture, pInvLine(iLines.Items[idx])^.Qty));
+  { BATCHALLOCATIONS.LIST }
   xVou := xVou.GetParent;
+
+  { INVENTORYENTRIES IN OUT.LIST }
   xVou := xVou.GetParent;
 end;
 procedure TbjVchExp.AttachInv(const rled: string);
@@ -1542,7 +1549,7 @@ begin
       if Length(pInvLine(iLines.Items[idx])^.Godown)  > 0 then
         xvou.NewChild2('GODOWNNAME', pInvLine(iLines.Items[idx])^.Godown)
       else
-      xvou.NewChild2('GODOWNNAME', 'Main Location');
+        xvou.NewChild2('GODOWNNAME', 'Main Location');
       xvou.NewChild2('BATCHNAME', pInvLine(iLines.Items[idx])^.Batch);
       xvou.NewChild2('AMOUNT', FormatFloat(TallyAmtPicture, pInvLine(iLines.Items[idx])^.Amount));
       xvou.NewChild2('ACTUALQTY', FormatFloat(TallyQtyPicture, pInvLine(iLines.Items[idx])^.Qty));
@@ -1554,9 +1561,9 @@ begin
       if Length(pInvLine(iLines.Items[idx])^.Godown)  > 0 then
         xvou.NewChild2('GODOWNNAME', pInvLine(iLines.Items[idx])^.Godown)
       else
-      xvou.NewChild2('GODOWNNAME', 'Main Location');
+        xvou.NewChild2('GODOWNNAME', 'Main Location');
     { INVENTORYALLOCATIONS.LIST }
-      xvou := xvou.GetParent;
+     xvou := xvou.GetParent;
   end;
 end;
 
@@ -1669,8 +1676,11 @@ begin
   xmlFooter('V');
   Env.Client.Host :=  Env.Host;
   Env.Client.xmlRequestString :=  xvch.GetXml;
+{ For debugging }
   if Env.IsSaveXmlFileOn then
     xvch.SaveXmlFile('Voucher.xml');
+{ For debugging }
+//  MessageDlg(xvch.GetXML, mtInformation, [mbOK], 0);
   Env.Client.post;
   xvchid.Clear;
   xvchid.LoadXml(Env.Client.GetxmlResponseString);
@@ -1680,6 +1690,7 @@ begin
   if Assigned(Tallyid) then
   begin
     tid := TallyId.GetContent;
+{ If this Visual feedback is not required then set ToUpdate to false }
     Result := TId;
     if Env.NotifyVchID then
       MessageDlg(Tid, mtInformation, [mbOK], 0);
@@ -1949,69 +1960,95 @@ end;
 function TbjMstExp.NewParty(const aLedger, aParent, aGSTN: string; aState: string): string;
 var
   Found: boolean;
-  UserDefined: string;
+  SystemLedName: string;
+  SystemGSTN: string;
   item: pGSTNRec;
   dupName: boolean;
-//  sameName: boolean;
 begin
   dupName := False;
-//  sameName := False;
   If Length(aLedger) = 0 then
     Exit;
   if Length(aState) = 0 then
     aState := Env.DefaultGSTState;
   if Length(aGSTN) > 0 then
   begin
-    UserDefined := GetGSTNParty(aGSTN);
-    if Length(UserDefined) > 0 then
-      dupName := True;;
+    SystemLedName := GetGSTNParty(aGSTN);
+    if Length(SystemLedName) > 0 then
+{ 
+There is a logic using SystemLedName.
+It does not use GetDupPartyGSTN 
+}
+    if aLedger <> SystemLedName then
+      dupName := True
+    else
+    begin
+{ Same Name Sake GSTN}
+      Result := aLedger;
+      Exit;
+    end;
   end;
+{ Different Name Sake GSTN - one part }
   if dupName then
   begin
     if Env.MergeDupLed4GSTN then
      begin
-       if aLedger <> UserDefined then
-         Result := UserDefined;
+//       if aLedger <> SystemLedName then
+         Result := SystemLedName;
        Exit;
      end;
   end;
   Found := IsLedger(aLedger);
+{ Different Name Sake GSTN Different GSTN}
+{ Different Name Sake GSTN - one part }
   if not Found then
   begin
-    if not Env.MergeDupLed4GSTN then
-    begin
-      CreateParty(aLedger, aParent, aGSTN, aState);
-    end
-    else if not (dupName) then
-    begin
-      CreateParty(aLedger, aParent, aGSTN, aState);
-    end;
+
+    CreateParty(aLedger, aParent, aGSTN, aState);
     LedPList.Add(PackStr(aLedger));
-     if Length(aGSTN) > 0 then
-     begin
-       item := new(pGSTNRec);
-       item.Name := aLedger;
-       item.GSTN := aGSTN;
-       gstnlIST.Add(item);
-    end;
-  end
-  else if not dupName then
-  begin
     if Length(aGSTN) > 0 then
     begin
-      if Env.MergeDupLed4GSTN then
-        if not IsLedger(aLedger+'_'+aGSTN) then
-          CreateParty(aLedger+'_'+aGSTN, aParent, aGSTN, aState);
       item := new(pGSTNRec);
-      if Env.MergeDupLed4GSTN then
-        item.Name := aLedger+'_'+aGSTN
-      else
-        item.Name := aLedger;
+      item.Name := aLedger;
       item.GSTN := aGSTN;
-       gstnlIST.Add(item);
+      gstnlIST.Add(item);
+      Result := aLedger;
+    end;
+    Exit;
+  end;
+  if found then
+    SystemGSTN := GetDupPartyGSTN(aLedger);
+{ Same Name Different GSTN}
+  if (not dupName) and (aGSTN <> SystemGSTN) then
+  begin
+    if not IsLedger(aLedger+'_'+aGSTN) then
+      CreateParty(aLedger+'_'+aGSTN, aParent, aGSTN, aState);
+    if Length(aGSTN) > 0 then
+    begin
+      item := new(pGSTNRec);
+      item.Name := aLedger+'_'+aGSTN;
+      item.GSTN := aGSTN;
+      gstnlIST.Add(item);
       Result := aLedger+'_'+aGSTN;
     end;
+//    Exit;
   end;
+(*
+  if (DupName) and (not Env.MergeDupLed4GSTN) then
+  begin
+    CreateParty(aLedger, aParent, aGSTN, aState);
+    LedPList.Add(PackStr(aLedger));
+    if Length(aGSTN) > 0 then
+    begin
+      item := new(pGSTNRec);
+      item.Name := aLedger;
+      item.GSTN := aGSTN;
+      gstnlIST.Add(item);
+      Result := aLedger;
+    end;
+{ Same Name Different GSTN}
+  ShowMessage('May be this is needed');
+  end;
+*)
 end;
 
 procedure TbjMstExp.NewGST(const aLedger, aParent: string; const TaxRate: string);

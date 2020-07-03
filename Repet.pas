@@ -41,12 +41,12 @@ type
     GSTNList: TList;
     rpetdb: TbjXLSTable;
     procedure SetHost(const aHost: string);
-    function GetGSTNParty(const aGSTN: string): string;
   public
     { Public declarations }
     flds: TStringList;
     procedure GetList(aList: TList);
     procedure WriteXls;
+    function GetGSTNParty(const aGSTN: string): string;
     procedure Execute;
     constructor Create;
     destructor Destroy; override;
@@ -111,34 +111,50 @@ end;
 
 procedure TRpetGSTN.GetList(aList: TList);
 var
+  strx: IbjXml;
+  strs: string;
+  lStr: string;
   OResult: IbjXml;
-  RecNode, LedNode, ParentNode, GSTNNode: IbjXml;
+  //RecNode, LedNode, ParentNode, GSTNNode: IbjXml;
+  LedNode, GSTNNode: IbjXml;
   CollName: string;
   LedPList: TStringList;
   item: pGSTNRec;
-  grp: string;
+//  grp: string;
 begin
   LedPList := TStringList.Create;
+  strx := CreatebjXmlDocument;
+  OResult := CreatebjXmlDocument;
   try
   CollName := 'Ledger';
   LedPList.Add('PARENT');
   LedPList.Add('PARTYGSTIN');
-  OResult := CreatebjXmlDocument;
-  OResult.LoadXml(ColEval(CollName, 'Ledger', LedPList));
+
+  strs := '<CHILDOF>' + TextToXML('Sundry Debtors') + '</CHILDOF>';
+  strs := Strs + '<BELONGSTO>' + 'Yes' + '</BELONGSTO>';
+  strx.LoadXml(strs);
+  lStr := Col2Eval(CollName, 'Ledger', strx, LedPList);
+  strs := '<CHILDOF>' + TextToXML('Sundry Creditors') + '</CHILDOF>';
+  strs := Strs + '<BELONGSTO>' + 'Yes' + '</BELONGSTO>';
+  strx.LoadXml(strs);
+  lStr := lStr + Col2Eval(CollName, 'Ledger', strx, LedPList);
   finally
     LedPList.Free;
   end;
-  RecNode := OResult.SearchforTag(nil, 'COLLECTION');
-  LedNode := OResult.SearchforTag(RecNode, 'LEDGER');
+  OResult.LoadXml(lStr);
+//  RecNode := OResult.SearchforTag(nil, 'COLLECTION');
+  LedNode := OResult.SearchforTag(nil , 'LEDGER');
   while Assigned(LedNode) do
   begin
-//ShowMessage(LedNode.GetXML);
+{
     ParentNode := LedNode.SearchforTag(nil, 'PARENT');
     if not Assigned(ParentNode) then
       continue;
     grp := ParentNode.GetContent;
     if (grp <> 'Sundry Debtors') and
       (grp <> 'Sundry Creditors') then
+}
+    if Length(LedNode.GetContent) = 0 then
     begin
       LedNode := OResult.SearchforTag(LedNode, 'LEDGER');
       Continue;
@@ -210,8 +226,8 @@ var
   i: integer;
   item: pGSTNRec;
 begin
-//  if not Assigned(GSTNList) then
-//    GETList(GSTNList);
+  if GSTNList.Count = 0 then
+    GETList(GSTNList);
   Result := '';
   for i := 0 to GSTNList.Count-1 do
   begin
