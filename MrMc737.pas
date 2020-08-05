@@ -148,7 +148,7 @@ TbjDSLParser = class(TinterfacedObject, IbjDSLParser)
     UOutAmtName: string;
     UInGodownName: string;
     UOutGodownName: string;
-    
+
     UAssessableName: array [1..COLUMNLIMIT] of string;
 
     InventoryTag: string;
@@ -176,6 +176,7 @@ TbjDSLParser = class(TinterfacedObject, IbjDSLParser)
     IsDaybook: Boolean;
     IsBank: boolean;
     IsJournal: boolean;
+    IsReference: boolean;
     DrAmtCol: string;
     CrAmtCol: string;
     DrAmtColType: string;
@@ -314,7 +315,7 @@ TbjMrMc = class(TinterfacedObject, IbjXlExp, IbjMrMc)
     SCount: integer;
     FUpdate: TfnUpdate;
 
-    IsUnLocked: boolean;
+  
     Tally_11: boolean;
     UdefStateName: string;
     RoundOffMethod: string;
@@ -645,6 +646,12 @@ AutoCreateMst affects default group only
     if Length(str) > 0 then
     begin
       UVoucherRefName := str;
+    end;
+    str := '';
+    str := xCfg.GetChildContent('IsReference');
+    if str = 'Yes' then
+    begin
+      IsReference := True;
     end;
   end;
 
@@ -1055,8 +1062,15 @@ begin
   if kadb.FindField(UIdName) <> nil then
   begin
     IsIdDefined := True;
-    IsMultiRowVoucher := True;
+  end
+  else
+  if IsReference then
+  begin
+    UIdName := UVoucherRefName;
+    IsIdDefined := True;
   end;
+  if IsIdDefined then
+    IsMultiRowVoucher := True;
   if kadb.FindField(UDateName) <> nil then
     IsDateDefined := True;
   if kadb.FindField(UVchNoColName) <> nil then
@@ -1419,11 +1433,9 @@ begin
     if IsIdOnlyChecked then
       Continue;
 
-    if  not (IsUnLocked or Tally_11) then
-        if ProcessedCount > FDynPgLen then
-//        raise Exception.Create('Demo Limit '+ inttostr(FdynPgLen) + ' Exceeded');
-//        raise Exception.Create('Demo Limit ' + ' Exceeded');
-        raise Exception.Create('Invalid Tally License Key');
+
+
+
     kadb.Next;
     if not kadb.Eof then
       notoskip := notoskip + 1;
@@ -1437,10 +1449,10 @@ begin
   DecodeTime(Elapsed, Hrs, Mins, Secs, MSecs);
   MessageDlg(InttoStr(ProcessedCount) + ' Vouchers processed',
       mtInformation, [mbOK], 0);
-  if IsUnLocked then
-    StatusMsg := InttoStr(ProcessedCount) + ' Vouchers processed; ' +
-    InttoStr(SCount) + ' Success. ' + InttoStr(Mins*60+Secs) + ' Seconds.'
-  else
+
+
+
+
     StatusMsg := InttoStr(ProcessedCount) + '/' + InttoStr(FdynPgLen) +
     ' Vouchers processed; ' +
     InttoStr(SCount) + ' Success. ' + InttoStr(Mins*60+Secs) + ' Seconds.';

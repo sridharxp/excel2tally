@@ -90,7 +90,6 @@ TbjDSLParser = class(TinterfacedObject, IbjDSLParser)
     RoundOffCol: string;
 
     { Public declarations }
-//  RoundToLimit: Integer;
     RoundOffGroup: string;
 {    Amt: array [1..COLUMNLIMIT] of double; }
 

@@ -270,6 +270,7 @@ MYSALE = '<Voucher>'+
 '</VoucherNo>'+
 '<VoucherRef>'+
 '<Alias>Invoice_No</Alias>'+
+'<IsReference>Yes</IsReference>'+
 '</VoucherRef>'+
 '<BillRef>'+
 '<Alias>Bill Ref</Alias>'+
@@ -608,6 +609,7 @@ MYPURC = '<Voucher>'+
 '</VoucherDate>'+
 '<VoucherRef>'+
 '<Alias>Invoice_No</Alias>'+
+'<IsReference>Yes</IsReference>'+
 '</VoucherRef>'+
 '<BillRef>'+
 '<Alias>Bill Ref</Alias>'+
@@ -950,6 +952,7 @@ SBILL = '<Voucher>'+
 '</VoucherNo>'+
 '<VoucherRef>'+
 '<Alias>Invoice_No</Alias>'+
+'<IsReference>Yes</IsReference>'+
 '</VoucherRef>'+
 '<BillRef>'+
 '<Alias>Bill Ref</Alias>'+
@@ -1072,6 +1075,7 @@ PBILL = '<Voucher>'+
 '</VoucherNo>'+
 '<VoucherRef>'+
 '<Alias>Invoice_No</Alias>'+
+'<IsReference>Yes</IsReference>'+
 '</VoucherRef>'+
 '<BillRef>'+
 '<Alias>Bill Ref</Alias>'+
@@ -1233,6 +1237,7 @@ GSTSALE = '<Voucher>'+
 '</VoucherNo>'+
 '<VoucherRef>'+
 '<Alias>Invoice_No</Alias>'+
+'<IsReference>Yes</IsReference>'+
 '</VoucherRef>'+
 '<BillRef>'+
 '<Alias>Bill Ref</Alias>'+
@@ -1538,6 +1543,7 @@ GSTPURC = '<Voucher>'+
 '</VoucherDate>'+
 '<VoucherRef>'+
 '<Alias>Invoice_No</Alias>'+
+'<IsReference>Yes</IsReference>'+
 '</VoucherRef>'+
 '<BillRef>'+
 '<Alias>Bill Ref</Alias>'+
@@ -1922,6 +1928,7 @@ CNOTE = '<Voucher>'+
 '</VoucherNo>'+
 '<VoucherRef>'+
 '<Alias>Invoice_No</Alias>'+
+'<IsReference>Yes</IsReference>'+
 '</VoucherRef>'+
 '<BillRef>'+
 '<Alias>Bill Ref</Alias>'+
@@ -2224,6 +2231,7 @@ DNOTE = '<Voucher>'+
 '</VoucherNo>'+
 '<VoucherRef>'+
 '<Alias>Invoice_No</Alias>'+
+'<IsReference>Yes</IsReference>'+
 '</VoucherRef>'+
 '<BillRef>'+
 '<Alias>Bill Ref</Alias>'+
