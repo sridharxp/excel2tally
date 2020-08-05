@@ -114,11 +114,14 @@ type
     Label6: TLabel;
     Label8: TLabel;
     DateTimePicker1: TDateTimePicker;
+    ckbCustomize: TCheckBox;
+
     procedure btnTxferClick(Sender: TObject);
     procedure btnRefreshClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure cmbFrmLedDblClick(Sender: TObject);
     procedure cmbFrmLedClick(Sender: TObject);
+    procedure ckbCustomizeClick(Sender: TObject);
   private
     { Private declarations }
     procedure SetToLed;
@@ -170,10 +173,10 @@ begin
   if (frmLedGrp <> toLedGrp) then
     if not (((frmLedGrp = 'Sundry Debtors') or (frmLedGrp = 'Sundry Creditors')) and
       ((toLedGrp = 'Sundry Debtors') or (toLedGrp = 'Sundry Creditors'))) then
-  begin
+    begin
       MessageDlg('Groups differ', mtError, [mbOK], 0);
-        Exit;
-  end;
+      Exit;
+    end;
   end;
   btnTxfer.Enabled := False;
   btnRefresh.Enabled := False;
@@ -253,7 +256,6 @@ begin
   for i:= 0 to CMPList.Count-1 do
     cmbFirm.Items.Add(CMPList.Strings[i]);
   cmbFrmLed.Clear;
-//  cmbDupLed.Items.Add('');
   for i:= 0 to LedList.Count-1 do
     cmbFrmLed.Items.Add(LedList.Strings[i]);
   cmbToLed.Clear;
@@ -288,7 +290,6 @@ begin
   cmbToLed.Items.Add('SGST');
   cmbToLed.Items.Add('CGST');
   cmbToLed.Items.Add('IGST');
-//  cmbToLed.Enabled := False;
 end;
 
 procedure TfrmTxfer.SetToLed;
@@ -319,4 +320,25 @@ begin
     frmTxfer.Info.Caption := aMsg;
   Application.ProcessMessages;
 end;
+
+procedure TfrmTxfer.ckbCustomizeClick(Sender: TObject);
+begin
+  if ckbCustomize.Checked then
+  begin
+    cmbLedGroup.Enabled := True;
+    cmbFrmLed.Enabled := True;
+    cmbToLed.Enabled := True;
+    btnRefresh.Enabled := True;
+    cmbFirm.Enabled := True;
+  end
+  else
+  begin
+    cmbLedGroup.Enabled := False;
+    cmbFrmLed.Enabled := False;
+    cmbToLed.Enabled := False;
+    btnRefresh.Enabled := False;
+    cmbFirm.Enabled := False;
+  end;
+end;
+
 end.

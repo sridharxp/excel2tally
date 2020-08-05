@@ -2,7 +2,7 @@ object frmTxfer: TfrmTxfer
   Left = 236
   Top = 118
   Width = 409
-  Height = 287
+  Height = 328
   Caption = 'Transfer'
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -56,7 +56,7 @@ object frmTxfer: TfrmTxfer
   end
   object Info: TLabel
     Left = 13
-    Top = 232
+    Top = 264
     Width = 30
     Height = 13
     Caption = 'Status'
@@ -133,7 +133,7 @@ object frmTxfer: TfrmTxfer
   end
   object btnTxfer: TButton
     Left = 246
-    Top = 208
+    Top = 240
     Width = 98
     Height = 20
     Caption = 'Transfer'
@@ -167,6 +167,7 @@ object frmTxfer: TfrmTxfer
     Top = 36
     Width = 118
     Height = 24
+    Enabled = False
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
     Font.Height = -15
@@ -184,6 +185,7 @@ object frmTxfer: TfrmTxfer
     Top = 140
     Width = 268
     Height = 24
+    Enabled = False
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
     Font.Height = -15
@@ -200,6 +202,7 @@ object frmTxfer: TfrmTxfer
     Top = 175
     Width = 268
     Height = 24
+    Enabled = False
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
     Font.Height = -15
@@ -213,10 +216,11 @@ object frmTxfer: TfrmTxfer
   end
   object btnRefresh: TButton
     Left = 49
-    Top = 208
+    Top = 240
     Width = 123
     Height = 20
     Caption = 'Import Ledger List'
+    Enabled = False
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
     Font.Height = -12
@@ -231,6 +235,7 @@ object frmTxfer: TfrmTxfer
     Top = 106
     Width = 268
     Height = 24
+    Enabled = False
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
     Font.Height = -15
@@ -255,5 +260,14 @@ object frmTxfer: TfrmTxfer
     Font.Style = []
     ParentFont = False
     TabOrder = 1
+  end
+  object ckbCustomize: TCheckBox
+    Left = 105
+    Top = 210
+    Width = 97
+    Height = 17
+    Caption = 'Customize'
+    TabOrder = 8
+    OnClick = ckbCustomizeClick
   end
 end
