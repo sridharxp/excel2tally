@@ -59,7 +59,10 @@ RCPT ='<Voucher>'+
 '</BillRef>'+
 '<RoundOff>'+
 '<Alias>Party Ledger</Alias>'+
-'<Group>Sundry Debtors</Group>'+
+'<Group>'+
+'<Alias>Party Group</Alias>'+
+'<Default>Suspense A/c</Default>'+
+'</Group>'+
 '</RoundOff>'+
 '+<LEDGER>'+
 '<Alias>Receipt Ledger</Alias>'+
@@ -69,6 +72,9 @@ RCPT ='<Voucher>'+
 '<Type>Dr</Type>'+
 '</AmtCol>'+
 '</LEDGER>'+
+'<ChequeNo>'+
+'<Alias>ChequeNo</Alias>'+
+'</ChequeNo>'+
 '<VTYPE>'+
 '<Alias>VTYPE</Alias>'+
 '<Default>Receipt</Default>'+
@@ -101,9 +107,15 @@ PYMT = '<Voucher>'+
 '<Type>Cr</Type>'+
 '</AmtCol>'+
 '</LEDGER>'+
+'<ChequeNo>'+
+'<Alias>ChequeNo</Alias>'+
+'</ChequeNo>'+
 '<RoundOff>'+
 '<Alias>Party Ledger</Alias>'+
-'<Group>Sundry Creditors</Group>'+
+'<Group>'+
+'<Alias>Party Group</Alias>'+
+'<Default>Suspense A/c</Default>'+
+'</Group>'+
 '</RoundOff>'+
 '<VTYPE>'+
 '<Alias>VTYPE</Alias>'+
@@ -131,6 +143,7 @@ JRNL = '<Voucher>'+
 '</AmtCol>'+
 '<Group>'+
 '<Alias>CREDIT GROUP</Alias>'+
+'<Default>Suspense A/c</Default>'+
 '</Group>'+
 '</LEDGER>'+
 '<LEDGER>'+
@@ -141,6 +154,7 @@ JRNL = '<Voucher>'+
 '</AmtCol>'+
 '<Group>'+
 '<Alias>DEBIT GROUP</Alias>'+
+'<Default>Suspense A/c</Default>'+
 '</Group>'+
 '</LEDGER>'+
 '<VTYPE>'+
@@ -160,6 +174,7 @@ BANK = '<Voucher>'+
 '<ID>'+
 '<Alias>ID</Alias>'+
 '<IsGenerated>Yes</IsGenerated>'+
+'<IsBank>Yes</IsBank>'+
 '</ID>'+
 '<DATE>'+
 '<Alias>DATE</Alias>'+
@@ -187,7 +202,9 @@ BANK = '<Voucher>'+
 '<RoundOff>'+
 '<Alias>BANK LEDGER</Alias>'+
 '<Default>Bank Account</Default>'+
-'<Group>Bank Accounts</Group>'+
+'<Group>'+
+'<Default>Bank Accounts</Default>'+
+'</Group>'+
 '</RoundOff>'+
 
 '<VTYPE>'+
@@ -270,12 +287,13 @@ MYSALE = '<Voucher>'+
 
 '<RoundOff>'+
 '<Alias>Party Ledger</Alias>'+
-'<Group>Sundry Debtors</Group>'+
+'<Group>'+
+'<Default>Sundry Debtors</Default>'+
+'</Group>'+
 '<GSTN>'+
 '<Alias>GSTN</Alias>'+
 '</GSTN>'+
 
-//'<RoundTo>1</RoundTo>'+
 '</RoundOff>'+
 '+<LEDGER>'+
 '<Default>GST 3% Sales</Default>'+
@@ -534,7 +552,7 @@ MYSALE = '<Voucher>'+
 '<AmtCol>'+
 '<Alias>Delivery Charges</Alias>'+
 '<Group>Indirect Expenses</Group>'+
-'<Type>Cr</Type>'+
+'<Type>Cr</Type>'+   
 '<IsLedgerName>Yes</IsLedgerName>'+
 '</AmtCol>'+
 '</LEDGER>'+
@@ -550,6 +568,9 @@ MYSALE = '<Voucher>'+
 '<HSN>'+
 '<Alias>HSN</Alias>'+
 '</HSN>'+
+'<GODOWN>'+
+'<Alias>Godown</Alias>'+
+'</GODOWN>'+
 '<BATCH>'+
 '<Alias>Batch</Alias>'+
 '</BATCH>'+
@@ -604,11 +625,12 @@ MYPURC = '<Voucher>'+
 
 '<RoundOff>'+
 '<Alias>Party Ledger</Alias>'+
-'<Group>Sundry Creditors</Group>'+
+'<Group>'+
+'<Default>Sundry Creditors</Default>'+
+'</Group>'+
 '<GSTN>'+
 '<Alias>GSTN</Alias>'+
 '</GSTN>'+
-//'<RoundTo>1</RoundTo>'+
 '</RoundOff>'+
 
 
@@ -888,6 +910,9 @@ MYPURC = '<Voucher>'+
 '<HSN>'+
 '<Alias>HSN</Alias>'+
 '</HSN>'+
+'<GODOWN>'+
+'<Alias>Godown</Alias>'+
+'</GODOWN>'+
 '<BATCH>'+
 '<Alias>Batch</Alias>'+
 '</BATCH>'+
@@ -938,11 +963,12 @@ SBILL = '<Voucher>'+
 
 '<RoundOff>'+
 '<Alias>Party Ledger</Alias>'+
-'<Group>Sundry Debtors</Group>'+
+'<Group>'+
+'<Default>Sundry Debtors</Default>'+
+'</Group>'+
 '<GSTN>'+
 '<Alias>GSTN</Alias>'+
 '</GSTN>'+
-//'<RoundTo>1</RoundTo>'+
 '</RoundOff>'+
 
 '+<LEDGER>'+
@@ -1063,11 +1089,12 @@ PBILL = '<Voucher>'+
 
 '<RoundOff>'+
 '<Alias>Party Ledger</Alias>'+
-'<Group>Sundry Debtors</Group>'+
+'<Group>'+
+'<Default>Sundry Debtors</Default>'+
+'</Group>'+
 '<GSTN>'+
 '<Alias>GSTN</Alias>'+
 '</GSTN>'+
-//'<RoundTo>1</RoundTo>'+
 '</RoundOff>'+
 
 '+<LEDGER>'+
@@ -1216,11 +1243,12 @@ GSTSALE = '<Voucher>'+
 
 '<RoundOff>'+
 '<Alias>Name_of_buyer</Alias>'+
-'<Group>Sundry Debtors</Group>'+
+'<Group>'+
+'<Default>Sundry Debtors</Default>'+
+'</Group>'+
 '<GSTN>'+
 '<Alias>GSTN</Alias>'+
 '</GSTN>'+
-//'<RoundTo>1</RoundTo>'+
 '</RoundOff>'+
 
 '<NARRATION>'+
@@ -1469,6 +1497,9 @@ GSTSALE = '<Voucher>'+
 '<HSN>'+
 '<Alias>HSN</Alias>'+
 '</HSN>'+
+'<GODOWN>'+
+'<Alias>Godown</Alias>'+
+'</GODOWN>'+
 '<BATCH>'+
 '<Alias>Batch</Alias>'+
 '</BATCH>'+
@@ -1517,11 +1548,12 @@ GSTPURC = '<Voucher>'+
 
 '<RoundOff>'+
 '<Alias>Name_of_seller</Alias>'+
-'<Group>Sundry Creditors</Group>'+
+'<Group>'+
+'<Default>Sundry Creditors</Default>'+
+'</Group>'+
 '<GSTN>'+
 '<Alias>GSTN</Alias>'+
 '</GSTN>'+
-//'<RoundTo>1</RoundTo>'+
 '</RoundOff>'+
 
 '<NARRATION>'+
@@ -1758,6 +1790,9 @@ GSTPURC = '<Voucher>'+
 '<HSN>'+
 '<Alias>HSN</Alias>'+
 '</HSN>'+
+'<GODOWN>'+
+'<Alias>Godown</Alias>'+
+'</GODOWN>'+
 '<BATCH>'+
 '<Alias>Batch</Alias>'+
 '</BATCH>'+
@@ -1774,7 +1809,7 @@ GSTPURC = '<Voucher>'+
 '<Alias>Rate</Alias>'+
 '</RATE>'+
 {
-'<Value>>'+
+'<Value>'+
 '<Alias>Purchase_Value</Alias>'+
 '</Value>'+
 }
@@ -1897,11 +1932,12 @@ CNOTE = '<Voucher>'+
 
 '<RoundOff>'+
 '<Alias>Name_of_buyer</Alias>'+
-'<Group>Sundry Debtors</Group>'+
+'<Group>'+
+'<Default>Sundry Debtors</Default>'+
+'</Group>'+
 '<GSTN>'+
 '<Alias>GSTN</Alias>'+
 '</GSTN>'+
-//'<RoundTo>1</RoundTo>'+
 '</RoundOff>'+
 
 '<NARRATION>'+
@@ -2198,11 +2234,12 @@ DNOTE = '<Voucher>'+
 
 '<RoundOff>'+
 '<Alias>Name_of_seller</Alias>'+
-'<Group>Sundry Creditors</Group>'+
+'<Group>'+
+'<Default>Sundry Creditors</Default>'+
+'</Group>'+
 '<GSTN>'+
 '<Alias>GSTN</Alias>'+
 '</GSTN>'+
-//'<RoundTo>1</RoundTo>'+
 '</RoundOff>'+
 
 '<NARRATION>'+
@@ -2461,6 +2498,7 @@ DNOTE = '<Voucher>'+
 StkJrnl = '<Voucher>'+
 '<Data>'+
 '<StkVchList>StkJrnl</StkVchList>'+
+//'<DefaultGroup>Primary Batch</DefaultGroup>'+
 '<IsMultiRow>Yes</IsMultiRow>'+
 '<IsMultiColumn>Yes</IsMultiColumn>'+
 '</Data>'+
@@ -2473,6 +2511,9 @@ StkJrnl = '<Voucher>'+
 '<CrITEM>'+
 '<Alias>Out Item</Alias>'+
 '</CrITEM>'+
+'<CrGODOWN>'+
+'<Alias>Out Godown</Alias>'+
+'</CrGODOWN>'+
 '<CrBATCH>'+
 '<Alias>Out Batch</Alias>'+
 '</CrBATCH>'+
@@ -2491,6 +2532,9 @@ StkJrnl = '<Voucher>'+
 '<DrITEM>'+
 '<Alias>In Item</Alias>'+
 '</DrITEM>'+
+'<DrGODOWN>'+
+'<Alias>In Godown</Alias>'+
+'</DrGODOWN>'+
 '<DrBATCH>'+
 '<Alias>In Batch</Alias>'+
 '</DrBATCH>'+
