@@ -34,7 +34,7 @@ uses
   Repet,
   Math,
   Controls,
-  CFig3,
+  CFig,
   VchLib;
 
 const
@@ -223,6 +223,7 @@ type
     DrCrTotal: double;
     RefLedger: string;
     CrLine, DrLine: integer;
+    IsVchMode4Vch: boolean;
 
     CashBankPList: TStringList;
 //    procedure GetVchType(const aName: string);
@@ -382,6 +383,7 @@ begin
   It should be defined by Callinf functions
   For simple usage, that is}
   FInvVch := False;
+  IsVchMode4Vch := True;
 end;
 
 destructor TbjVchExp.Destroy;
@@ -1140,13 +1142,13 @@ begin
     for i := 0 to Lines.Count-1 do
     begin
       Item := Lines.Items[i];
-      if Item^.Amount > 0 then
+      if (Item^.Amount > 0) and not (Item^.IsNegative) then
         CrLine := CrLine + 1;
-      if Item^.Amount < 0 then
+      if (Item^.Amount < 0) and not (Item^.IsNegative) then
         DrLine := DrLine + 1;
     end;
 
-{
+
     if IsVchMode4Vch then
     begin
     if (WSType = 'Sales')  and (DrLine > 1) then
@@ -1154,7 +1156,7 @@ begin
     if (WSType = 'Purchase')  and (CrLine > 1) then
       InvVch := False;
     end;
-}
+
 
     if InvVch then
     xvou.NewChild2('ISINVOICE','Yes');
