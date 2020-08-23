@@ -252,7 +252,7 @@ TbjMrMc = class(TinterfacedObject, IbjXlExp, IbjMrMc)
 { Non Default }
     NarrationColValue: string;
     ChequeNoColValue: string;
-    Amt: array [1..COLUMNLIMIT] of double;
+    Amt: array [1..COLUMNLIMIT] of currency;
 
 { if exosts value if not di}
     DateColValue: string;
@@ -260,7 +260,7 @@ TbjMrMc = class(TinterfacedObject, IbjXlExp, IbjMrMc)
 
     notoskip: integer;
     ProcessedCount: integer;
-    VTotal: double;
+    VTotal: currency;
     VchAction: string;
     IsInventoryAssigned: Boolean;
     RoundOffName: string;
@@ -283,14 +283,14 @@ TbjMrMc = class(TinterfacedObject, IbjXlExp, IbjMrMc)
     procedure Process;
     procedure ProcessRow;
     procedure ProcessCol(const level: integer);
-    procedure ProcessItem(const level: integer; InvAmt: double);
+    procedure ProcessItem(const level: integer; InvAmt: currency);
     function IsIDChanged: boolean;
     procedure GetDefaults;
     procedure WriteStatus;
     procedure WriteStock;
     function GetLedger(const level: integer): string;
     function GetRoundOffName: string;
-    function GetAmt(const level: integer): double;
+    function GetAmt(const level: integer): currency;
     function IsMoreColumn(const level: integer): boolean;
     procedure SetFirm(const aFirm: string);
     procedure SetHost(const aHost: string);
@@ -352,6 +352,8 @@ TbjMrMc = class(TinterfacedObject, IbjXlExp, IbjMrMc)
     Value: String;
   end;
   pDict = ^TDict;
+
+function RoundCurr(const Value: Currency): Currency;
 
 implementation
 
@@ -1498,11 +1500,14 @@ begin
   Amt[1] := GetAmt(1);
   if Abs(Amt[1]) >= 0.01 then
   begin
-    VchExp.AddLine(LedgerColValue, RoundTo(Amt[1], -2), IsMinus);
+//    VchExp.AddLine(LedgerColValue, SimpleRoundTo(Amt[1], -2), IsMinus);
+    VchExp.AddLine(LedgerColValue, RoundCurr(Amt[1]), IsMinus);
     if dsl.IsAssessableDefined[1] then
-      VchExp.SetAssessable(kadb.GetFieldFloat(dsl.UAssessableName[1]));
-    VTotal := VTotal + RoundTo(Amt[1],-2);
-    ProcessItem(1, RoundTo(Amt[1], -2));
+      VchExp.SetAssessable(kadb.GetFieldCurr(dsl.UAssessableName[1]));
+//    VTotal := VTotal + SimpleRoundTo(Amt[1],-2);
+//    ProcessItem(1, SimpleRoundTo(Amt[1], -2));
+    VTotal := VTotal + RoundCurr(Amt[1]);
+    ProcessItem(1, RoundCurr(Amt[1]));
   end;
   if dsl.IsMultiColumnVoucher then
     ProcessCol(2);
@@ -1521,11 +1526,14 @@ begin
   amt[level] := GetAmt(level);
   if abs(Amt[level]) >= 0.01 then
   begin
-    VchExp.AddLine(LedgerColValue, RoundTo(Amt[level], -2), IsMinus);
+//    VchExp.AddLine(LedgerColValue, SimpleRoundTo(Amt[level], -2), IsMinus);
+    VchExp.AddLine(LedgerColValue, RoundCurr(Amt[level]), IsMinus);
     if dsl.IsAssessableDefined[level] then
-      VchExp.SetAssessable(kadb.GetFieldFloat(dsl.UAssessableName[level]));
-    VTotal := VTotal + RoundTo(Amt[level], -2);
-    ProcessItem(level, RoundTo(Amt[level], -2));
+      VchExp.SetAssessable(kadb.GetFieldCurr(dsl.UAssessableName[level]));
+//    VTotal := VTotal + SimpleRoundTo(Amt[level], -2);
+//    ProcessItem(level, simpleRoundTo(Amt[level], -2));
+    VTotal := VTotal + RoundCurr(Amt[level]);
+    ProcessItem(level, RoundCurr(Amt[level]));
     ProcessCol(level+1);
   end;
   if Amt[level] = 0 then
@@ -1538,7 +1546,7 @@ begin
   end;
 end;
 
-procedure TbjMrMc.ProcessItem(const level: integer; InvAmt: double);
+procedure TbjMrMc.ProcessItem(const level: integer; InvAmt: currency);
 var
   ItemColValue: string;
   BatchColValue: string;
@@ -1568,8 +1576,8 @@ begin
   if (Length(ItemColValue) > 0) and
     (not kadb.IsEmptyField(dsl.UQtyName)) then
     VchExp.SetInvLine(ItemColValue,
-    kadb.GetFieldFloat(dsl.UQtyName),
-    kadb.GetFieldFloat(dsl.URateName),
+    kadb.GetFieldCurr(dsl.UQtyName),
+    kadb.GetFieldCurr(dsl.URateName),
     invamt, GodownColValue, BatchColValue, UserDescColValue);
   IsInventoryAssigned := True;
   VchExp.InvVch := True;
@@ -1720,22 +1728,22 @@ begin
 
   if dsl.IsDaybook then
   begin
-    if (vTotal = 0) and (kadb.GetFieldFloat(dsl.CrAmtCol) +
-      kadb.GetFieldFloat(dsl.DrAmtCol) > 0) then
+    if (vTotal = 0) and (kadb.GetFieldCurr(dsl.CrAmtCol) +
+      kadb.GetFieldCurr(dsl.DrAmtCol) > 0) then
       IDstr :=  IntToStr(kadb.CurrentRow);
     if kadb.IsEmptyField('ID') then
     begin
       kadb.SetFieldVal('ID', IDstr);
     end;
-    vTotal := vTotal + kadb.GetFieldFloat(dsl.CrAmtCol) -
-              kadb.GetFieldFloat(dsl.DrAmtCol);
+    vTotal := vTotal + kadb.GetFieldCurr(dsl.CrAmtCol) -
+              kadb.GetFieldCurr(dsl.DrAmtCol);
   end;
     if not dsl.IsIdDefined then
       Exit;
   if dsl.IsBank then
   begin
-    if (kadb.GetFieldFloat(dsl.CrAmtCol) <> 0) or
-      (kadb.GetFieldFloat(dsl.DrAmtCol) <> 0) then
+    if (kadb.GetFieldCurr(dsl.CrAmtCol) <> 0) or
+      (kadb.GetFieldCurr(dsl.DrAmtCol) <> 0) then
       IDstr :=  IntToStr(kadb.CurrentRow);
     if kadb.IsEmptyField('ID') then
     begin
@@ -1750,7 +1758,7 @@ var
   dbkLed, wLed, dbGSTN, wGSTN: string;
   IsThere: boolean;
   dbAlias: string;
-  wOBal: double;
+  wOBal: currency;
   wAddress, wMobile, weMail: string;
 begin
   if not dsl.IsMListDeclared then
@@ -1764,7 +1772,7 @@ begin
   end;
   kadb.SetFieldVal('TALLYID', ' - ');
   if dsl.IsOBalDefined then
-  wOBal := kadb.GetFieldFloat(dsl.UOBalName);
+  wOBal := kadb.GetFieldCurr(dsl.UOBalName);
   MstExp.OBal := wOBal;
   if dsl.IsAddressDefined then
     wAddress := kadb.GetFieldString(dsl.UAddressName);
@@ -1841,7 +1849,8 @@ var
   dbGodown, dbParent, dbCategory: string;
   dbHSN: string;
   dbOBatch: string;
-  wOBal, ORate: double;
+  wOBal: currency;
+  ORate: currency;
   GRate: string;
 begin
   if not dsl.IsMListDeclared then
@@ -1895,10 +1904,10 @@ begin
   end;
   dbItem := kadb.GetFieldString('Item');
   if dsl.IsOBalDefined then
-  wOBal := kadb.GetFieldFloat(dsl.UOBalName);
+  wOBal := kadb.GetFieldCurr(dsl.UOBalName);
   if dsl.IsOBatchDefined then
     dbOBatch := kadb.GetFieldString(dsl.UOBatchName);
-  ORate := kadb.GetFieldFloat('O_Rate');
+  ORate := kadb.GetFieldCurr('O_Rate');
   GRate := kadb.GetFieldString('GSTRate');
   MstExp.OBal := wOBal;
   MstExp.ORate := ORate;
@@ -1964,9 +1973,9 @@ begin
   if (Length(ItemColValue) > 0) and
     (not kadb.IsEmptyField(dsl.UOutQtyName)) then
     VchExp.SetInvLine(ItemColValue,
-    kadb.GetFieldFloat(dsl.UOutQtyName),
-    kadb.GetFieldFloat(dsl.UOutRateName),
-    kadb.GetFieldFloat(dsl.UOutAmtName),
+    kadb.GetFieldCurr(dsl.UOutQtyName),
+    kadb.GetFieldCurr(dsl.UOutRateName),
+    kadb.GetFieldCurr(dsl.UOutAmtName),
     GodownColValue, BatchColValue, UserDescColValue);
   end;
   if dsl.IsInItemDefined then
@@ -1982,16 +1991,16 @@ begin
   if (Length(ItemColValue) > 0) and
     (not kadb.IsEmptyField(dsl.UInQtyName)) then
     VchExp.SetInvLine(ItemColValue,
-    kadb.GetFieldFloat(dsl.UInQtyName),
-    kadb.GetFieldFloat(dsl.UInRateName),
-    -kadb.GetFieldFloat(dsl.UInAmtName),
+    kadb.GetFieldCurr(dsl.UInQtyName),
+    kadb.GetFieldCurr(dsl.UInRateName),
+    -kadb.GetFieldCurr(dsl.UInAmtName),
     GodownColValue, BatchColValue, UserDescColValue);
   end;
 end;
 
 procedure TbjMrMc.CreateRowLedger;
 var
-  OB: double;
+  OB: currency;
   StateColValue: string;
   LedgerColValue: string;
   GroupColValue: string;
@@ -2088,10 +2097,10 @@ begin
   begin
   if Length(TypeColValue) = 0 then
   begin
-    if kadb.GetFieldFloat(dsl.CrAmtCol) > 0 then
+    if kadb.GetFieldCurr(dsl.CrAmtCol) > 0 then
       if Length(dsl.CrAmtColType) > 0 then
         TypeColValue := dsl.CrAmtColType;
-    if kadb.GetFieldFloat(dsl.DrAmtCol) > 0 then
+    if kadb.GetFieldCurr(dsl.DrAmtCol) > 0 then
       if Length(dsl.DrAmtColType) > 0 then
         TypeColValue := dsl.DrAmtColType;
   end;
@@ -2161,7 +2170,7 @@ Token code is exception to normal logic; Getout after executing this fragment
 end;
 
 { Modifies Amtount according to Voucher Types to +ve or -ve }
-function TbjMrMc.GetAmt(const level: integer): double;
+function TbjMrMc.GetAmt(const level: integer): currency;
 begin
   Result := 0;
   IsMinus := False;
@@ -2177,11 +2186,11 @@ begin
     if (level = 1) or (level = 2)  then
     begin
       if not kadb.IsEmptyField(dsl.DrAmtCol) then
-      if kadb.GetFieldFloat(dsl.DrAmtCol) <> 0 then
-        Result := -kadb.GetFieldFloat(dsl.DrAmtCol);
+      if kadb.GetFieldCurr(dsl.DrAmtCol) <> 0 then
+        Result := -kadb.GetFieldCurr(dsl.DrAmtCol);
       if not kadb.IsEmptyField(dsl.CrAmtCol) then
-      if kadb.GetFieldFloat(dsl.CrAmtCol) <> 0 then
-        Result := kadb.GetFieldFloat(dsl.CrAmtCol);
+      if kadb.GetFieldCurr(dsl.CrAmtCol) <> 0 then
+        Result := kadb.GetFieldCurr(dsl.CrAmtCol);
       if (level = 2)  then
         Result := -Result;
     end;
@@ -2192,11 +2201,11 @@ begin
   begin
     if not kadb.IsEmptyField(dsl.UAmountName[level]) then
     begin
-      Result := kadb.GetFieldFloat(dsl.UAmountName[level]);
+      Result := kadb.GetFieldCurr(dsl.UAmountName[level]);
       if Result < 0 then
         IsMinus := True;
       if dsl.AmountType[level] = 'Dr' then
-        Result := - kadb.GetFieldFloat(dsl.UAmountName[level]);
+        Result := - kadb.GetFieldCurr(dsl.UAmountName[level]);
 {      Exit;}
     end;
     if dsl.AmountCols[level] > 1 then
@@ -2204,9 +2213,9 @@ begin
       if not kadb.IsEmptyField(dsl.UAmount2Name[level]) then
       begin
         if dsl.Amount2Type[level] = 'Cr' then
-          Result := Result + kadb.GetFieldFloat(dsl.UAmount2Name[level]);
+          Result := Result + kadb.GetFieldCurr(dsl.UAmount2Name[level]);
         if dsl.Amount2Type[level] = 'Dr' then
-          Result := Result - kadb.GetFieldFloat(dsl.UAmount2Name[level]);
+          Result := Result - kadb.GetFieldCurr(dsl.UAmount2Name[level]);
 {      Exit;}
       end;
     end;
@@ -2259,7 +2268,7 @@ procedure TbjMrMc.WriteStatus;
 var
   i: integer;
   statmsg: string;
-  RoundOffAmount: Double;
+  RoundOffAmount: currency;
   Thisalso: boolean;
 begin
   Thisalso := False;
@@ -2328,7 +2337,6 @@ procedure TbjMrMc.WriteStock;
 var
   i: integer;
   statmsg: string;
-//  RoundOffAmount: Double;
   Thisalso: boolean;
 begin
   vchAction := 'Create';
@@ -2548,7 +2556,7 @@ begin
     end;
 
     if not kadb.IsEmptyField('TallyID') then
-      if kadb.GetFieldFloat('TallyID') >  0 then
+      if kadb.GetFieldCurr('TallyID') >  0 then
       begin
         inErr := False;
         kadb.Delete;
@@ -2663,6 +2671,20 @@ end;
 procedure TbjMrMc.SetGstLedSetting(const doit: boolean);
 begin
   FIsGSTSetting := True;
+end;
+
+function RoundCurr(const Value: Currency): Currency;
+var
+  V64: Int64 absolute Result;
+  Decimals: Integer;
+begin
+  Result := Value;
+  Decimals := V64 mod 100;
+  Dec(V64, Decimals);
+  case Decimals of
+    -99 .. -50 : Dec(V64, 100);
+    50 .. 99 : Inc(V64, 100);
+  end;
 end;
 
 end.

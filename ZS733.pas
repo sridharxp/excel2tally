@@ -109,9 +109,9 @@ type
     FGodown: string;
     FCategory: string;
     FEnv: TbjEnv;
-    FOBal: double;
+    FOBal: currency;
     FOBatch: string;
-    FORate: double;
+    FORate: currency;
     FAddress: string;
     FMobile: string;
     FeMail: string;
@@ -132,10 +132,10 @@ type
     GSTNList: TList;
     procedure XmlHeader(const tgt:string);
     procedure XmlFooter(const tgt:string);
-    function CreateLedger(const Ledger, Parent: string; const OpBal: double ): boolean;
+    function CreateLedger(const Ledger, Parent: string; const OpBal: currency ): boolean;
     function CreateParty(const Ledger, Parent, GSTN, State: string ): boolean;
     function CreateGST(const Ledger, Parent: string; Const TaxRate: string ): boolean;
-    function CreateItem(const Item, BaseUnit: string; const OpBal, OpRate: double): boolean;
+    function CreateItem(const Item, BaseUnit: string; const OpBal, OpRate: currency): boolean;
     function CreateHSN(const Item, BaseUnit, aHSN: string; const GRate: string): boolean;
     function CreateUnit(const ItemUnit: string): boolean;
     function CreateItemGroup(const Grp, Parent: string): boolean;
@@ -151,14 +151,14 @@ type
     constructor Create;
     destructor Destroy; override;
     function IsLedger(Const Ledger: string): boolean;
-    procedure NewLedger(const aLedger, aParent: string; OpBal: double);
+    procedure NewLedger(const aLedger, aParent: string; OpBal: currency);
     function GetGSTNParty(const aGSTN: string): string;
     function GetDupPartyGSTN(const aDup: string): string;
     function NewParty(const aLedger, aParent, aGSTN: string; aState: string): string;
     procedure NewGST(const aLedger, aParent: string; const TaxRate: string);
     function GetHalfof(const TaxRate: string): string;
     function IsItem(const Item: string): boolean;
-    procedure NewItem(const aItem, aBaseUnit: string; OpBal, OpRate: double);
+    procedure NewItem(const aItem, aBaseUnit: string; OpBal, OpRate: currency);
     procedure NewHSN(const aItem, aBaseUnit, aHSN: string; const GRate: string);
     function IsUnit(const aUnit: string): boolean;
     procedure NewUnit(const aUnit: string);
@@ -177,9 +177,9 @@ type
     property Category: string write FCategory;
 //    property LedState: string read FLedState write FLedState;
     property Env: TbjEnv read FEnv write SetEnv;
-    property OBal: double write FOBal;
+    property OBal: currency write FOBal;
     property OBatch: string write FOBatch;
-    property ORate: double write FORate;
+    property ORate: currency write FORate;
     property Address: string write FAddress;
     property Mobile: string write FMobile;
     property eMail: string write FeMail;
@@ -212,27 +212,27 @@ type
     ILines: TList;
     GSTNLines: TList;
     partyidx: integer;
-    partyamt: double;
+    partyamt: currency;
     busidx: integer;
-    busamt: double;
+    busamt: currency;
     VchAction: string;
     xvou: IbjXml;
     xvch: IbjXml;
     xvchid: IbjXml;
     IsVchTypeMatched: Boolean;
-    DrCrTotal: double;
+    DrCrTotal: currency;
     RefLedger: string;
     CrLine, DrLine: integer;
     IsVchMode4Vch: boolean;
 
     CashBankPList: TStringList;
 //    procedure GetVchType(const aName: string);
-    procedure CheckVchType(const ledger; const Amount: double);
+    procedure CheckVchType(const ledger; const Amount: currency);
     procedure XmlHeader(const tgt:string);
 //    procedure XmlHeader(const tgt:string);
     procedure XmlFooter(const tgt:string);
     procedure SetVchHeader;
-    function Pack(const Ledger: string; const Amount: double; const Ref, RefType: string; const aTType: boolean): double;
+    function Pack(const Ledger: string; const Amount: currency; const Ref, RefType: string; const aTType: boolean): currency;
     procedure Unpack;
     procedure AttachInv(const rled: string);
     procedure AttachAssessable(const rled: string);
@@ -252,11 +252,11 @@ type
     destructor Destroy; override;
 //    procedure GetVchHeader(const ID, Date, Name, Narration: string); overload;
 //    procedure GetVchHeader(const ID: string); overload;
-    function AddLine(const Ledger: string; const Amount: double; const aTType: boolean): double;
-    function AddLinewithRef(const Ledger: string; const Amount: double; const Ref, RefType: string): double;
-    function SetAssessable(const aAmount: double): double;
+    function AddLine(const Ledger: string; const Amount: currency; const aTType: boolean): currency;
+    function AddLinewithRef(const Ledger: string; const Amount: currency; const Ref, RefType: string): currency;
+    function SetAssessable(const aAmount: currency): currency;
 //    function SetInvLine(const Item: string; const Qty, Rate, Amount: double): double;
-    function SetInvLine(const Item: string; const Qty, Rate, Amount: double; const Godown, Batch, UserDesc:string): double;
+    function SetInvLine(const Item: string; const Qty, Rate, Amount: currency; const Godown, Batch, UserDesc:string): currency;
     function Post(const Action: string; wem: boolean): string;
     function SPost(const Action: string; wem: boolean): string;
 
@@ -280,7 +280,7 @@ type
 
   TLine = Record
     Ledger: string;
-    Amount: double;
+    Amount: currency;
     Ref: string;
     RefType: string;
     IsNegative: boolean;
@@ -290,9 +290,9 @@ type
   TInvLine = Record
     Ledger: string;
     Item: string;
-    Qty: double;
-    Rate: double;
-    Amount: double;
+    Qty: currency;
+    Rate: currency;
+    Amount: currency;
     Godown: string;
     Batch: string;
     UserDesc: string;
@@ -301,7 +301,7 @@ type
 
   TGSTNLine = Record
     Ledger: string;
-    Amount: double;
+    Amount: currency;
   end;
   pGSTNLine = ^TGSTNline;
 
@@ -431,7 +431,7 @@ end;
 Create, Update logic is in VchUpdate.dpr
 Low level funcntion should be Minimalist
 }
-function TbjMstExp.CreateLedger(const Ledger, Parent: string; const OpBal: double): boolean;
+function TbjMstExp.CreateLedger(const Ledger, Parent: string; const OpBal: currency): boolean;
 begin
 {  Result := False; }
 {
@@ -461,7 +461,7 @@ begin
   if Length(FMobile) > 0 then
     xLdg.NewChild2('LEDGERMOBILE', FMobile);
 {  if OpBal > 0 then }
-    xLdg.NewChild2('OPENINGBALANCE', FormatFloat(TallyAmtPicture, FOBal));
+    xLdg.NewChild2('OPENINGBALANCE', FormatCurr(TallyAmtPicture, FOBal));
   { LEDGER }
   xLdg := xLdg.GetParent;
 
@@ -687,7 +687,7 @@ begin
   xLdg.NewChild2('PARENT', parent );
   if Length(FMobile) > 0 then
     xLdg.NewChild2('LEDGERMOBILE', FMobile);
-  xLdg.NewChild2('OPENINGBALANCE', FormatFloat(TallyAmtPicture, FOBal));
+  xLdg.NewChild2('OPENINGBALANCE', FormatCurr(TallyAmtPicture, FOBal));
   if Length(GSTN) > 0 then
     xLdg.NewChild2('PARTYGSTIN', GSTN);
 //  xLdg.NewChild2('SERVICECATEGORY', '&#4; Not Applicable');
@@ -742,9 +742,9 @@ begin
   if FIsBatchwiseOn then
   xldg.NewChild2('IsBatchWiseOn', 'Yes');
 }
-  xLdg.NewChild2('OPENINGBALANCE', FormatFloat(TallyAmtPicture, FOBal)+' '+BaseUnit);
+  xLdg.NewChild2('OPENINGBALANCE', FormatCurr(TallyQtyPicture, FOBal)+' '+BaseUnit);
   if FORate > 0 then
-    xLdg.NewChild2('OPENINGRATE', FormatFloat(TallyAmtPicture,FORate)+'/'+BaseUnit);;
+    xLdg.NewChild2('OPENINGRATE', FormatCurr(TallyQtyPicture,FORate)+'/'+BaseUnit);;
   If Length(FGodown) > 0 then
   begin
     xLdg := xLdg.NewChild('BATCHALLOCATIONS.LIST','');
@@ -757,7 +757,7 @@ begin
     else
     xLdg.NewChild2('BATCHNAME', 'Primary Batch');
 //    xLdg.NewChild2('BATCHNAME', 'Primary Batch');
-    xLdg.NewChild2('OPENINGBALANCE', FormatFloat(TallyAmtPicture, FOBal)+' '+BaseUnit);
+    xLdg.NewChild2('OPENINGBALANCE', FormatCurr(TallyQtyPicture, FOBal)+' '+BaseUnit);
   { BATCHALLOCATIONS }
     xLdg := xLdg.GetParent;
   end;
@@ -811,9 +811,9 @@ begin
   if FIsBatchwiseOn then
   xldg.NewChild2('IsBatchWiseOn', 'Yes');
 }
-  xLdg.NewChild2('OPENINGBALANCE', FormatFloat(TallyAmtPicture, FOBal)+' '+BaseUnit);
+  xLdg.NewChild2('OPENINGBALANCE', FormatCurr(TallyAmtPicture, FOBal)+' '+BaseUnit);
   if FORate > 0 then
-    xLdg.NewChild2('OPENINGRATE', FormatFloat(TallyAmtPicture,FORate)+'/'+BaseUnit);;
+    xLdg.NewChild2('OPENINGRATE', FormatCurr(TallyQtyPicture,FORate)+'/'+BaseUnit);;
   If Length(FGodown) > 0 then
   begin
   xLdg := xLdg.NewChild('BATCHALLOCATIONS.LIST','');
@@ -828,7 +828,7 @@ begin
   xLdg.NewChild2('BATCHNAME', 'Primary Batch');
 //  xLdg.NewChild2('BATCHNAME', 'Primary Batch');
   if FORate > 0 then
-  xLdg.NewChild2('OPENINGBALANCE', FormatFloat(TallyAmtPicture, FORate)+' '+BaseUnit);
+  xLdg.NewChild2('OPENINGBALANCE', FormatCurr(TallyQtyPicture, FORate)+' '+BaseUnit);
   { BATCHALLOCATIONS }
   xLdg := xLdg.GetParent;
   end;
@@ -1223,7 +1223,7 @@ begin
   end;
 end;
 
-procedure TbjVchExp.CheckVchType(const Ledger; const Amount: double);
+procedure TbjVchExp.CheckVchType(const Ledger; const Amount: currency);
 begin
   IsVchTypeMatched := True;
   if  (WSType = 'Receipt') then
@@ -1252,7 +1252,7 @@ begin
       IsVchTypeMatched := False;
 end;
 
-function TbjVchExp.AddLine(const Ledger: string; const Amount: double; const aTType: boolean): double;
+function TbjVchExp.AddLine(const Ledger: string; const Amount: currency; const aTType: boolean): currency;
 begin
 //  If AttYPE THEN
 //    sHOWMESSAGE(LEDGER);
@@ -1281,7 +1281,7 @@ begin
   Result := Amount;
 end;
 }
-function TbjVchExp.SetInvLine(const Item: string; const Qty, Rate, Amount: double; const Godown, Batch, UserDesc: string): double;
+function TbjVchExp.SetInvLine(const Item: string; const Qty, Rate, Amount: currency; const Godown, Batch, UserDesc: string): currency;
 var
   pline: pInvLine;
 begin
@@ -1303,7 +1303,7 @@ begin
   Result := Amount;
 end;
 
-function TbjVchExp.SetAssessable(const aAmount: double): double;
+function TbjVchExp.SetAssessable(const aAmount: currency): currency;
 var
   pline: pGSTNLine;
 begin
@@ -1320,7 +1320,7 @@ end;
 
 { Ro combine repeat Ledger Entries }
 //procedure Tbjxmlupdate.Pack(const Ledger: string; const Amount: double; const Ref, RefType: string);
-function TbjVchExp.Pack(const Ledger: string; const Amount: double; const Ref, RefType: string; const aTType: boolean): double;
+function TbjVchExp.Pack(const Ledger: string; const Amount: currency; const Ref, RefType: string; const aTType: boolean): currency;
 var
   item: pLine;
   step: integer;
@@ -1482,7 +1482,7 @@ begin
     xvou.NewChild2('ISDEEMEDPOSITIVE','No');
   end;
   xvou.NewChild2('LEDGERNAME', pLine(Lines.Items[idx])^.Ledger);
-  xvou.NewChild2('AMOUNT', FormatFloat(TallyAmtPicture,
+  xvou.NewChild2('AMOUNT', FormatCurr(TallyAmtPicture,
   pLine(Lines.Items[idx])^.Amount));
 
   IF (wsType = 'Receipt') or (wsType = 'Payment') then
@@ -1494,7 +1494,7 @@ begin
       xvou.NewChild2('INSTRUMENTNUMBER', vchChequeNo)
     else
       xvou.NewChild2('INSTRUMENTNUMBER', '');
-    xvou.NewChild2('AMOUNT', FormatFloat(TallyAmtPicture, pLine(Lines.Items[idx])^.Amount));
+    xvou.NewChild2('AMOUNT', FormatCurr(TallyAmtPicture, pLine(Lines.Items[idx])^.Amount));
   { BANKALLOCATIONS.LIST }
     xVou := xVou.GetParent;
   end;
@@ -1503,7 +1503,7 @@ begin
     xvou := xvou.NewChild('BILLALLOCATIONS.LIST','');
     xvou.NewChild2('NAME', pLine(Lines.Items[idx])^.Ref);
     xvou.NewChild2('BILLTYPE', pLine(Lines.Items[idx])^.Reftype);
-    xvou.NewChild2('AMOUNT', FormatFloat(TallyAmtPicture, pLine(Lines.Items[idx])^.Amount));
+    xvou.NewChild2('AMOUNT', FormatCurr(TallyAmtPicture, pLine(Lines.Items[idx])^.Amount));
   { BILLALLOCATIONS.LIST }
     xVou := xVou.GetParent;
   end;
@@ -1524,10 +1524,10 @@ begin
     xvou.NewChild2('ISDEEMEDPOSITIVE','Yes');
   if (pInvLine(iLines.Items[idx])^.Amount > 0) then
     xvou.NewChild2('ISDEEMEDPOSITIVE','No');
-  xvou.NewChild2('RATE', FormatFloat(TallyAmtPicture, pInvLine(iLines.Items[idx])^.Rate));
-  xvou.NewChild2('AMOUNT', FormatFloat(TallyAmtPicture, pInvLine(iLines.Items[idx])^.Amount));
-  xvou.NewChild2('ACTUALQTY', FormatFloat(TallyQtyPicture, pInvLine(iLines.Items[idx])^.Qty));
-  xvou.NewChild2('BILLEDQTY', FormatFloat(TallyQtyPicture, pInvLine(iLines.Items[idx])^.Qty));
+  xvou.NewChild2('RATE', FormatCurr(TallyAmtPicture, pInvLine(iLines.Items[idx])^.Rate));
+  xvou.NewChild2('AMOUNT', FormatCurr(TallyAmtPicture, pInvLine(iLines.Items[idx])^.Amount));
+  xvou.NewChild2('ACTUALQTY', FormatCurr(TallyQtyPicture, pInvLine(iLines.Items[idx])^.Qty));
+  xvou.NewChild2('BILLEDQTY', FormatCurr(TallyQtyPicture, pInvLine(iLines.Items[idx])^.Qty));
 
   xvou := xvou.NewChild('BATCHALLOCATIONS.LIST','');
   if Length(pInvLine(iLines.Items[idx])^.Godown) > 0 then
@@ -1538,9 +1538,9 @@ begin
     xvou.NewChild2('BATCHNAME', pInvLine(iLines.Items[idx])^.Batch)
   else
     xvou.NewChild2('BATCHNAME', 'Primary Batch');
-  xvou.NewChild2('AMOUNT', FormatFloat(TallyAmtPicture, pInvLine(iLines.Items[idx])^.Amount));
-  xvou.NewChild2('ACTUALQTY', FormatFloat(TallyQtyPicture, pInvLine(iLines.Items[idx])^.Qty));
-  xvou.NewChild2('BILLEDQTY', FormatFloat(TallyQtyPicture, pInvLine(iLines.Items[idx])^.Qty));
+  xvou.NewChild2('AMOUNT', FormatCurr(TallyAmtPicture, pInvLine(iLines.Items[idx])^.Amount));
+  xvou.NewChild2('ACTUALQTY', FormatCurr(TallyQtyPicture, pInvLine(iLines.Items[idx])^.Qty));
+  xvou.NewChild2('BILLEDQTY', FormatCurr(TallyQtyPicture, pInvLine(iLines.Items[idx])^.Qty));
   { BATCHALLOCATIONS.LIST }
   xVou := xVou.GetParent;
 
@@ -1568,10 +1568,10 @@ begin
     else
       xvou.NewChild2('ISDEEMEDPOSITIVE', 'No');
 //      xvou.NewChild2('STOCKITEMNAME', pInvLine(iLines.Items[idx])^.Item);
-      xvou.NewChild2('AMOUNT', FormatFloat(TallyAmtPicture, pInvLine(iLines.Items[idx])^.Amount));
-      xvou.NewChild2('ACTUALQTY', FormatFloat(TallyQtyPicture, pInvLine(iLines.Items[idx])^.Qty));
-      xvou.NewChild2('BILLEDQTY', FormatFloat(TallyQtyPicture, pInvLine(iLines.Items[idx])^.Qty));
-      xvou.NewChild2('RATE', FormatFloat(TallyAmtPicture, pInvLine(iLines.Items[idx])^.Rate));
+      xvou.NewChild2('AMOUNT', FormatCurr(TallyAmtPicture, pInvLine(iLines.Items[idx])^.Amount));
+      xvou.NewChild2('ACTUALQTY', FormatCurr(TallyQtyPicture, pInvLine(iLines.Items[idx])^.Qty));
+      xvou.NewChild2('BILLEDQTY', FormatCurr(TallyQtyPicture, pInvLine(iLines.Items[idx])^.Qty));
+      xvou.NewChild2('RATE', FormatCurr(TallyAmtPicture, pInvLine(iLines.Items[idx])^.Rate));
       if Length(pInvLine(iLines.Items[idx])^.Batch) > 0 then
       begin
       xvou := xvou.NewChild('BATCHALLOCATIONS.LIST', '');
@@ -1580,9 +1580,9 @@ begin
       else
         xvou.NewChild2('GODOWNNAME', 'Main Location');
       xvou.NewChild2('BATCHNAME', pInvLine(iLines.Items[idx])^.Batch);
-      xvou.NewChild2('AMOUNT', FormatFloat(TallyAmtPicture, pInvLine(iLines.Items[idx])^.Amount));
-      xvou.NewChild2('ACTUALQTY', FormatFloat(TallyQtyPicture, pInvLine(iLines.Items[idx])^.Qty));
-      xvou.NewChild2('BILLEDQTY', FormatFloat(TallyQtyPicture, pInvLine(iLines.Items[idx])^.Qty));
+      xvou.NewChild2('AMOUNT', FormatCurr(TallyAmtPicture, pInvLine(iLines.Items[idx])^.Amount));
+      xvou.NewChild2('ACTUALQTY', FormatCurr(TallyQtyPicture, pInvLine(iLines.Items[idx])^.Qty));
+      xvou.NewChild2('BILLEDQTY', FormatCurr(TallyQtyPicture, pInvLine(iLines.Items[idx])^.Qty));
     { BATCHALLOCATIONS.LIST }
       xvou := xvou.GetParent;
       end
@@ -1604,11 +1604,11 @@ begin
   begin
     if pGSTNLine(GSTNLines.Items[idx])^.Ledger <> rled then
       Continue;
-    xvou.NewChild2('VATASSESSABLEVALUE', FormatFloat(TallyAmtPicture, pGSTNLine(GSTNLines.Items[idx])^.aMOUNT));
+    xvou.NewChild2('VATASSESSABLEVALUE', FormatCurr(TallyAmtPicture, pGSTNLine(GSTNLines.Items[idx])^.aMOUNT));
   end;
 end;
 
-function TbjVchExp.AddLinewithRef(const Ledger: string; const Amount: double; const Ref, RefType: string): double;
+function TbjVchExp.AddLinewithRef(const Ledger: string; const Amount: currency; const Ref, RefType: string): currency;
 begin
 //  CheckVchType(Ledger, Amount);
   Pack(Ledger, Amount, Ref, RefType, False);
@@ -1865,7 +1865,7 @@ begin
   end;
 end;
 
-procedure TbjMstExp.NewLedger(const aLedger, aParent: string; OpBal: double);
+procedure TbjMstExp.NewLedger(const aLedger, aParent: string; OpBal: currency);
 var
   Found: boolean;
 begin
@@ -1885,7 +1885,7 @@ begin
   end;
 end;
 
-procedure TbjMstExp.NewItem(const aItem, aBaseUnit: string; OpBal, OpRate: double);
+procedure TbjMstExp.NewItem(const aItem, aBaseUnit: string; OpBal, OpRate: currency);
 var
   Found: boolean;
 begin
