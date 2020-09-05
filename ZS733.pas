@@ -705,7 +705,7 @@ begin
   Result := True;
 end;
 
-function TbjMstExp.CreateItem(const Item, BaseUnit: string; const OpBal, OpRate: double): boolean;
+function TbjMstExp.CreateItem(const Item, BaseUnit: string; const OpBal, OpRate: currency): boolean;
 begin
 {  Result := False; }
 {
@@ -1101,9 +1101,11 @@ begin
     Vchtype := 'Contra';
   end;
   xmlHeader('V');
-
+  if Length(VchId) < 8 then
     sid := Env.GUID+'-'+ RightStr('00000000' +
-      vchid, 8);
+      vchid, 8)
+  else
+    sid := Env.GUID + '-' + vchid;
 
   xvou := xvou.NewChild('TALLYMESSAGE','');
   xvou := xvou.NewChild('VOUCHER','');
@@ -1180,7 +1182,12 @@ end;
 procedure TbjVchExp.SetVchID(const ID: string);
 begin
   if length(id) = 0 then
+  begin
+    if (Length(VchRef) > 0) and (WsType = 'Sales') then
+      FVchId := VchRef + 'SL'
+    else
     Fvchid := InttoStr(random(100000000))
+  end
   else
     Fvchid := id;
   IsContra := True;

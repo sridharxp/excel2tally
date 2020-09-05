@@ -1730,11 +1730,14 @@ begin
   begin
     if (vTotal = 0) and (kadb.GetFieldCurr(dsl.CrAmtCol) +
       kadb.GetFieldCurr(dsl.DrAmtCol) > 0) then
-      IDstr :=  IntToStr(kadb.CurrentRow);
-    if kadb.IsEmptyField('ID') then
     begin
-      kadb.SetFieldVal('ID', IDstr);
+	  if kadb.IsEmptyField(dsl.UIdName) then
+        IDstr :=  IntToStr(kadb.CurrentRow)
+      eLSE
+        IDstr :=  kadb.GetFieldString('ID');
     end;
+	if kadb.IsEmptyField(dsl.UIdName) then
+      kadb.SetFieldVal(dsl.UIdName, IDstr);
     vTotal := vTotal + kadb.GetFieldCurr(dsl.CrAmtCol) -
               kadb.GetFieldCurr(dsl.DrAmtCol);
   end;
@@ -1745,9 +1748,9 @@ begin
     if (kadb.GetFieldCurr(dsl.CrAmtCol) <> 0) or
       (kadb.GetFieldCurr(dsl.DrAmtCol) <> 0) then
       IDstr :=  IntToStr(kadb.CurrentRow);
-    if kadb.IsEmptyField('ID') then
+    if kadb.IsEmptyField(dsl.UIdName) then
     begin
-      kadb.SetFieldVal('ID', IDstr);
+      kadb.SetFieldVal(dsl.UIdName, IDstr);
     end;
   end;
   FUpdate('ID: '+ IDstr);
