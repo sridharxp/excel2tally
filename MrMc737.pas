@@ -88,6 +88,7 @@ TbjDSLParser = class(TinterfacedObject, IbjDSLParser)
     DiLedgerValue: array [1..COLUMNLIMIT] of String;
     DiRoundOff: string;
     RoundOffCol: string;
+    RoundOffGSTN: string;
 
     { Public declarations }
     RoundOffGroup: string;
@@ -241,6 +242,7 @@ TbjMrMc = class(TinterfacedObject, IbjXlExp, IbjMrMc)
     FIsExpItemMst: Boolean;
     FIsCheckLedMst: Boolean;
     FFirm: string;
+    FFirmGUID: string;
     FHost: string;
     FIsGstSetting: Boolean;
     FMergeDupLed4GSTN: boolean;
@@ -293,6 +295,7 @@ TbjMrMc = class(TinterfacedObject, IbjXlExp, IbjMrMc)
     function GetAmt(const level: integer): currency;
     function IsMoreColumn(const level: integer): boolean;
     procedure SetFirm(const aFirm: string);
+    procedure SetFirmGUID(const aGUID: string);
     procedure SetHost(const aHost: string);
     function GetGSTState(const aGSTN: string): string;
     function GETDictToken(const ctr: integer): string;
@@ -342,6 +345,7 @@ TbjMrMc = class(TinterfacedObject, IbjXlExp, IbjMrMc)
     property XmlStr: string write SetXmlstr;
     property TableName: string read FTableName write FTableName;
     property MergeDupLed4GSTN: boolean read FMergeDupLed4GSTN write SetMergeDupLed4GSTN;
+    property FirmGUID: string read FFirmGUID write SetFirmGUID;
   end;
 
 { Level refers to TokenCol }
@@ -2068,6 +2072,9 @@ begin
     VchExp.BillRef := kadb.GetFieldString(dsl.UBillRefName);
 {  VchExp.VchNarration := NarrationColValue; }
   NarrationColValue := '';
+  VchExp.VchGSTN := '';
+    if dsl.IsGSTNDefined[COLUMNLIMIT + 1] then
+    VchExp.VchGSTN := kadb.GetFieldString(dsl.UGSTNName[COLUMNLIMIT+1]);
   VchExp.vchDate := DateColValue;
   VchExp.VchType := typeColValue;
   VchExp.WSType := WSType;
@@ -2368,6 +2375,11 @@ begin
   Env.Firm := aFirm;
 end;
 
+procedure TbjMrMc.SetFirmGUID(const aGUID: string);
+begin
+  FFirmGUID := aGUID;
+  Env.FirmGUID := aGUID;
+end;
 procedure TbjMrMc.SetHost(const aHost: string);
 begin
   FHost := aHost;
