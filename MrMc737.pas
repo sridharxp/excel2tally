@@ -1420,8 +1420,8 @@ begin
     IsInventoryAssigned := False;
     if dsl.IsIdDefined then
     begin
-      if (kadb.IsEmptyField(dsl.UIdName)) then
-        break;
+//      if (kadb.IsEmptyField(dsl.UIdName)) then
+//        break;
     end
     else
     begin
@@ -1731,13 +1731,12 @@ begin
     if (vTotal = 0) and (kadb.GetFieldCurr(dsl.CrAmtCol) +
       kadb.GetFieldCurr(dsl.DrAmtCol) > 0) then
     begin
+      IDstr :=  IntToStr(kadb.CurrentRow);
 	  if kadb.IsEmptyField(dsl.UIdName) then
-        IDstr :=  IntToStr(kadb.CurrentRow)
+      kadb.SetFieldVal(dsl.UIdName, IDstr)
       eLSE
       IDstr :=  kadb.GetFieldString(dsl.UIdName);
     end;
-	if kadb.IsEmptyField(dsl.UIdName) then
-      kadb.SetFieldVal(dsl.UIdName, IDstr);
     vTotal := vTotal + kadb.GetFieldCurr(dsl.CrAmtCol) -
               kadb.GetFieldCurr(dsl.DrAmtCol);
   end;
@@ -2131,6 +2130,7 @@ function TbjMrMc.IsIDChanged: boolean;
 begin
   Result := False;
   if dsl.IsIdDefined then
+  if Length(kadb.GetFieldString(dsl.UIdName)) > 0 then
     if (kadb.GetFieldString(dsl.UIdName) <> IDstr) then
       Result  := True;
 
