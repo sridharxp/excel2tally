@@ -44,6 +44,7 @@ type
   public
     { Public declarations }
     flds: TStringList;
+    procedure OpenFile(const aFile: string);
     procedure GetList(aList: TList);
     procedure WriteXls;
     function GetGSTNParty(const aGSTN: string): string;
@@ -72,6 +73,7 @@ begin
 
   rpetdb := TbjXLSTable.Create;
   rpetdb.ToSaveFile := True;
+(*
   rpetdb.SetXLSFile('.\Data\RpetGSTN.xls');
   rpetdb.XL.Workbook.Sheets.DeleteByName('Sheet1');
   rpetdb.SetSheet('REPEET');
@@ -81,6 +83,7 @@ begin
   flds.Add('Ledger_2');
   flds.Add('Ledger_3');
   rpetdb.SetFields(flds, True);
+*)
 end;
 
 destructor TRpetGSTN.Destroy;
@@ -101,6 +104,18 @@ begin
   flds.Free;
   rpetdb.Free;
   inherited;
+end;
+procedure TRpetGSTN.OpenFile(const aFile: string);
+begin
+  rpetdb.SetXLSFile('.\Data\'+ aFile);
+  rpetdb.XL.Workbook.Sheets.DeleteByName('Sheet1');
+  rpetdb.SetSheet('REPEET');
+  flds.Clear;
+  flds.Add('GSTN');
+  flds.Add('Ledger_1');
+  flds.Add('Ledger_2');
+  flds.Add('Ledger_3');
+  rpetdb.SetFields(flds, True);
 end;
 
 procedure TRpetGSTN.SetHost(const aHost: string);
@@ -174,6 +189,7 @@ end;
 
 procedure TRpetGSTN.Execute;
 begin
+  OpenFile('RpetGSTN.xls');
   GetList(GSTNList);
   WriteXls;
   if rpetdb.ToSaveFile then
