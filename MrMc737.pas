@@ -520,14 +520,14 @@ AutoCreateMst affects default group only
       end;
     end;
 
-    str := xCfg.GetChildContent('Alias');
+    str := xCfg.GetChildContent(UAliasName);
     if Length(str) > 0 then
       RoundOffCol := str;
     DiRoundOff := xCfg.GetChildContent('Default');
     xxCfg := xcfg.SearchForTag(nil, 'Group');
     if Assigned(xxCfg) then
     begin
-      str := xxCfg.GetChildContent('Alias');
+      str := xxCfg.GetChildContent(UAliasName);
       if Length(str) > 0 then
         RoundOffGroupCol := str;
       RoundOffGroup := xxCfg.GetChildContent('Default');
@@ -536,7 +536,7 @@ AutoCreateMst affects default group only
     xxCfg := xcfg.SearchForTag(nil, 'GSTN');
     if Assigned(xxCfg) then
     begin
-      str := xxCfg.GetChildContent('Alias');
+      str := xxCfg.GetChildContent(UAliasName);
       UGSTNName[COLUMNLIMIT+1] := str;
       if Length(str) > 0 then
         IsGSTNDeclared[COLUMNLIMIT+1] := True;
@@ -546,7 +546,7 @@ AutoCreateMst affects default group only
   xCfg := Cfg.SearchForTag(nil, UVchNoColName);
   if Assigned(xCfg) then
   begin
-    str := xCfg.GetChildContent('Alias');
+    str := xCfg.GetChildContent(UAliasName);
     if Length(str) > 0 then
       UVchNoColName := str;
   end;
@@ -554,7 +554,7 @@ AutoCreateMst affects default group only
   xCfg := Cfg.SearchForTag(nil, UDateName);
   if Assigned(xCfg) then
   begin
-    str := xCfg.GetChildContent('Alias');
+    str := xCfg.GetChildContent(UAliasName);
     if Length(str) > 0 then
     begin
       UDateName := str;
@@ -565,7 +565,7 @@ AutoCreateMst affects default group only
   xCfg := Cfg.SearchForTag(nil, UVTypeName);
   if Assigned(xCfg) then
   begin
-    str := xCfg.GetChildContent('Alias');
+    str := xCfg.GetChildContent(UAliasName);
     if Length(str) > 0 then
       UVTypeName := str;
     DiTypeValue := xcfg.GetChildContent('Default');
@@ -574,7 +574,7 @@ AutoCreateMst affects default group only
   xCfg := Cfg.SearchForTag(nil, 'CrAmtCol');
   if Assigned(xCfg) then
   begin
-    str := xCfg.GetChildContent('Alias');
+    str := xCfg.GetChildContent(UAliasName);
     if Length(str) <> 0 then
     begin
       CrAmtCol := str;
@@ -588,7 +588,7 @@ AutoCreateMst affects default group only
   xCfg := Cfg.SearchForTag(nil, 'DrAmtCol');
   if Assigned(xCfg) then
   begin
-    str := xCfg.GetChildContent('Alias');
+    str := xCfg.GetChildContent(UAliasName);
     if Length(str) <> 0 then
     begin
       DrAmtCol := str;
@@ -608,7 +608,7 @@ AutoCreateMst affects default group only
   xCfg := Cfg.SearchForTag(nil, UNarrationName);
   if Assigned(xCfg) then
   begin
-    xxCfg := xCfg.SearchForTag(nil, 'Alias');
+    xxCfg := xCfg.SearchForTag(nil, UAliasName);
     if xxCfg <> nil then
     begin
       str := xxCfg.GetContent;
@@ -622,7 +622,7 @@ AutoCreateMst affects default group only
   xCfg := Cfg.SearchForTag(nil, UIdName);
   if Assigned(xCfg) then
   begin
-    str := xCfg.GetChildContent('Alias');
+    str := xCfg.GetChildContent(UAliasName);
     if Length(str) > 0 then
     begin
       UIdName  := str;
@@ -644,7 +644,7 @@ AutoCreateMst affects default group only
   xCfg := cfg.SearchForTag(nil, UVoucherRefName);
   if Assigned(xCfg) then
   begin
-    str := xCfg.GetChildContent('Alias');
+    str := xCfg.GetChildContent(UAliasName);
     if Length(str) > 0 then
     begin
       UVoucherRefName := str;
@@ -670,7 +670,7 @@ AutoCreateMst affects default group only
   xCfg := Cfg.SearchForTag(nil, UChequeNoName);
   if Assigned(xCfg) then
   begin
-    xxCfg := xCfg.SearchForTag(nil, 'Alias');
+    xxCfg := xCfg.SearchForTag(nil, UAliasName);
     if xxCfg <> nil then
     begin
       str := xxCfg.GetContent;
@@ -695,7 +695,7 @@ AutoCreateMst affects default group only
     str := '';
     if Assigned(xCfg) then
     begin
-      str := xCfg.GetChildContent('Alias');
+      str := xCfg.GetChildContent(UAliasName);
       if Length(Str) > 0 then
       begin
         ULedgerName[i] := str;
@@ -714,7 +714,7 @@ Todo
         if Length(LedgerGroup[i]) = 0 then
           LedgerGroup[i] := xxCfg.GetChildContent('Default');
 
-        str := xxCfg.GetChildContent('Alias');
+        str := xxCfg.GetChildContent(UAliasName);
         UGroupName[i] := str;
         if Length(str) > 0 then
           IsGroupDeclared[i] := True;
@@ -752,7 +752,7 @@ Todo
       xxCfg := xcfg.SearchForTag(nil, 'AmtCol');
       if Assigned(xxCfg) then
       begin
-        str := xxCfg.GetChildContent('Alias');
+        str := xxCfg.GetChildContent(UAliasName);
         UAmountName[i] := str;
         if Length(str) > 0 then
         begin
@@ -779,7 +779,7 @@ Todo
           xxCfg := xcfg.SearchForTag(xxcfg, 'AmtCol');
           if Assigned(xxCfg) then
           begin
-            UAmount2Name[i] := xxCfg.GetChildContent('Alias');
+            UAmount2Name[i] := xxCfg.GetChildContent(UAliasName);
             AmountCols[i] := AmountCols[i] + 1;
             Amount2Type[i] := xxCfg.GetChildContent('Type');
             if Length(Amount2Type[i]) = 0 then
@@ -817,7 +817,7 @@ Todo
     xxCfg := xCfg.SearchForTag(nil, UItemName);
     if Assigned(xxCfg) then
     begin
-      str := xxCfg.GetChildContent('Alias');
+      str := xxCfg.GetChildContent(UAliasName);
       if Length(str) > 0 then
         UItemName := str;
     end;
@@ -825,7 +825,7 @@ Todo
     xxCfg := xcfg.SearchForTag(nil, UUnitName);
     if Assigned(xxCfg) then
     begin
-      str := xxCfg.GetChildContent('Alias');
+      str := xxCfg.GetChildContent(UAliasName);
       if Length(str) > 0 then
       begin
         UUnitName := str;
@@ -835,7 +835,7 @@ Todo
     xxCfg := xCfg.SearchForTag(nil, UQtyName);
     if Assigned(xxCfg) then
     begin
-      str := xxCfg.GetChildContent('Alias');
+      str := xxCfg.GetChildContent(UAliasName);
       if Length(str) > 0 then
         UQtyName := str;
     end;
@@ -843,7 +843,7 @@ Todo
     xxCfg := xCfg.SearchForTag(nil, URateName);
     if Assigned(xxCfg) then
     begin
-      str := xxCfg.GetChildContent('Alias');
+      str := xxCfg.GetChildContent(UAliasName);
       if Length(str) > 0 then
         URateName := str;
     end;
@@ -851,7 +851,7 @@ Todo
     xxCfg := xCfg.SearchForTag(nil, UBatchName);
     if Assigned(xxCfg) then
     begin
-      str := xxCfg.GetChildContent('Alias');
+      str := xxCfg.GetChildContent(UAliasName);
       if Length(str) > 0 then
         UBatchName := str;
     end;
@@ -859,7 +859,7 @@ Todo
     xxCfg := xCfg.SearchForTag(nil, UUserDescName);
     if Assigned(xxCfg) then
     begin
-      str := xxCfg.GetChildContent('Alias');
+      str := xxCfg.GetChildContent(UAliasName);
       if Length(str) > 0 then
         UUserDescName := str;
     end;
@@ -869,7 +869,7 @@ Todo
     xCfg := Cfg.SearchForTag(nil, UOBalName);
     if Assigned(xCfg) then
     begin
-      str := xCfg.GetChildContent('Alias');
+      str := xCfg.GetChildContent(UAliasName);
       if Length(str) > 0 then
         UOBalName := str;
     end;
@@ -877,7 +877,7 @@ Todo
     xxCfg := xCfg.SearchForTag(nil, UoBatchName);
     if Assigned(xxCfg) then
     begin
-      str := xxCfg.GetChildContent('Alias');
+      str := xxCfg.GetChildContent(UAliasName);
       if Length(str) > 0 then
         UoBatchName := str;
     end;
@@ -885,7 +885,7 @@ Todo
     xCfg := Cfg.SearchForTag(nil, UORateName);
     if Assigned(xCfg) then
     begin
-      str := xCfg.GetChildContent('Alias');
+      str := xCfg.GetChildContent(UAliasName);
       if Length(str) > 0 then
         UORateName := str;
     end;
@@ -893,7 +893,7 @@ Todo
     xCfg := Cfg.SearchForTag(nil, UGodownName);
     if Assigned(xCfg) then
     begin
-      str := xCfg.GetChildContent('Alias');
+      str := xCfg.GetChildContent(UAliasName);
       if Length(str) > 0 then
         UGodownName := str;
     end;
@@ -901,7 +901,7 @@ Todo
     xCfg := Cfg.SearchForTag(nil, UCategoryName);
     if Assigned(xxCfg) then
     begin
-      str := xxCfg.GetChildContent('Alias');
+      str := xxCfg.GetChildContent(UAliasName);
       if Length(str) > 0 then
         UCategoryName := str;
     end;
@@ -909,7 +909,7 @@ Todo
     xCfg := Cfg.SearchForTag(nil, USubGroupName);
     if Assigned(xxCfg) then
     begin
-      str := xxCfg.GetChildContent('Alias');
+      str := xxCfg.GetChildContent(UAliasName);
       if Length(str) > 0 then
         USubGroupName := str;
     end;
@@ -917,7 +917,7 @@ Todo
     xCfg := Cfg.SearchForTag(nil, UAddressName);
     if Assigned(xxCfg) then
     begin
-      str := xxCfg.GetChildContent('Alias');
+      str := xxCfg.GetChildContent(UAliasName);
       if Length(str) > 0 then
         UAddressName := str;
     end;
@@ -925,7 +925,7 @@ Todo
     xCfg := Cfg.SearchForTag(nil, UMobileName);
     if Assigned(xCfg) then
     begin
-      xxCfg := xCfg.SearchForTag(nil, 'Alias');
+      xxCfg := xCfg.SearchForTag(nil, UAliasName);
       if xxCfg <> nil then
       begin
         str := xxCfg.GetContent;
@@ -937,7 +937,7 @@ Todo
     xCfg := Cfg.SearchForTag(nil, UeMailName);
     if Assigned(xCfg) then
     begin
-    xxCfg := xCfg.SearchForTag(nil, 'Alias');
+    xxCfg := xCfg.SearchForTag(nil, UAliasName);
     if xxCfg <> nil then
     begin
       str := xxCfg.GetContent;
@@ -952,84 +952,84 @@ Todo
     xCfg := Cfg.SearchForTag(nil, UInItemName);
     if Assigned(xCfg) then
     begin
-      str := xCfg.GetChildContent('Alias');
+      str := xCfg.GetChildContent(UAliasName);
       if Length(str) > 0 then
         UInItemName := str;
     end;
     xCfg := Cfg.SearchForTag(nil, UOutItemName);
     if Assigned(xCfg) then
     begin
-      str := xCfg.GetChildContent('Alias');
+      str := xCfg.GetChildContent(UAliasName);
       if Length(str) > 0 then
         UOutItemName := str;
     end;
     xCfg := Cfg.SearchForTag(nil, UInUnitName);
     if Assigned(xCfg) then
     begin
-      str := xCfg.GetChildContent('Alias');
+      str := xCfg.GetChildContent(UAliasName);
       if Length(str) > 0 then
         UInUnitName := str;
     end;
     xCfg := Cfg.SearchForTag(nil, UOutUnitName);
     if Assigned(xCfg) then
     begin
-      str := xCfg.GetChildContent('Alias');
+      str := xCfg.GetChildContent(UAliasName);
       if Length(str) > 0 then
         UOutUnitName := str;
     end;
     xCfg := Cfg.SearchForTag(nil, UInQtyName);
     if Assigned(xCfg) then
     begin
-      str := xCfg.GetChildContent('Alias');
+      str := xCfg.GetChildContent(UAliasName);
       if Length(str) > 0 then
         UInQtyName := str;
     end;
     xCfg := Cfg.SearchForTag(nil, UOutQtyName);
     if Assigned(xCfg) then
     begin
-      str := xCfg.GetChildContent('Alias');
+      str := xCfg.GetChildContent(UAliasName);
       if Length(str) > 0 then
         UOutQtyName := str;
     end;
     xCfg := Cfg.SearchForTag(nil, UInRateName);
     if Assigned(xCfg) then
     begin
-      str := xCfg.GetChildContent('Alias');
+      str := xCfg.GetChildContent(UAliasName);
       if Length(str) > 0 then
         UInRateName := str;
     end;
     xCfg := Cfg.SearchForTag(nil, UOutRateName);
     if Assigned(xCfg) then
     begin
-      str := xCfg.GetChildContent('Alias');
+      str := xCfg.GetChildContent(UAliasName);
       if Length(str) > 0 then
         UOutRateName := str;
     end;
     xCfg := Cfg.SearchForTag(nil, UInAmtName);
     if Assigned(xCfg) then
     begin
-      str := xCfg.GetChildContent('Alias');
+      str := xCfg.GetChildContent(UAliasName);
       if Length(str) > 0 then
         UInAmtName := str;
     end;
     xCfg := Cfg.SearchForTag(nil, UOutAmtName);
     if Assigned(xCfg) then
     begin
-      str := xCfg.GetChildContent('Alias');
+      str := xCfg.GetChildContent(UAliasName);
       if Length(str) > 0 then
         UOutAmtName := str;
     end;
     xCfg := Cfg.SearchForTag(nil, UInGodownName);
     if Assigned(xCfg) then
     begin
-      str := xCfg.GetChildContent('Alias');
+      str := xCfg.GetChildContent(UAliasName);
       if Length(str) > 0 then
         UInGodownName := str;
     end;
     xCfg := Cfg.SearchForTag(nil, UOutGodownName);
     if Assigned(xCfg) then
     begin
-      str := xCfg.GetChildContent('Alias');
+      str := xCfg.GetChildContent(UAliasName);
       if Length(str) > 0 then
         UOutGodownName := str;
     end;
@@ -1734,7 +1734,7 @@ begin
 	  if kadb.IsEmptyField(dsl.UIdName) then
         IDstr :=  IntToStr(kadb.CurrentRow)
       eLSE
-        IDstr :=  kadb.GetFieldString('ID');
+      IDstr :=  kadb.GetFieldString(dsl.UIdName);
     end;
 	if kadb.IsEmptyField(dsl.UIdName) then
       kadb.SetFieldVal(dsl.UIdName, IDstr);
@@ -1905,7 +1905,7 @@ begin
         kadb.GetFieldString(dsl.UMstGroupName));
       MstExp.Group := dbParent;
   end;
-  dbItem := kadb.GetFieldString('Item');
+  dbItem := kadb.GetFieldString(dsl.UItemName);
   if dsl.IsOBalDefined then
   wOBal := kadb.GetFieldCurr(dsl.UOBalName);
   if dsl.IsOBatchDefined then
@@ -1924,7 +1924,7 @@ begin
     MstExp.UserDesc := kadb.GetFieldString(dsl.UUserDescName);
   if dsl.IsHSNDefined then
   begin
-    dbHSN := kadb.GetFieldString('HSN');
+    dbHSN := kadb.GetFieldString(dsl.UHSNName);
 //    MstExp.OBal := wOBal;
 //    MstExp.ORate := ORate;
     MstExp.NewHSN(dbItem, dbUnit, dbHSN, GRate);
