@@ -64,14 +64,19 @@ type
     FExportDependentMasters: boolean;
     FMstExp: TbjMstExp;
     FDefaultGSTState: string;
-    FMergeDupLed4GSTN: boolean;
-    FFirmGUID: string;
+    FIsPostto1stLedgerwithGSTNon: boolean;
+//    FFirmGUID: string;
+    FIsUniqueVchRefon: boolean;
+    FGSTLedType: string;
   protected
     { Protected declarations }
     FTLic: string;
     FEMac: string;
     FUSBID: string;
     Client: TbjClient;
+    ip: TStringList;
+    op: TStringList;
+    ActionStrs: array [1..5] of string;
     procedure SetFirm(const Name: string);
     procedure SetHost(const aHost: string);
     property ExportDependentMasters: boolean read FExportDependentMasters
@@ -95,8 +100,10 @@ type
     property NotifyVchID: boolean read FNotifyVchID write FNotifyVchID;
     property MstExp: TbjMstExp read FMstExp write SetMst;
     property DefaultGSTState: string read FDefaultGSTState write FDefaultGSTState;
-    property MergeDupLed4GSTN: boolean read FMergeDupLed4GSTN write FMergeDupLed4GSTN;
-    property FirmGUID: string read FFirmGUID write FFirmGUID;
+    property IsPostto1stLedgerwithGSTNon: boolean read FIsPostto1stLedgerwithGSTNon write FIsPostto1stLedgerwithGSTNon;
+//    property FirmGUID: string read FFirmGUID write FFirmGUID;
+  	property IsUniqueVchRefon: boolean read FIsUniqueVchRefon write FIsUniqueVchRefon;
+    property GSTLedType: string read FGSTLedType write FGSTLedType;
   end;
 
   TbjMstExp = class
@@ -237,6 +244,7 @@ type
     procedure SetVchHeader;
     function Pack(const Ledger: string; const Amount: currency; const Ref, RefType: string; const aTType: boolean): currency;
     procedure Unpack;
+    procedure SetGSTLedType;
     procedure AttachInv(const rled: string);
     procedure AttachAssessable(const rled: string);
     procedure AddInDirect(const idx: integer);
@@ -324,11 +332,52 @@ begin
   IsSaveXMLFileOn := False;
   FNotifyVchID := False;
   FDefaultGSTState := 'Tamil Nadu';
+  ip := TStringList.Create;
+  op := TStringList.Create;
+  ip.Add('Input SGST 1.5%');
+  ip.Add('intput CGST 1.5%');
+  ip.Add('input IGST 3%');
+  ip.Add('input SGST 2.5%');
+  ip.Add('input CGST 2.5%');
+  ip.Add('input IGST 5%');
+  ip.Add('input SGST 6%');
+  ip.Add('input CGST 6%');
+  ip.Add('input IGST 12%');
+  ip.Add('input SGST 9%');
+  ip.Add('input CGST 9%');
+  ip.Add('input IGST 18%');
+  ip.Add('input SGST 14%');
+  ip.Add('input CGST 14%');
+  ip.Add('input IGST 28%');
+  ip.Sorted := True;
+  op.Add('Output SGST 1.5%');
+  op.Add('Output CGST 1.5%');
+  op.Add('Output IGST 3%');
+  op.Add('Output SGST 2.5%');
+  op.Add('Output CGST 2.5%');
+  op.Add('Output IGST 5%');
+  op.Add('Output SGST 6%');
+  op.Add('Output CGST 6%');
+  op.Add('Output IGST 12%');
+  op.Add('Output SGST 9%');
+  op.Add('Output CGST 9%');
+  op.Add('Output IGST 18%');
+  op.Add('Output SGST 14%');
+  op.Add('Output CGST 14%');
+  op.Add('Output IGST 28%');
+  op.Sorted := True;
+  ActionStrs[1] := 'CREATED';
+  ActionStrs[2] := 'ALTERED';
+  ActionStrs[3] := 'COMBINED';
+  ActionStrs[4] := 'IGNORED';
+  ActionStrs[5] := 'ERRORS';
 end;
 
 destructor TbjEnv.Destroy;
 begin
   Client.Free;
+  ip.Free;
+  op.Free;
   inherited;
 end;
 
@@ -1386,12 +1435,41 @@ begin
   Result := Amount;
 end;
 
+Procedure TbjVchExp.SetGSTLedType;
+var
+  Item: pLine;
+  i: Integer;
+  idx: integer;
+begin
+  if Env.GSTLedType = 'Max' then
+  Exit;
+  if Env.GSTLedType = 'Min' then
+  begin
+    for i := 0 to Lines.Count-1 do
+    begin
+      Item := Lines.Items[i];
+      if (Env.ip.Find(Item.Ledger, idx)) and (pos('SGST', Item.Ledger) > 0) then
+        Item.Ledger := 'SGST';
+      if (Env.ip.Find(Item.Ledger, idx)) and (pos('CGST', Item.Ledger) > 0) then
+        Item.Ledger := 'CGST';
+      if (Env.ip.Find(Item.Ledger, idx)) and (pos('IGST', Item.Ledger) > 0) then
+        Item.Ledger := 'IGST';
+      if (Env.op.Find(Item.Ledger, idx)) and (pos('SGST', Item.Ledger) > 0) then
+        Item.Ledger := 'SGST';
+      if (Env.op.Find(Item.Ledger, idx)) and (pos('CGST', Item.Ledger) > 0) then
+        Item.Ledger := 'CGST';
+      if (Env.op.Find(Item.Ledger, idx)) and (pos('IGST', Item.Ledger) > 0) then
+        Item.Ledger := 'IGST';
+    end;
+  end;
+end;
 { To push largest (Cr or Dr) entries to the top of the voucher }
 Procedure TbjVchExp.UnPack;
 var
   Item: pLine;
   i: Integer;
 begin
+  SetGSTLedType;
   for i := 0 to Lines.Count-1 do
   begin
     Item := Lines.Items[i];
@@ -2045,7 +2123,7 @@ It does not use GetDupPartyGSTN
 { Different Name Sake GSTN - one part }
   if dupName then
   begin
-    if Env.MergeDupLed4GSTN then
+    if Env.IsPostto1stLedgerwithGSTNon then
      begin
 //       if aLedger <> SystemLedName then
          Result := SystemLedName;

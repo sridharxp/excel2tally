@@ -20,7 +20,16 @@ unit VchLib;
 
 interface
 
+uses SysUtils,
+    StrUtils,
+    Dialogs;
 function PackStr(const s:string): string;
+function ExtractDigits(const s:string): string;
+  function StrtoHexStr(const Str: string): string;
+function StrtoHexDigitStr(Str: string): string;
+function SumHexStr(const str: string): string;
+Function HexKey(const hstr: string): string;
+function Capitalize(const s: string; const CapitalizeFirst: Boolean = True): string;
 
 implementation
 
@@ -66,4 +75,124 @@ SetLength(d, j);
   Result := d;
 end;
 
+function ExtractDigits(const s:string): string;
+var
+  str: string;
+  i: integer;
+  StartZeros: boolean;
+begin
+  Startzeros := True;
+  str := LowerCase(s);
+  for i:= 1 to Length(str) do
+  begin
+    if StartZeros then
+    if str[i] = '0' then
+      Continue;
+    if str[i] in ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'] then
+    Result := Result + str[i]
+    else
+    begin
+      Startzeros := True;
+      continue;
+    end;
+    StartZeros := False;
+  end;
+end;
+
+function StrtoHexStr(const Str: string): string;
+const hexdigit = '0123456789ABCDEF';
+var
+  i, b: integer;
+begin
+  Result := '';
+  for i := 1 to length(Str) do begin
+    b := ord(Str[i]);
+    Result := result +
+      hexdigit[(b shr 4) and $0F + 1] + hexdigit[b and $0F + 1];
+  end;
+end;
+function StrtoHexDigitStr(Str: string): string;
+const hexdigit = '0123456789ABCDEF';
+var
+  i, b: integer;
+  iStr: string;
+begin
+  Result := '';
+  for i := Length(Str) downto 1 do
+  begin
+      if Str[i] in ['0','1','2','3','4','5','6','7','8','9'] then
+        iStr := Str[i] + iStr
+      else
+      begin
+        str := LeftSTr(Str, i);
+        iStr := InttoHex(StrtoInt(istr), Length(iStr));
+        break;
+      end;
+  end;
+  for i := 1 to Length(iStr) do
+  begin
+    if iStr[i] <> '0' then
+    begin
+      iStr := copy(istr, i, Length(iStr)-i+1);
+      break;
+    end;
+  end;
+  for i := 1 to length(Str) do begin
+    if Str[i] in ['0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f'] then
+    begin
+      Result := result + Str[i];
+      Continue;
+    end;
+    b := ord(Str[i]);
+    Result := result +
+      hexdigit[(b shr 4) and $0F + 1] + hexdigit[b and $0F + 1];
+  end;
+  Result := Result + iStr;
+end;
+function SumHexStr(const str: string): string;
+var
+  i: integer;
+  nres, buf: integer;
+begin
+  if Length(str) <= 16 then
+   buf := 2
+  else
+    buf := 3;
+  for i := 1 to Length(str)do
+  begin
+    nres := nres + StrtoInt('$' + str[i]);
+  end;
+  Result := InttoHex(nres, buf);
+end;
+Function HexKey(const hstr: string): string;
+var
+  hlen: integer;
+begin
+  Result := StrtoHexDigitStr(hStr);
+  hLen := Length(Result);
+  if hLen <= 8 then
+    Result := RightStr('00000000'+ Result, 8)
+  else if hLen <= 22 then
+    Result := SumHexStr(LeftStr(Result, hLen-6)) + RightStr(Result, 6)
+  else
+    Result := SumHexStr(LeftStr(Result, hLen-5)) + RightStr(Result, 5);
+end;
+function Capitalize(const s: string; const CapitalizeFirst: Boolean = True): string;
+const
+  ALLOWEDCHARS = ['a'..'z'];
+var
+  Idx: Integer;
+  ToCapitalizeNext: Boolean;
+begin
+  ToCapitalizeNext := CapitalizeFirst;
+  Result := LowerCase(s);
+  if Result <> EmptyStr then
+    for Idx := 1 to Length(Result) do
+      if ToCapitalizeNext then begin
+        Result[Idx] := UpCase(Result[Idx]);
+        ToCapitalizeNext := False;
+      end else
+      if NOT (Result[Idx] in  ALLOWEDCHARS) then
+        ToCapitalizeNext := True;
+end;
 end.

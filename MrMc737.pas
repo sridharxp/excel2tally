@@ -53,6 +53,7 @@ uses
   XLSWorkbook,
   bjXml3_1,
   Repet,
+  VchLib,
   Dialogs;
 
 {$DEFINE xlstbl}
@@ -88,7 +89,6 @@ TbjDSLParser = class(TinterfacedObject, IbjDSLParser)
     DiLedgerValue: array [1..COLUMNLIMIT] of String;
     DiRoundOff: string;
     RoundOffCol: string;
-    RoundOffGSTN: string;
 
     { Public declarations }
     RoundOffGroup: string;
@@ -245,7 +245,9 @@ TbjMrMc = class(TinterfacedObject, IbjXlExp, IbjMrMc)
     FFirmGUID: string;
     FHost: string;
     FIsGstSetting: Boolean;
-    FMergeDupLed4GSTN: boolean;
+    FIsPostto1stLedgerwithGSTNon: boolean;
+    FIsUniqueVchRefon: boolean;
+    FGSTLedType: string;
   protected
     missingledgers: Integer;
     IDstr: string;
@@ -306,7 +308,9 @@ TbjMrMc = class(TinterfacedObject, IbjXlExp, IbjMrMc)
     procedure SetGSTSetting;
     procedure SetGstLedSetting(const doit: boolean);
     procedure SetXmlstr(const aStr: string);
-    procedure SetMergeDupLed4GSTN(const aChoice: boolean);
+    procedure SetPostto1stLedgerwithGSTN(const aChoice: boolean);
+    procedure SetIsUniqueVchRef(const aChoice: boolean);
+    procedure SetGSTLedType(const aType: string);
   public
     { Public declarations }
 
@@ -344,8 +348,10 @@ TbjMrMc = class(TinterfacedObject, IbjXlExp, IbjMrMc)
     property IsGstSetting: boolean write SetGstLedSetting;
     property XmlStr: string write SetXmlstr;
     property TableName: string read FTableName write FTableName;
-    property MergeDupLed4GSTN: boolean read FMergeDupLed4GSTN write SetMergeDupLed4GSTN;
+    property IsPostto1stLedgerwithGSTNon: boolean read FIsPostto1stLedgerwithGSTNon write SetPostto1stLedgerwithGSTN;
     property FirmGUID: string read FFirmGUID write SetFirmGUID;
+  	property IsUniqueVchRefon: boolean write SetIsUniqueVchRef;
+    property GSTLedType: string read FGSTLedType write SetGSTLedType;
   end;
 
 { Level refers to TokenCol }
@@ -1213,7 +1219,7 @@ begin
   MstExp := TbjMstExp.Create;
   MstExp.Env := Env;
   Env.MstExp := MstExp;
-  Env.MergeDupLed4GSTN := FMergeDupLed4GSTN;
+  Env.IsPostto1stLedgerwithGSTNon := FIsPostto1stLedgerwithGSTNon;
   VchExp := TbjVchExp.Create;
   VchExp.Env := Env;
   VchExp.MstExp := MstExp;
@@ -1618,7 +1624,7 @@ AutoCreateMst does not affect explicit group or roundoff group
         begin
           GSTNColValue := kadb.GetFieldString(dsl.UGSTNName[i]);
           StateColValue := GetGSTState(GSTNColValue);
-          if not MergeDupLed4GSTN then
+          if not IsPostto1stLedgerwithGSTNon then
           MstExp.NewParty(LedgerColValue, GroupColValue, GSTNColValue,
             StateColValue)
           else
@@ -1659,7 +1665,7 @@ AutoCreateMst does not affect explicit group or roundoff group
     begin
       GSTNColValue := kadb.GetFieldString(dsl.UGSTNName[COLUMNLIMIT+1]);
       StateColValue := GetGSTState(GSTNColValue);
-      if not MergeDupLed4GSTN then
+      if not IsPostto1stLedgerwithGSTNon then
         MstExp.NewParty(LedgerColValue, RoundOffGroupColValue, GSTNColValue,
           StateColValue)
       else
@@ -2027,7 +2033,7 @@ AutoCreateMst does not affect explicit group or roundoff group
     begin
       GSTNColValue := kadb.GetFieldString(dsl.UGSTNName[1]);
       StateColValue := GetGSTState(GSTNColValue);
-      if not MergeDupLed4GSTN then
+      if not IsPostto1stLedgerwithGSTNon then
       MstExp.NewParty(LedgerColValue,
         GroupColValue,
         GSTNColValue,
@@ -2378,7 +2384,7 @@ end;
 procedure TbjMrMc.SetFirmGUID(const aGUID: string);
 begin
   FFirmGUID := aGUID;
-  Env.FirmGUID := aGUID;
+  Env.GUID := aGuid;
 end;
 procedure TbjMrMc.SetHost(const aHost: string);
 begin
@@ -2389,10 +2395,20 @@ begin
   Env.Host := Host;
 end;
 
-procedure TbjMrMc.SetMergeDupLed4GSTN(const aChoice: Boolean);
+procedure TbjMrMc.SetPostto1stLedgerwithGSTN(const aChoice: Boolean);
 begin
-  FMergeDupLed4GSTN := aChoice;
-  Env.MergeDupLed4GSTN := aChoice;
+  FIsPostto1stLedgerwithGSTNon := aChoice;
+  Env.IsPostto1stLedgerwithGSTNon := aChoice;
+end;
+procedure TbjMrMc.SetIsUniqueVchRef(const aChoice: Boolean);
+begin
+  FIsUniqueVchRefon := aChoice;
+  Env.IsUniqueVchRefon := aChoice;
+end;
+procedure TbjMrMc.SetGSTLedType(const aType: string);
+begin
+  FGSTLedType := aType;
+  Env.GSTLedType := aType;
 end;
 
 procedure TbjMrMc.SetXmlstr(const aStr: string);
