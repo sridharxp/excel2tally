@@ -2332,6 +2332,8 @@ begin
   if dsl.IsNarrationDefined then
     VchExp.VchNarration := NarrationColValue;
   StatMsg := VchExp.Post(VchAction, True);
+  if Length(Env.LastAction) > 0 then
+    StatMsg := StatMsg + ' ' + Capitalize(Env.LastACtion);
   VTotal := 0;
   FUpdate('Voucher: ' + Statmsg);
   ProcessedCount := ProcessedCount + 1;

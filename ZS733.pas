@@ -68,6 +68,7 @@ type
 //    FFirmGUID: string;
     FIsUniqueVchRefon: boolean;
     FGSTLedType: string;
+    FLastAction: string;
   protected
     { Protected declarations }
     FTLic: string;
@@ -76,7 +77,6 @@ type
     Client: TbjClient;
     ip: TStringList;
     op: TStringList;
-    ActionStrs: array [1..5] of string;
     procedure SetFirm(const Name: string);
     procedure SetHost(const aHost: string);
     property ExportDependentMasters: boolean read FExportDependentMasters
