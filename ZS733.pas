@@ -69,6 +69,7 @@ type
     FIsUniqueVchRefon: boolean;
     FGSTLedType: string;
     FLastAction: string;
+    Fvch_Date: string;
   protected
     { Protected declarations }
     FTLic: string;
@@ -77,6 +78,7 @@ type
     Client: TbjClient;
     ip: TStringList;
     op: TStringList;
+    ActionStrs: array [1..5] of string;
     procedure SetFirm(const Name: string);
     procedure SetHost(const aHost: string);
     property ExportDependentMasters: boolean read FExportDependentMasters
@@ -104,6 +106,8 @@ type
 //    property FirmGUID: string read FFirmGUID write FFirmGUID;
   	property IsUniqueVchRefon: boolean read FIsUniqueVchRefon write FIsUniqueVchRefon;
     property GSTLedType: string read FGSTLedType write FGSTLedType;
+    property LastAction: string read FLastAction write FLastAction;
+    property Vch_Date: string read FVch_Date write FVch_Date;
   end;
 
   TbjMstExp = class
@@ -200,7 +204,7 @@ type
   private
     { Private declarations }
     FvchDate: string;
-    Fvch_Date: string;
+    FVouDate: string;
     FVchType: string;
     FWSType: string;
     FInvVch: boolean;
@@ -273,7 +277,7 @@ type
 
     property VchID: string read FVchID write SetVchID;
     property vchDate: string read FVchDate write FVchDate;
-    property vch_Date: string read FVch_Date write FVch_Date;
+    property vOuDate: string read FVouDate write FVouDate;
     property WSType: string read GetWSType write FWSType;
     property VchType: string read FVchType write FVchType;
     property InvVch: boolean read FInvVch write FInvVch;
@@ -1165,8 +1169,8 @@ begin
   xvou.AddAttribute('REMOTEID', sid);
   xvou.AddAttribute('VCHTYPE', vchType);
   xvou.AddAttribute('ACTION', vchAction);
-  if Length(Vch_Date) > 0 then
-  xvou.NewChild2('DATE',vch_Date)
+  if Length(VouDate) > 0 then
+  xvou.NewChild2('DATE',vouDate)
   else
   xvou.NewChild2('DATE',vchDate);
   if Length(VchRefDate) > 0 then
@@ -1224,8 +1228,8 @@ begin
   else
     xvou.NewChild2('REFERENCE',VchNo);
 { Effective Date is crucial; Without which dll crashes }
-  if Length(Vch_Date) > 0 then
-  xvou.NewChild2('EFFECTIVEDATE',vch_Date)
+  if Length(VouDate) > 0 then
+  xvou.NewChild2('EFFECTIVEDATE',vouDate)
   else
   xvou.NewChild2('EFFECTIVEDATE',vchDate);
   IsVchTypeMatched := False;
@@ -1233,20 +1237,26 @@ begin
 end;
 
 procedure TbjVchExp.SetVchID(const ID: string);
+var
+  wref: string;
 begin
   if length(id) = 0 then
   begin
-    Fvchid := InttoStr(random(100000000));
-    if (Length(VchRef) > 0) then
+    Fvchid := InttoHex(random(10000000000),8);
+    if Env.IsUniqueVchRefon and (Length(VchRef) > 0)then
     begin
       if (WsType = 'Sales') then
-//      FVchId := VchRef + 'SL'
-      FVchId := Encrypt(VchRef, Env.FFirmGUID);
-
-      if (WsType = 'Purchase') then
       begin
-      if (Length(VchGSTN) > 0) then
-      FVchId := Encrypt(VchRef, VchGSTN);
+//        wRef := RightStr('00000000'+StrtoHexDigitStr(VchRef),8);
+        wRef := HexKey(VchRef);
+        FVchId := wRef;
+      end;
+      if (WsType = 'Purchase') then
+      if Length(VchGSTN) > 0 then
+      begin
+//        wRef := RightStr(StrtoHexDigitStr(VchGSTN+VchRef),8);
+        wRef := HexKey(RightStr(VchGSTN,3) + LeftStr(VchGSTN,12) + VchRef);
+        FVchId := wRef;
       end;
     end;
   end
@@ -1735,7 +1745,9 @@ var
   Tallyid: IbjXml;
   LErr: string;
   Tid: string;
+  i: integer;
 begin
+  Env.LastAction := '';
   if (vchAction <> 'Create') and
     (vchAction <> 'Alter') and
     (VchAction <> 'Delete') then
@@ -1767,7 +1779,16 @@ begin
     if Env.NotifyVchID then
       MessageDlg(Tid, mtInformation, [mbOK], 0);
   end;
-
+  for i := 1 to 4 do
+  begin
+  Tallyid := xvchid.SearchForTag(nil, Env.ActionStrs[i]);
+  if Assigned(Tallyid) then
+  begin
+    tid := TallyId.GetContent;
+    if tid <> '0' then
+      Env.LastAction := Env.ActionStrs[i];
+  end;
+  end;
   if wem then
   begin
   Tallyid := xvchid.SearchForTag(nil, 'LINEERROR');
@@ -1989,8 +2010,6 @@ var
 begin
   If Length(aItem) = 0 then
     Exit;
-  If Length(aBaseUnit) = 0 then
-    Exit;
   Found := IsItem(aItem);
   if Found then
     if Env.ToUpdateMasters then
@@ -2007,8 +2026,6 @@ var
   Found: boolean;
 begin
   If Length(aItem) = 0 then
-    Exit;
-  If Length(aBaseUnit) = 0 then
     Exit;
   Found := IsItem(aItem);
   if Found then

@@ -1694,10 +1694,11 @@ begin
   if not dsl.IsItemDefined then
     Exit;
   ItemColValue := kadb.GetFieldString(dsl.UItemName);
+  UnitColValue := '';
   if not dsl.IsUnitDefined then
   begin
     MstExp.NewUnit('NOs');
-    UnitColValue := 'Nos';
+//    UnitColValue := 'Nos';
   end
   else
   begin
@@ -2071,7 +2072,7 @@ begin
     VchExp.VchRef := kadb.GetFieldString(dsl.UVoucherRefName);
   if dsl.IsVoucherDateDefined then
   begin
-    VchExp.Vch_Date := kadb.GetFieldSDate(dsl.UVoucherDateName);
+    VchExp.VouDate := kadb.GetFieldSDate(dsl.UVoucherDateName);
     VchExp.VchRefDate := kadb.GetFieldSDate(dsl.UDateName);
   end;
   if dsl.IsBillRefDefined then
@@ -2333,6 +2334,7 @@ begin
     VchExp.VchNarration := NarrationColValue;
   StatMsg := VchExp.Post(VchAction, True);
   if Length(Env.LastAction) > 0 then
+  if Env.LastAction <> 'CREATED' THEN
     StatMsg := StatMsg + ' ' + Capitalize(Env.LastACtion);
   VTotal := 0;
   FUpdate('Voucher: ' + Statmsg);
