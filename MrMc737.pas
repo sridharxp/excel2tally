@@ -135,6 +135,7 @@ TbjDSLParser = class(TinterfacedObject, IbjDSLParser)
     UMobileName: string;
     UeMailName: string;
     UTallyIDName: string;
+    URemoteIDName: string;
     UChequeNoName: string;
 
     UInItemName: string;
@@ -171,6 +172,7 @@ TbjDSLParser = class(TinterfacedObject, IbjDSLParser)
     IsNarrationDefined: boolean;
     IsChequeNoDefined: boolean;
     IsTallyIdDefined: boolean;
+    IsRemoteIDDefined: boolean;
     IsRoundOffGroupColDefined: boolean;
     UidName: string;
     IsIDGenerated: Boolean;
@@ -248,6 +250,8 @@ TbjMrMc = class(TinterfacedObject, IbjXlExp, IbjMrMc)
     FIsPostto1stLedgerwithGSTNon: boolean;
     FIsUniqueVchRefon: boolean;
     FGSTLedType: string;
+    FVchAction: string;
+    FRemoteID: string;
   protected
     missingledgers: Integer;
     IDstr: string;
@@ -265,7 +269,6 @@ TbjMrMc = class(TinterfacedObject, IbjXlExp, IbjMrMc)
     notoskip: integer;
     ProcessedCount: integer;
     VTotal: currency;
-    VchAction: string;
     IsInventoryAssigned: Boolean;
     RoundOffName: string;
     StartTime, EndTime, Elapsed: double;
@@ -311,6 +314,7 @@ TbjMrMc = class(TinterfacedObject, IbjXlExp, IbjMrMc)
     procedure SetPostto1stLedgerwithGSTN(const aChoice: boolean);
     procedure SetIsUniqueVchRef(const aChoice: boolean);
     procedure SetGSTLedType(const aType: string);
+    procedure SetVchAction(const aAction: string);
   public
     { Public declarations }
 
@@ -352,6 +356,8 @@ TbjMrMc = class(TinterfacedObject, IbjXlExp, IbjMrMc)
     property FirmGUID: string read FFirmGUID write SetFirmGUID;
   	property IsUniqueVchRefon: boolean write SetIsUniqueVchRef;
     property GSTLedType: string read FGSTLedType write SetGSTLedType;
+    property VchAction: string read FVchAction write SetVchAction;
+    property RemoteID: string read FRemoteID write FRemoteID;
   end;
 
 { Level refers to TokenCol }
@@ -412,6 +418,7 @@ begin
   UMobileName := 'Mobile';
   UeMailName := 'EMail';
   UTallyIDName := 'TALLYID';
+  URemoteIDName := 'REMOTEID';
   UMstGroupName := 'GROUP';
   UInItemName := 'DrITEM';
   UOutItemName := 'CrITEM';
@@ -1148,6 +1155,8 @@ begin
     IstALLYidDefined := True
   else
     MessageDlg('Column TallyID is not found', mtError, [mbNo], 0);
+  if kadb.FindField(URemoteIDName) <> nil then
+    IsRemoteIDDefined := True  ;
 
 { Fill IsAmtDeclared array
   Needed for Default Amount }
@@ -1274,8 +1283,9 @@ passing Windows Exception as it is }
     flds := TStringList.Create;
     kadb.ParseXml(dsl.Cfgn, flds);
     if not flds.Find('ID', idx) then
-      flds.Add('ID');
-    flds.Add('TALLYID');
+      flds.Add(dsl.UidName);
+    flds.Add(dsl.UTallyIDName);
+    flds.Add(dsl.URemoteIDName);
     kadb.GetFields(flds);
     dsl.kadb := kadb;
     flds.Free;
@@ -1469,6 +1479,7 @@ begin
     ' Vouchers processed; ' +
     InttoStr(SCount) + ' Success. ' + InttoStr(Mins*60+Secs) + ' Seconds.';
   FUpdate(StatusMsg);
+  if not dsl.IsRemoteIdDefined then
   Filter(ProcessedCount - SCount);
 end;
 
@@ -2085,6 +2096,9 @@ begin
   VchExp.vchDate := DateColValue;
   VchExp.VchType := typeColValue;
   VchExp.WSType := WSType;
+  if dsl.IsRemoteIdDefined then
+  if VchAction = 'Delete' then
+  VchExp.RemoteID := RemoteID;
   VchExp.VchID := tid;
   VchExp.VchChequeNo := ChequeNoColValue;
   ChequeNoColValue := '';
@@ -2096,6 +2110,7 @@ end;
 procedure TbjMrMc.GetDefaults;
 begin
 {  GetSingleValues; }
+  RemoteID := '';
   DateColValue := '';
   TypeColValue := '';
   if dsl.IsDateDefined then
@@ -2134,6 +2149,11 @@ begin
   if dsl.IsChequeNoDefined then
     if not kadb.IsEmptyField(dsl.UChequeNoName) then
     ChequeNoColValue := kadb.GetFieldString(dsl.UChequeNoName);
+  if dsl.IsRemoteIdDefined then
+  if VchAction = 'Delete' then
+  begin
+    RemoteID := kadb.GetFieldString(dsl.URemoteIdName);
+  end;
 end;
 
 {
@@ -2313,7 +2333,14 @@ begin
     end;
   end;
 {  CheckErrStr := '(FOR OBJECT: '; }
-  vchAction := 'Create';
+//  vchAction := 'Create';
+  If VchAction = 'Delete' then
+  begin
+  if not dsl.IsRemoteIDDefined then
+    MessageDlg('Column RemoteID is not found', mtError, [mbOK], 0)
+  else
+  VchExp.RemoteID := RemoteID;
+  end;
   if Abs(VTotal) >= 0.01 then
   begin
     if RoundOffAmount <> 0 then
@@ -2336,6 +2363,10 @@ begin
   if Length(Env.LastAction) > 0 then
   if Env.LastAction <> 'CREATED' THEN
     StatMsg := StatMsg + ' ' + Capitalize(Env.LastACtion);
+  If VchAction = 'Create' then
+  RemoteID := VchExp.RemoteID;
+  If VchAction = 'Delete' then
+  RemoteID := '';
   VTotal := 0;
   FUpdate('Voucher: ' + Statmsg);
   ProcessedCount := ProcessedCount + 1;
@@ -2345,6 +2376,8 @@ begin
   if ToLog then
   if dsl.isTallyIdDefined then
     kadb.SetFieldVal('TALLYID', statmsg);
+  if dsl.IsRemoteIDDefined then
+    kadb.SetFieldVal('RemoteID', RemoteID);
   for i := 1 to notoskip do
     kadb.Next;
   notoskip := 0;
@@ -2359,7 +2392,7 @@ var
   statmsg: string;
   Thisalso: boolean;
 begin
-  vchAction := 'Create';
+//  vchAction := 'Create';
   if dsl.IsNarrationDefined then
     VchExp.VchNarration := NarrationColValue;
   StatMsg := VchExp.SPost(VchAction, True);
@@ -2583,15 +2616,15 @@ begin
   kadb.First;
   while not kadb.EOF do
   begin
-    if kadb.IsEmptyField('TallyID')  then
+    if kadb.IsEmptyField(dsl.UTallyIDName)  then
     if not inErr then
     begin
       kadb.Delete;
       Continue;
     end;
 
-    if not kadb.IsEmptyField('TallyID') then
-      if kadb.GetFieldCurr('TallyID') >  0 then
+    if not kadb.IsEmptyField(dsl.UTallyIDName) then
+      if kadb.GetFieldCurr(dsl.UTallyIDName) >  0 then
       begin
         inErr := False;
         kadb.Delete;
@@ -2708,6 +2741,11 @@ begin
   FIsGSTSetting := True;
 end;
 
+procedure TbjMrMc.SetVchAction(const aAction: string);
+begin
+  FVchAction := aAction;
+  VchExp.VchAction := VchAction;
+end;
 function RoundCurr(const Value: Currency): Currency;
 var
   V64: Int64 absolute Result;

@@ -220,6 +220,8 @@ type
     FIsContra: boolean;
     FBatch: string;
     FVchGSTN: string;
+    FVchAction: string;
+    FRemoteID: string;
   protected
     { Protected declarations }
     Lines: TList;
@@ -229,7 +231,7 @@ type
     partyamt: currency;
     busidx: integer;
     busamt: currency;
-    VchAction: string;
+//    VchAction: string;
     xvou: IbjXml;
     xvch: IbjXml;
     xvchid: IbjXml;
@@ -292,6 +294,8 @@ type
     property IsContra: boolean read FIsContra write FIsContra;
     property Batch: string write FBatch;
     property VchGSTN: string read FVchGSTN write FVchGSTN;
+    property VchAction: string read FVchAction write FVchAction;
+    property RemoteID: string read FRemoteID write FRemoteID;
   end;
 
   TLine = Record
@@ -1263,6 +1267,10 @@ begin
   else
     Fvchid := id;
   IsContra := True;
+  if VchAction = 'Create' then
+    RemoteID := FVchID;
+  if VchAction = 'Delete' then
+    FVchID := RemoteID;
 end;
 
 function TbjVchExp.GetWSType: string;
