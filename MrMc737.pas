@@ -252,6 +252,8 @@ TbjMrMc = class(TinterfacedObject, IbjXlExp, IbjMrMc)
     FGSTLedType: string;
     FVchAction: string;
     FRemoteID: string;
+    FProcessedCount: integer;
+    FSCount: integer;
   protected
     missingledgers: Integer;
     IDstr: string;
@@ -267,7 +269,7 @@ TbjMrMc = class(TinterfacedObject, IbjXlExp, IbjMrMc)
     TypeColValue: string;
 
     notoskip: integer;
-    ProcessedCount: integer;
+//    ProcessedCount: integer;
     VTotal: currency;
     IsInventoryAssigned: Boolean;
     RoundOffName: string;
@@ -306,6 +308,7 @@ TbjMrMc = class(TinterfacedObject, IbjXlExp, IbjMrMc)
     function GETDictToken(const ctr: integer): string;
     function GETDictValue(const ctr: integer): string;
     procedure Filter(aFailure: integer);
+    procedure UnFilter;
     procedure CreateGSTLedger;
     procedure CreateDefLedger;
     procedure SetGSTSetting;
@@ -323,7 +326,7 @@ TbjMrMc = class(TinterfacedObject, IbjXlExp, IbjMrMc)
     XmlFile: string;
     FileFmt: string;
     IsDateCheck: boolean;
-    SCount: integer;
+//    SCount: integer;
     FUpdate: TfnUpdate;
 
   
@@ -358,6 +361,8 @@ TbjMrMc = class(TinterfacedObject, IbjXlExp, IbjMrMc)
     property GSTLedType: string read FGSTLedType write SetGSTLedType;
     property VchAction: string read FVchAction write SetVchAction;
     property RemoteID: string read FRemoteID write FRemoteID;
+    property ProcessedCount: integer read FProcessedCount;
+    property SCount: integer read FSCount;
   end;
 
 { Level refers to TokenCol }
@@ -1238,7 +1243,7 @@ begin
 {  Amt1 := '';}
   dsl := TbjDSLParser.Create;
   notoskip := 0;
-  ProcessedCount := 0;;
+  FProcessedCount := 0;
   FToLog := True;
   FdynPgLen := PgLen + Random(29);
   askAgainToAutoCreateMst := True;
@@ -1282,7 +1287,7 @@ passing Windows Exception as it is }
     FUpdate('Reading '+ TableName + ' worksheet');
     flds := TStringList.Create;
     kadb.ParseXml(dsl.Cfgn, flds);
-    if not flds.Find('ID', idx) then
+    if not flds.Find(DSL.UidName, idx) then
       flds.Add(dsl.UidName);
     flds.Add(dsl.UTallyIDName);
     flds.Add(dsl.URemoteIDName);
@@ -1396,7 +1401,7 @@ var
   StatusMsg: string;
 begin
   StartTime := Time;
-  ProcessedCount := 0;
+  FProcessedCount := 0;
   dsl.DeclareColName;
   OpenFile;
   dsl.CheckColName;
@@ -1440,8 +1445,8 @@ begin
     IsInventoryAssigned := False;
     if dsl.IsIdDefined then
     begin
-//      if (kadb.IsEmptyField(dsl.UIdName)) then
-//        break;
+      if (kadb.IsEmptyField(dsl.UIdName)) then
+        break;
     end
     else
     begin
@@ -1477,9 +1482,9 @@ begin
 
     StatusMsg := InttoStr(ProcessedCount) + '/' + InttoStr(FdynPgLen) +
     ' Vouchers processed; ' +
-    InttoStr(SCount) + ' Success. ' + InttoStr(Mins*60+Secs) + ' Seconds.';
+    InttoStr(SCount) + ' Success. ' + InttoStr(Mins*60+Secs) + ' Seconds; To Cancel use Success.xls';
   FUpdate(StatusMsg);
-  if not dsl.IsRemoteIdDefined then
+//  if not dsl.IsRemoteIdDefined then
   Filter(ProcessedCount - SCount);
 end;
 
@@ -2164,7 +2169,6 @@ function TbjMrMc.IsIDChanged: boolean;
 begin
   Result := False;
   if dsl.IsIdDefined then
-  if Length(kadb.GetFieldString(dsl.UIdName)) > 0 then
     if (kadb.GetFieldString(dsl.UIdName) <> IDstr) then
       Result  := True;
 
@@ -2369,7 +2373,7 @@ begin
   RemoteID := '';
   VTotal := 0;
   FUpdate('Voucher: ' + Statmsg);
-  ProcessedCount := ProcessedCount + 1;
+  FProcessedCount := FProcessedCount + 1;
 
   for i := 1 to notoskip do
     kadb.Prior;
@@ -2383,7 +2387,7 @@ begin
   notoskip := 0;
   if (Length(StatMsg) > 0 ) and (Length(StatMsg) < 9 )then
     if StatMsg <> '0' then
-      SCount := Scount + 1;
+      FSCount := FScount + 1;
 end;
 
 procedure TbjMrMc.WriteStock;
@@ -2397,7 +2401,7 @@ begin
     VchExp.VchNarration := NarrationColValue;
   StatMsg := VchExp.SPost(VchAction, True);
   FUpdate('Voucher: ' + Statmsg);
-  ProcessedCount := ProcessedCount + 1;
+  FProcessedCount := FProcessedCount + 1;
 
   for i := 1 to notoskip do
     kadb.Prior;
@@ -2409,7 +2413,7 @@ begin
   notoskip := 0;
   if (Length(StatMsg) > 0 ) and (Length(StatMsg) < 9 )then
     if StatMsg <> '0' then
-      SCount := Scount + 1;
+      FSCount := Scount + 1;
 end;
 
 procedure TbjMrMc.SetFirm(const aFirm: string);
@@ -2570,8 +2574,8 @@ procedure TbjMrMc.Filter(aFailure: integer);
 var
   inErr: boolean;
 begin
-  if (aFailure = 0) then
-    Exit;
+  kadb.SaveAs('.\Data\Success.xls');
+//  if (aFailure = 0) then
 //  if MessageDlg('Copy Unposted only to Tally.xls?', mtWarning, mbYesNoCancel, 0) <> mrYes then
 //    Exit;
 //  KAdb.Save('.\Data\Response.xls');
@@ -2633,6 +2637,57 @@ begin
       else
         inErr := True;
     kadb.Next;
+  end;
+  UnFilter;
+end;
+procedure TbjMrMc.UnFilter;
+var
+  inErr: boolean;
+  Successdb: TbjXLSTable;
+  flds: TStringList;
+  idx: Integer;
+begin
+  Successdb := TbjXLSTable.Create;
+  try
+  Successdb.XLSFileName := '.\Data\Success.xls';
+  Successdb.SetSheet(FTablename);
+  Successdb.ToSaveFile := True;
+  flds := TStringList.Create;
+  try
+    Successdb.ParseXml(dsl.Cfgn, flds);
+    if not flds.Find(dsl.UidName, idx) then
+      flds.Add(dsl.UidName);
+    flds.Add(dsl.UTallyIDName);
+    flds.Add(dsl.URemoteIDName);
+    Successdb.GetFields(flds);
+  finally
+    flds.Free;
+  end;
+  inErr := True;
+  Successdb.First;
+  while not Successdb.EOF do
+  begin
+    if Successdb.IsEmptyField(dsl.UTallyIDName)  then
+    if inErr then
+    begin
+      Successdb.Delete;
+      Continue;
+    end;
+    if not Successdb.IsEmptyField(dsl.UTallyIDName) then
+      if Successdb.GetFieldCurr(dsl.UTallyIDName) =  0 then
+      begin
+        inErr := True;
+        Successdb.Delete;
+        Continue;
+      end
+      else
+        inErr := False;
+    Successdb.Next;
+  end;
+  if Successdb.ToSaveFile then
+    Successdb.Save;
+  finally
+  successdb.Free;
   end;
 end;
 
