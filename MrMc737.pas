@@ -43,7 +43,7 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   DB,
-  xlstbl,
+  xlstbl3,
   XlExp,
   Math,
   Client,
@@ -308,6 +308,7 @@ TbjMrMc = class(TinterfacedObject, IbjXlExp, IbjMrMc)
     function GETDictToken(const ctr: integer): string;
     function GETDictValue(const ctr: integer): string;
     procedure Filter(aFailure: integer);
+    procedure FormatCols;
     procedure UnFilter;
     procedure CreateGSTLedger;
     procedure CreateDefLedger;
@@ -1157,12 +1158,11 @@ begin
   end;
 { Check for TallyId }
   if kadb.FindField(UTallyIDName) <> nil then
-    IstALLYidDefined := True
+    IsTallyIDDefined := True
   else
     MessageDlg('Column TallyID is not found', mtError, [mbNo], 0);
   if kadb.FindField(URemoteIDName) <> nil then
-    IsRemoteIDDefined := True  ;
-
+    IsRemoteIDDefined := True;
 { Fill IsAmtDeclared array
   Needed for Default Amount }
   for j := 1 to COLUMNLIMIT do
@@ -1292,13 +1292,14 @@ passing Windows Exception as it is }
     flds.Add(dsl.UTallyIDName);
     flds.Add(dsl.URemoteIDName);
     kadb.GetFields(flds);
+    FormatCols;
     dsl.kadb := kadb;
     flds.Free;
   end;
 {$ENDIF}
   kadb.First;
   if kadb.Eof then
-    raise Exception.Create('Table is Empty');;
+    raise Exception.Create('Worksheet not found or Table is Empty');;
 end;
 
 procedure TbjMrMc.CreateDefLedger;
@@ -1658,8 +1659,10 @@ AutoCreateMst does not affect explicit group or roundoff group
             if Length(aToken) > 0 then
               MstExp.NewGST(LedgerColValue, GroupColValue, aToken)
             else
+            begin
               MstExp.NewLedger(LedgerColValue, GroupColValue, 0);
               FUpdate('Ledger: ' + LedgerColValue);
+            end;
         end;
       end;
     end;
@@ -1677,6 +1680,7 @@ AutoCreateMst does not affect explicit group or roundoff group
   if Length(RoundOffGroupColValue) > 0 then
   begin
     LedgerColValue := kadb.GetFieldString(dsl.RoundOffCol);
+    FUpdate('Ledger: ' + LedgerColValue);
     if dsl.IsGSTNDefined[COLUMNLIMIT + 1] then
     begin
       GSTNColValue := kadb.GetFieldString(dsl.UGSTNName[COLUMNLIMIT+1]);
@@ -1694,7 +1698,7 @@ AutoCreateMst does not affect explicit group or roundoff group
     end
     else
       MstExp.NewLedger(LedgerColValue, RoundOffGroupColValue, 0);
-    FUpdate('Ledger: ' + LedgerColValue);
+//    FUpdate('Ledger: ' + LedgerColValue);
   end;
 end;
 
@@ -1755,9 +1759,23 @@ begin
 
   if dsl.IsDaybook then
   begin
+{
     if (vTotal = 0) and (kadb.GetFieldCurr(dsl.CrAmtCol) +
       kadb.GetFieldCurr(dsl.DrAmtCol) > 0) then
     begin
+      IDstr :=  IntToStr(kadb.CurrentRow);
+      if kadb.IsEmptyField(dsl.UIdName) then
+        kadb.SetFieldVal(dsl.UIdName, IDstr)
+      else
+        IDstr :=  kadb.GetFieldString(dsl.UIdName);
+    end;
+}
+    if (vTotal = 0) then
+      IDstr := '';
+    if (kadb.GetFieldCurr(dsl.CrAmtCol) +
+      kadb.GetFieldCurr(dsl.DrAmtCol) > 0) then
+    begin
+      if Length(IDstr) = 0 then
       IDstr :=  IntToStr(kadb.CurrentRow);
 	  if kadb.IsEmptyField(dsl.UIdName) then
       kadb.SetFieldVal(dsl.UIdName, IDstr)
@@ -2045,6 +2063,7 @@ AutoCreateMst does not affect explicit group or roundoff group
   if not kadb.IsEmptyField(dsl.UGroupName[1]) then
   begin
     LedgerColValue := kadb.GetFieldString(dsl.ULedgerName[1]);
+    FUpdate('Ledger: ' + LedgerColValue);
     GroupColValue := kadb.GetFieldString(dsl.UGroupName[1]);
     if dsl.IsGSTNDefined[1] then
     begin
@@ -2066,7 +2085,7 @@ AutoCreateMst does not affect explicit group or roundoff group
     else
       MstExp.NewLedger(LedgerColValue,
         GroupColValue, OB);
-    FUpdate('Ledger: ' + LedgerColValue);
+//    FUpdate('Ledger: ' + LedgerColValue);
   end;
 end;
 
@@ -2341,9 +2360,9 @@ begin
   If VchAction = 'Delete' then
   begin
   if not dsl.IsRemoteIDDefined then
-    MessageDlg('Column RemoteID is not found', mtError, [mbOK], 0)
-  else
-  VchExp.RemoteID := RemoteID;
+//    MessageDlg('Column RemoteID is not found', mtError, [mbOK], 0)
+    raise Exception.Create('RemoteID column is not found');
+    VchExp.RemoteID := RemoteID;
   end;
   if Abs(VTotal) >= 0.01 then
   begin
@@ -2576,10 +2595,33 @@ var
 begin
   kadb.SaveAs('.\Data\Success.xls');
 //  if (aFailure = 0) then
-//  if MessageDlg('Copy Unposted only to Tally.xls?', mtWarning, mbYesNoCancel, 0) <> mrYes then
+  inErr := True;
+  kadb.First;
+  while not kadb.EOF do
+  begin
+    if kadb.IsEmptyField(dsl.UTallyIDName)  then
+    if not inErr then
+    begin
+      kadb.Delete;
+      Continue;
+    end;
 //    Exit;
+    if not kadb.IsEmptyField(dsl.UTallyIDName) then
+      if kadb.GetFieldCurr(dsl.UTallyIDName) >  0 then
+      begin
+        inErr := False;
+        kadb.Delete;
+        Continue;
+      end
+      else
+        inErr := True;
+    kadb.Next;
+  end;
+  UnFilter;
+end;
 //  KAdb.Save('.\Data\Response.xls');
-
+procedure TbjMrMc.FormatCols;
+begin
   kadb.SetFieldFormat('Tax_rate', 35);
   kadb.SetFieldFormat('DATE', 14);
   kadb.SetFieldFormat('Voucher Date', 14);
@@ -2614,32 +2656,10 @@ begin
   kadb.SetFieldFormat('Godown', 35);
   kadb.SetFieldFormat('Category', 35);
 //  kadb.Save(dbName);
-
-
-  inErr := True;
-  kadb.First;
-  while not kadb.EOF do
-  begin
-    if kadb.IsEmptyField(dsl.UTallyIDName)  then
-    if not inErr then
-    begin
-      kadb.Delete;
-      Continue;
+  kadb.SetFieldFormat('TALLYID', 35);
+  kadb.SetFieldFormat('REMOTEID', 35);
     end;
 
-    if not kadb.IsEmptyField(dsl.UTallyIDName) then
-      if kadb.GetFieldCurr(dsl.UTallyIDName) >  0 then
-      begin
-        inErr := False;
-        kadb.Delete;
-        Continue;
-      end
-      else
-        inErr := True;
-    kadb.Next;
-  end;
-  UnFilter;
-end;
 procedure TbjMrMc.UnFilter;
 var
   inErr: boolean;
