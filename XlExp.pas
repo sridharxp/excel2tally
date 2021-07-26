@@ -22,7 +22,6 @@ interface
 
 type
   IbjxlExp = interface
-    procedure DeclareColNames;
     procedure OpenFile;
     procedure Process;
     procedure GetDefaults;
@@ -30,15 +29,18 @@ type
     procedure Execute;
   end;
 
-  IbjMrMc = interface
-    procedure CheckColNames;
+  IbjDSLParser = interface
+    procedure DeclareColName;
+    procedure CheckColName;
     procedure CheckColumn(const colname: string);
+  end;
+  IbjMrMc = interface
     procedure NewIdLine;
     procedure ProcessRow;
     procedure ProcessCol(const level: integer);
     function IsIDChanged: boolean;
     function GetLedger(const level: integer): string;
-    function GetAmt(const level: integer): double;
+    function GetAmt(const level: integer): currency;
     function IsMoreColumn(const level: integer): boolean;
   end;
 

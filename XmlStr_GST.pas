@@ -81,6 +81,9 @@ RCPT ='<Voucher>'+
 '<Alias>Party Group</Alias>'+
 '<Default>Suspense A/c</Default>'+
 '</Group>'+
+'<GSTN>'+
+'<Alias>GSTN</Alias>'+
+'</GSTN>'+
 '</RoundOff>'+
 '+<LEDGER>'+
 '<Alias>Receipt Ledger</Alias>'+
@@ -134,6 +137,9 @@ PYMT = '<Voucher>'+
 '<Alias>Party Group</Alias>'+
 '<Default>Suspense A/c</Default>'+
 '</Group>'+
+'<GSTN>'+
+'<Alias>GSTN</Alias>'+
+'</GSTN>'+
 '</RoundOff>'+
 '<VTYPE>'+
 '<Alias>VTYPE</Alias>'+
@@ -153,6 +159,9 @@ JRNL = '<Voucher>'+
 '<DATE>'+
 '<Alias>DATE</Alias>'+
 '</DATE>'+
+'<BillRef>'+
+'<Alias>Bill Ref</Alias>'+
+'</BillRef>'+
 '<LEDGER>'+
 '<Alias>Credit Ledger</Alias>'+
 '<AmtCol>'+
@@ -176,6 +185,7 @@ JRNL = '<Voucher>'+
 '</Group>'+
 '</LEDGER>'+
 '<VTYPE>'+
+'<Alias>VTYPE</Alias>'+
 '<Default>Journal</Default>'+
 '</VTYPE>'+
 '<NARRATION>'+
@@ -187,6 +197,11 @@ BANK = '<Voucher>'+
 '<Data>'+
 '<VoucherList>Bank</VoucherList>'+
 '<IsMultiColumn>Yes</IsMultiColumn>'+
+'<KeyCol>CrAmtCol</KeyCol>'+
+'<KeyCol>DrAmtCol</KeyCol>'+
+'<KeyCol>NARRATION</KeyCol>'+
+'<KeyCol>ID</KeyCol>'+
+'<KeyCol>DATE</KeyCol>'+
 '</Data>'+
 
 '<ID>'+
@@ -203,8 +218,8 @@ BANK = '<Voucher>'+
 '</BillRef>'+
 '<LEDGER>'+
 '<Alias>LEDGER</Alias>'+
-'<Default>Party</Default>'+
-'<Group>Sundry Debtors</Group>'+
+'<Default>Suspense</Default>'+
+'<Group>Suspense A/c</Group>'+
 '</LEDGER>'+
 '<CrAmtCol>'+
 '<Alias>DEPOSITS</Alias>'+

@@ -2122,6 +2122,7 @@ var
   SystemGSTN: string;
   item: pGSTNRec;
   dupName: boolean;
+  GSTNParent: string;
 begin
   dupName := False;
   If Length(aLedger) = 0 then
@@ -2160,8 +2161,12 @@ It does not use GetDupPartyGSTN
 { Different Name Sake GSTN - one part }
   if not Found then
   begin
-
-    CreateParty(aLedger, aParent, aGSTN, aState);
+    GSTNParent := aParent;
+    if (Length(aGSTN) > 0) and (aParent = 'Suspense A/c') then
+    begin
+      GSTNParent := 'Sundry Debtors';
+    end;
+    CreateParty(aLedger, GSTNParent, aGSTN, aState);
     LedPList.Add(PackStr(aLedger));
     if Length(aGSTN) > 0 then
     begin

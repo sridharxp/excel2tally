@@ -1400,6 +1400,7 @@ end;
 procedure TbjMrMc.Execute;
 var
   StatusMsg: string;
+  timestr: string;
 begin
   StartTime := Time;
   FProcessedCount := 0;
@@ -1475,17 +1476,21 @@ begin
   EndTime := Time;
   Elapsed := EndTime - StartTime;
   DecodeTime(Elapsed, Hrs, Mins, Secs, MSecs);
-  MessageDlg(InttoStr(ProcessedCount) + ' Vouchers processed',
-      mtInformation, [mbOK], 0);
+  if Mins > 0 then
+  timestr := InttoStr(Mins) + ' minute(s) ' + InttoStr(Secs) +' Seconds'
+  else
+  timestr := InttoStr(Secs) +' Seconds';
 
 
 
 
     StatusMsg := InttoStr(ProcessedCount) + '/' + InttoStr(FdynPgLen) +
     ' Vouchers processed; ' +
-    InttoStr(SCount) + ' Success. ' + InttoStr(Mins*60+Secs) + ' Seconds; To Cancel use Success.xls';
+    InttoStr(SCount) + ' Success. ' + timestr;
   FUpdate(StatusMsg);
 //  if not dsl.IsRemoteIdDefined then
+  MessageDlg(InttoStr(ProcessedCount) + ' Vouchers processed; To Cancel this post use Success.xls ',
+      mtInformation, [mbOK], 0);
   Filter(ProcessedCount - SCount);
 end;
 
