@@ -76,7 +76,7 @@ RCPT ='<Voucher>'+
 '<Alias>Bill Ref</Alias>'+
 '</BillRef>'+
 '<RoundOff>'+
-'<Alias>Party Ledger</Alias>'+
+'<Alias>Party_Ledger</Alias>'+
 '<Group>'+
 '<Alias>Party Group</Alias>'+
 '<Default>Suspense A/c</Default>'+
@@ -132,7 +132,7 @@ PYMT = '<Voucher>'+
 '<Alias>ChequeNo</Alias>'+
 '</ChequeNo>'+
 '<RoundOff>'+
-'<Alias>Party Ledger</Alias>'+
+'<Alias>Party_Ledger</Alias>'+
 '<Group>'+
 '<Alias>Party Group</Alias>'+
 '<Default>Suspense A/c</Default>'+
@@ -156,6 +156,9 @@ JRNL = '<Voucher>'+
 //'<DefaultGroup>Sundry Debtors</DefaultGroup>'+
 '<IsMultiColumn>Yes</IsMultiColumn>'+
 '</Data>'+
+'<VoucherRef>'+
+'<Alias>Voucher_Ref</Alias>'+
+'</VoucherRef>'+
 '<DATE>'+
 '<Alias>DATE</Alias>'+
 '</DATE>'+
@@ -234,7 +237,7 @@ BANK = '<Voucher>'+
 '</ChequeNo>'+
 
 '<RoundOff>'+
-'<Alias>BANK LEDGER</Alias>'+
+'<Alias>BANK_LEDGER</Alias>'+
 '<Default>Bank Account</Default>'+
 '<Group>'+
 '<Default>Bank Accounts</Default>'+
@@ -321,7 +324,7 @@ MYSALE = '<Voucher>'+
 '</NARRATION>'+
 
 '<RoundOff>'+
-'<Alias>Party Ledger</Alias>'+
+'<Alias>Party_Ledger</Alias>'+
 '<Group>'+
 '<Default>Sundry Debtors</Default>'+
 '</Group>'+
@@ -661,7 +664,7 @@ MYPURC = '<Voucher>'+
 '</NARRATION>'+
 
 '<RoundOff>'+
-'<Alias>Party Ledger</Alias>'+
+'<Alias>Party_Ledger</Alias>'+
 '<Group>'+
 '<Default>Sundry Creditors</Default>'+
 '</Group>'+
@@ -1002,7 +1005,7 @@ SBILL = '<Voucher>'+
 '</NARRATION>'+
 
 '<RoundOff>'+
-'<Alias>Party Ledger</Alias>'+
+'<Alias>Party_Ledger</Alias>'+
 '<Group>'+
 '<Default>Sundry Debtors</Default>'+
 '</Group>'+
@@ -1129,7 +1132,7 @@ PBILL = '<Voucher>'+
 '</NARRATION>'+
 
 '<RoundOff>'+
-'<Alias>Party Ledger</Alias>'+
+'<Alias>Party_Ledger</Alias>'+
 '<Group>'+
 '<Default>Sundry Debtors</Default>'+
 '</Group>'+
@@ -1242,7 +1245,7 @@ FINANCE = '<Voucher>'+
 '<Alias>DATE</Alias>'+
 '</DATE>'+
 '<LEDGER>'+
-'<Alias>Party Ledger</Alias>'+
+'<Alias>Party_Ledger</Alias>'+
 '<Group>Sundry Creditors</Group>'+
 '</LEDGER>'+
 '+<LEDGER>'+
@@ -2637,7 +2640,7 @@ MYCNOTE = '<Voucher>'+
 '</NARRATION>'+
 
 '<RoundOff>'+
-'<Alias>Party Ledger</Alias>'+
+'<Alias>Party_Ledger</Alias>'+
 '<Group>'+
 '<Default>SunCry Debtors</Default>'+
 '</Group>'+

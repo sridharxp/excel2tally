@@ -798,7 +798,7 @@ begin
   xLdg.NewChild2('NAME', FAlias );
   { NAME.LIST }
   xLdg := xLdg.GetParent;
-  xLdg.NewChild2('BASEUNITS', BaseUnit );
+  xLdg.NewChild2('BASEUNITS', BaseUnit);
 {
   if FIsBatchwiseOn then
   xldg.NewChild2('IsBatchWiseOn', 'Yes');
@@ -867,7 +867,7 @@ begin
   xLdg.NewChild2('NAME', FAlias );
   { NAME.LIST }
   xLdg := xLdg.GetParent;
-  xLdg.NewChild2('BASEUNITS', BaseUnit );
+  xLdg.NewChild2('BASEUNITS', BaseUnit);
 {
   if FIsBatchwiseOn then
   xldg.NewChild2('IsBatchWiseOn', 'Yes');
@@ -1485,8 +1485,11 @@ end;
 Procedure TbjVchExp.UnPack;
 var
   Item: pLine;
-  i: Integer;
+  i, j: Integer;
+  PartyisDebit: Boolean;
 begin
+  PartyisDebit := False;
+  j := -1;
   SetGSTLedType;
   for i := 0 to Lines.Count-1 do
   begin
@@ -1497,6 +1500,10 @@ begin
       if Abs(Item^.Amount) > partyamt then
       begin
         partyamt := Abs(Item^.Amount);
+        if  Item^.Amount < 0 then
+        begin
+          PartyisDebit := True;
+        end;
         partyidx := i;
         Item^.Ref := BillRef;
         Item^.RefType := 'New Ref';
@@ -1521,11 +1528,49 @@ begin
     begin
       AddInDirect(partyidx);
     end;
+    for i:= 0 to Lines.count-1 do
+    begin
+      Item := Lines.Items[i];
+      if Item^.Amount = 0 then
+        Continue;
+      if i = partyidx then
+        continue;
+      if i = busidx then
+        continue;
+      If PartyisDebit then
+      begin
+        If Item^.Amount < 0 then
+        begin
+          AddInDirect(i);
+          j := i + 1;
+        end
+        else
+        begin
+          j := i;
+          Break;
+        end;
+      end;
+      If not PartyisDebit then
+      begin
+        If Item^.Amount > 0 then
+        begin
+          AddInDirect(i);
+          j := i + 1;
+        end
+        else
+        begin
+          j := i;
+          Break;
+        end;
+      end;
+    end;
     if busidx <> -1 then
     begin
       AddInDirect(busidx);
     end;
-    for i:= 0 to Lines.count-1 do
+	if j = -1 then
+	  j := 0;
+    for i:= j to Lines.count-1 do
     begin
       if i = partyidx then
         continue;
