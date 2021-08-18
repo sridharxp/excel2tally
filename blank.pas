@@ -62,7 +62,7 @@ procedure TxlsBlank.FormatWs;
 begin
   kadb.SetFieldFormat('Tax_rate', 35);
   kadb.SetFieldFormat('DATE', 14);
-  kadb.SetFieldFormat('Voucher Date', 14);
+  kadb.SetFieldFormat('Voucher_Date', 14);
   kadb.SetFieldFormat('Invoice_Date', 14);
   kadb.SetFieldFormat('ID', 35);
   kadb.SetFieldFormat('NARRATION', 35);
@@ -76,12 +76,13 @@ begin
   kadb.SetFieldFormat('Sales_Ledger', 35);
   kadb.SetFieldFormat('Purchase_Ledger', 35);
   kadb.SetFieldFormat('Bill_Ledger', 35);
-  kadb.SetFieldFormat('Credit Ledger', 35);
-  kadb.SetFieldFormat('Debit Ledger', 35);
+  kadb.SetFieldFormat('Credit_Ledger', 35);
+  kadb.SetFieldFormat('Debit_Ledger', 35);
   kadb.SetFieldFormat('LEDGER', 35);
   kadb.SetFieldFormat('Party_Ledger', 35);
-  kadb.SetFieldFormat('Payment Ledger', 35);
-  kadb.SetFieldFormat('Receipt Ledger', 35);
+  kadb.SetFieldFormat('Payment_Ledger', 35);
+  kadb.SetFieldFormat('Receipt_Ledger', 35);
+  kadb.SetFieldFormat('Voucher_No', 35);
   kadb.SetFieldFormat('Voucher_Ref', 35);
   kadb.SetFieldFormat('Bill Ref', 35);
   kadb.SetFieldFormat('GROUP', 35);

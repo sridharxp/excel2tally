@@ -36,7 +36,7 @@ CONTRA = '<Voucher>'+
 '</DATE>'+
 '<LEDGER>'+
 '<Default>Cash</Default>'+
-'<Alias>Credit Ledger</Alias>'+
+'<Alias>Credit_Ledger</Alias>'+
 '<AmtCol>'+
 '<Alias>AMOUNT</Alias>'+
 '<Type>Cr</Type>'+
@@ -45,7 +45,7 @@ CONTRA = '<Voucher>'+
 '</LEDGER>'+
 '<LEDGER>'+
 '<Default>Cash</Default>'+
-'<Alias>Debit Ledger</Alias>'+
+'<Alias>Debit_Ledger</Alias>'+
 '<AmtCol>'+
 '<Alias>AMOUNT</Alias>'+
 '<Type>Dr</Type>'+
@@ -70,7 +70,7 @@ RCPT ='<Voucher>'+
 '<Alias>DATE</Alias>'+
 '</DATE>'+
 '<VoucherNo>'+
-'<Alias>Voucher No</Alias>'+
+'<Alias>Voucher_No</Alias>'+
 '</VoucherNo>'+
 '<BillRef>'+
 '<Alias>Bill Ref</Alias>'+
@@ -78,7 +78,7 @@ RCPT ='<Voucher>'+
 '<RoundOff>'+
 '<Alias>Party_Ledger</Alias>'+
 '<Group>'+
-'<Alias>Party Group</Alias>'+
+'<Alias>Party_Group</Alias>'+
 '<Default>Suspense A/c</Default>'+
 '</Group>'+
 '<GSTN>'+
@@ -86,10 +86,10 @@ RCPT ='<Voucher>'+
 '</GSTN>'+
 '</RoundOff>'+
 '+<LEDGER>'+
-'<Alias>Receipt Ledger</Alias>'+
+'<Alias>Receipt_Ledger</Alias>'+
 '<Group>Bank Accounts</Group>'+
 '<AmtCol>'+
-'<Alias>Receipt Amount</Alias>'+
+'<Alias>Receipt_Amount</Alias>'+
 '<Type>Dr</Type>'+
 '</AmtCol>'+
 '</LEDGER>'+
@@ -115,16 +115,16 @@ PYMT = '<Voucher>'+
 '<Alias>DATE</Alias>'+
 '</DATE>'+
 '<VoucherNo>'+
-'<Alias>Voucher No</Alias>'+
+'<Alias>Voucher_No</Alias>'+
 '</VoucherNo>'+
 '<BillRef>'+
 '<Alias>Bill Ref</Alias>'+
 '</BillRef>'+
 '<LEDGER>'+
-'<Alias>Payment Ledger</Alias>'+
+'<Alias>Payment_Ledger</Alias>'+
 '<Group>Bank Accounts</Group>'+
 '<AmtCol>'+
-'<Alias>Payment Amount</Alias>'+
+'<Alias>Payment_Amount</Alias>'+
 '<Type>Cr</Type>'+
 '</AmtCol>'+
 '</LEDGER>'+
@@ -134,7 +134,7 @@ PYMT = '<Voucher>'+
 '<RoundOff>'+
 '<Alias>Party_Ledger</Alias>'+
 '<Group>'+
-'<Alias>Party Group</Alias>'+
+'<Alias>Party_Group</Alias>'+
 '<Default>Suspense A/c</Default>'+
 '</Group>'+
 '<GSTN>'+
@@ -159,6 +159,7 @@ JRNL = '<Voucher>'+
 '<VoucherRef>'+
 '<Alias>Voucher_Ref</Alias>'+
 '</VoucherRef>'+
+
 '<DATE>'+
 '<Alias>DATE</Alias>'+
 '</DATE>'+
@@ -166,24 +167,24 @@ JRNL = '<Voucher>'+
 '<Alias>Bill Ref</Alias>'+
 '</BillRef>'+
 '<LEDGER>'+
-'<Alias>Credit Ledger</Alias>'+
+'<Alias>Credit_Ledger</Alias>'+
 '<AmtCol>'+
 '<Alias>AMOUNT</Alias>'+
 '<Type>Cr</Type>'+
 '</AmtCol>'+
 '<Group>'+
-'<Alias>CREDIT GROUP</Alias>'+
+'<Alias>CREDIT_GROUP</Alias>'+
 '<Default>Suspense A/c</Default>'+
 '</Group>'+
 '</LEDGER>'+
 '<LEDGER>'+
-'<Alias>Debit Ledger</Alias>'+
+'<Alias>Debit_Ledger</Alias>'+
 '<AmtCol>'+
 '<Alias>AMOUNT</Alias>'+
 '<Type>Dr</Type>'+
 '</AmtCol>'+
 '<Group>'+
-'<Alias>DEBIT GROUP</Alias>'+
+'<Alias>DEBIT_GROUP</Alias>'+
 '<Default>Suspense A/c</Default>'+
 '</Group>'+
 '</LEDGER>'+
@@ -270,13 +271,13 @@ DAYBOOK = '<Voucher>'+
 '<Alias>DATE</Alias>'+
 '</DATE>'+
 '<VoucherNo>'+
-'<Alias>Voucher No</Alias>'+
+'<Alias>Voucher_No</Alias>'+
 '</VoucherNo>'+
 '<CrAmtCol>'+
-'<Alias>CREDIT AMOUNT</Alias>'+
+'<Alias>CREDIT_AMOUNT</Alias>'+
 '</CrAmtCol>'+
 '<DrAmtCol>'+
-'<Alias>DEBIT AMOUNT</Alias>'+
+'<Alias>DEBIT_AMOUNT</Alias>'+
 '</DrAmtCol>'+
 
 '<LEDGER>'+
@@ -303,7 +304,7 @@ MYSALE = '<Voucher>'+
 '</Data>'+
 
 '<VoucherNo>'+
-'<Alias>Voucher No</Alias>'+
+'<Alias>Voucher_No</Alias>'+
 '</VoucherNo>'+
 '<VoucherRef>'+
 '<Alias>Invoice_No</Alias>'+
@@ -640,10 +641,10 @@ MYPURC = '<Voucher>'+
 '</Data>'+
 
 '<VoucherNo>'+
-'<Alias>Voucher No</Alias>'+
+'<Alias>Voucher_No</Alias>'+
 '</VoucherNo>'+
 '<VoucherDate>'+
-'<Alias>Voucher Date</Alias>'+
+'<Alias>Voucher_Date</Alias>'+
 '</VoucherDate>'+
 '<VoucherRef>'+
 '<Alias>Invoice_No</Alias>'+
@@ -987,7 +988,7 @@ SBILL = '<Voucher>'+
 '<Alias>ID</Alias>'+
 '</ID>'+
 '<VoucherNo>'+
-'<Alias>Voucher No</Alias>'+
+'<Alias>Voucher_No</Alias>'+
 '</VoucherNo>'+
 '<VoucherRef>'+
 '<Alias>Invoice_No</Alias>'+
@@ -1111,7 +1112,7 @@ PBILL = '<Voucher>'+
 '</Data>'+
 
 '<VoucherNo>'+
-'<Alias>Voucher No</Alias>'+
+'<Alias>Voucher_No</Alias>'+
 '</VoucherNo>'+
 '<VoucherRef>'+
 '<Alias>Invoice_No</Alias>'+
@@ -1273,7 +1274,7 @@ GSTSALE = '<Voucher>'+
 '<Alias>ID</Alias>'+
 '</ID>'+
 '<VoucherNo>'+
-'<Alias>Voucher No</Alias>'+
+'<Alias>Voucher_No</Alias>'+
 '</VoucherNo>'+
 '<VoucherRef>'+
 '<Alias>Invoice_No</Alias>'+
@@ -1575,10 +1576,10 @@ GSTPURC = '<Voucher>'+
 '<Alias>ID</Alias>'+
 '</ID>'+
 '<VoucherNo>'+
-'<Alias>Voucher No</Alias>'+
+'<Alias>Voucher_No</Alias>'+
 '</VoucherNo>'+
 '<VoucherDate>'+
-'<Alias>Voucher Date</Alias>'+
+'<Alias>Voucher_Date</Alias>'+
 '</VoucherDate>'+
 '<VoucherRef>'+
 '<Alias>Invoice_No</Alias>'+
@@ -1960,10 +1961,10 @@ CNOTE = '<Voucher>'+
 '<Alias>ID</Alias>'+
 '</ID>'+
 '<VoucherDate>'+
-'<Alias>Voucher Date</Alias>'+
+'<Alias>Voucher_Date</Alias>'+
 '</VoucherDate>'+
 '<VoucherNo>'+
-'<Alias>Voucher No</Alias>'+
+'<Alias>Voucher_No</Alias>'+
 '</VoucherNo>'+
 '<VoucherRef>'+
 '<Alias>Invoice_No</Alias>'+
@@ -2263,10 +2264,10 @@ DNOTE = '<Voucher>'+
 '<Alias>ID</Alias>'+
 '</ID>'+
 '<VoucherDate>'+
-'<Alias>Voucher Date</Alias>'+
+'<Alias>Voucher_Date</Alias>'+
 '</VoucherDate>'+
 '<VoucherNo>'+
-'<Alias>Voucher No</Alias>'+
+'<Alias>Voucher_No</Alias>'+
 '</VoucherNo>'+
 '<VoucherRef>'+
 '<Alias>Invoice_No</Alias>'+
@@ -2616,10 +2617,10 @@ MYCNOTE = '<Voucher>'+
 '</Data>'+
 
 '<VoucherDate>'+
-'<Alias>Voucher Date</Alias>'+
+'<Alias>Voucher_Date</Alias>'+
 '</VoucherDate>'+
 '<VoucherNo>'+
-'<Alias>Voucher No</Alias>'+
+'<Alias>Voucher_No</Alias>'+
 '</VoucherNo>'+
 '<VoucherRef>'+
 '<Alias>Invoice_No</Alias>'+
