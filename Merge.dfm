@@ -1,8 +1,8 @@
 object frmMerge: TfrmMerge
   Left = 236
   Top = 118
-  Width = 409
-  Height = 287
+  Width = 522
+  Height = 396
   Caption = 'Merge Duplicate Ledger'
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -16,78 +16,78 @@ object frmMerge: TfrmMerge
   TextHeight = 13
   object Label1: TLabel
     Left = 13
-    Top = 63
-    Width = 49
-    Height = 13
+    Top = 90
+    Width = 76
+    Height = 20
     Caption = 'From Date'
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
-    Font.Height = -12
+    Font.Height = -16
     Font.Name = 'MS Sans Serif'
     Font.Style = []
     ParentFont = False
   end
   object Label2: TLabel
-    Left = 231
-    Top = 63
-    Width = 13
-    Height = 13
+    Left = 263
+    Top = 90
+    Width = 18
+    Height = 20
     Caption = 'To'
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
-    Font.Height = -12
+    Font.Height = -16
     Font.Name = 'MS Sans Serif'
     Font.Style = []
     ParentFont = False
   end
   object Label3: TLabel
     Left = 13
-    Top = 137
-    Width = 45
-    Height = 26
+    Top = 200
+    Width = 67
+    Height = 40
     Caption = 'Duplicate'#13#10
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
-    Font.Height = -12
+    Font.Height = -16
     Font.Name = 'MS Sans Serif'
     Font.Style = []
     ParentFont = False
   end
   object Info: TLabel
     Left = 13
-    Top = 232
-    Width = 30
-    Height = 13
+    Top = 336
+    Width = 37
+    Height = 16
     Caption = 'Status'
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
-    Font.Height = -11
+    Font.Height = -13
     Font.Name = 'MS Sans Serif'
     Font.Style = []
     ParentFont = False
   end
   object Label4: TLabel
     Left = 13
-    Top = 28
-    Width = 65
-    Height = 13
+    Top = 36
+    Width = 99
+    Height = 20
     Caption = 'Ledger Group'
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
-    Font.Height = -12
+    Font.Height = -16
     Font.Name = 'MS Sans Serif'
     Font.Style = []
     ParentFont = False
   end
   object lblLedger: TLabel
     Left = 13
-    Top = 170
-    Width = 33
-    Height = 26
+    Top = 255
+    Width = 50
+    Height = 40
     Caption = 'Ledger'#13#10
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
-    Font.Height = -12
+    Font.Height = -16
     Font.Name = 'MS Sans Serif'
     Font.Style = []
     ParentFont = False
@@ -106,26 +106,39 @@ object frmMerge: TfrmMerge
   end
   object Label8: TLabel
     Left = 13
-    Top = 101
-    Width = 44
-    Height = 13
+    Top = 145
+    Width = 67
+    Height = 20
     Caption = 'Company'
     Font.Charset = ANSI_CHARSET
     Font.Color = clWindowText
-    Font.Height = -12
+    Font.Height = -16
+    Font.Name = 'MS Sans Serif'
+    Font.Style = []
+    ParentFont = False
+  end
+  object lbl1: TLabel
+    Left = 207
+    Top = 8
+    Width = 91
+    Height = 24
+    Caption = 'Monthwise'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -19
     Font.Name = 'MS Sans Serif'
     Font.Style = []
     ParentFont = False
   end
   object btnMerge: TButton
-    Left = 246
-    Top = 208
+    Left = 302
+    Top = 304
     Width = 98
     Height = 20
     Caption = 'Merge '
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
-    Font.Height = -12
+    Font.Height = -16
     Font.Name = 'MS Sans Serif'
     Font.Style = []
     ParentFont = False
@@ -133,16 +146,16 @@ object frmMerge: TfrmMerge
     OnClick = btnMergeClick
   end
   object DateTimePicker2: TDateTimePicker
-    Left = 259
-    Top = 63
+    Left = 307
+    Top = 90
     Width = 114
-    Height = 24
-    Date = 43190.474290173610000000
+    Height = 32
+    Date = 44651.474290173610000000
     Format = 'dd/MM/yyyy'
-    Time = 43190.474290173610000000
+    Time = 44651.474290173610000000
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
-    Font.Height = -15
+    Font.Height = -19
     Font.Name = 'MS Sans Serif'
     Font.Style = []
     ParentFont = False
@@ -150,15 +163,15 @@ object frmMerge: TfrmMerge
   end
   object cmbLedGroup: TComboBox
     Left = 105
-    Top = 28
+    Top = 36
     Width = 118
-    Height = 24
+    Height = 32
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
-    Font.Height = -15
+    Font.Height = -19
     Font.Name = 'MS Sans Serif'
     Font.Style = []
-    ItemHeight = 16
+    ItemHeight = 24
     ParentFont = False
     TabOrder = 0
     Items.Strings = (
@@ -168,43 +181,43 @@ object frmMerge: TfrmMerge
   end
   object cmbDupLed: TComboBox
     Left = 105
-    Top = 132
+    Top = 200
     Width = 268
-    Height = 24
+    Height = 32
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
-    Font.Height = -15
+    Font.Height = -19
     Font.Name = 'MS Sans Serif'
     Font.Style = []
-    ItemHeight = 16
+    ItemHeight = 24
     ParentFont = False
     TabOrder = 4
   end
   object cmbParty: TComboBox
     Left = 105
-    Top = 167
+    Top = 255
     Width = 268
-    Height = 24
+    Height = 32
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
-    Font.Height = -15
+    Font.Height = -19
     Font.Name = 'MS Sans Serif'
     Font.Style = []
-    ItemHeight = 16
+    ItemHeight = 24
     ParentFont = False
     TabOrder = 5
     Items.Strings = (
       '')
   end
   object btnRefresh: TButton
-    Left = 49
-    Top = 208
+    Left = 105
+    Top = 304
     Width = 123
     Height = 20
-    Caption = 'Refresh Ledger List'
+    Caption = 'Import Ledger List'
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
-    Font.Height = -12
+    Font.Height = -16
     Font.Name = 'MS Sans Serif'
     Font.Style = []
     ParentFont = False
@@ -213,29 +226,29 @@ object frmMerge: TfrmMerge
   end
   object cmbFirm: TComboBox
     Left = 105
-    Top = 98
+    Top = 145
     Width = 268
-    Height = 24
+    Height = 32
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
-    Font.Height = -15
+    Font.Height = -19
     Font.Name = 'MS Sans Serif'
     Font.Style = []
-    ItemHeight = 16
+    ItemHeight = 24
     ParentFont = False
     TabOrder = 3
   end
   object DateTimePicker1: TDateTimePicker
     Left = 105
-    Top = 63
+    Top = 90
     Width = 114
-    Height = 24
-    Date = 42826.474290173610000000
+    Height = 32
+    Date = 44287.474290173610000000
     Format = 'dd/MM/yyyy'
-    Time = 42826.474290173610000000
+    Time = 44287.474290173610000000
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
-    Font.Height = -15
+    Font.Height = -19
     Font.Name = 'MS Sans Serif'
     Font.Style = []
     ParentFont = False

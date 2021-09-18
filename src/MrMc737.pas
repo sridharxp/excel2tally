@@ -401,9 +401,9 @@ begin
   UNarrationName := 'NARRATION';
   UChequeNoName := 'ChequeNo';
   UVoucherRefName := 'VoucherRef';
-  UVoucherDateName := 'Voucher Date';
+  UVoucherDateName := 'VoucherDate';
   UVchNoColName := 'VoucherNo';
-  UBillRefName := 'Bill Ref';
+  UBillRefName := 'BillRef';
   inventoryTag := 'INVENTORY';
   UItemName := 'Item';
   UHSNName := 'HSN';
@@ -1523,10 +1523,13 @@ var
 begin
   if dsl.IsNarrationDefined then
   begin
-    if Length(NarrationColValue) > 0 then
-    NarrationColValue := NarrationColValue + ' ' + kadb.GetFieldString(dsl.UNarrationName)
-    else
-    NarrationColValue := (kadb.GetFieldString(dsl.UNarrationName));
+    if dsl.IsIDGenerated then
+    begin
+      if Length(NarrationColValue) > 0 then
+        NarrationColValue := NarrationColValue + ' ' + kadb.GetFieldString(dsl.UNarrationName)
+      else
+        NarrationColValue := (kadb.GetFieldString(dsl.UNarrationName));
+      end;
   end;
   LedgerColvalue := Getledger(1);
   Amt[1] := GetAmt(1);
@@ -2171,10 +2174,11 @@ begin
 { With VchType this should not be needed }
   if Length(TypeColValue) = 0 then
     TypeColValue := dsl.DiTypeValue;
-{
-  if IsNarrationDefined then
-    NarrationColValue := kadb.GetFieldString(UNarrationName);
-}
+
+  if dsl.IsNarrationDefined then
+  if not dsl.IsIDGenerated then
+    NarrationColValue := kadb.GetFieldString(dsl.UNarrationName);
+
   if dsl.IsChequeNoDefined then
     if not kadb.IsEmptyField(dsl.UChequeNoName) then
     ChequeNoColValue := kadb.GetFieldString(dsl.UChequeNoName);
@@ -2629,7 +2633,7 @@ procedure TbjMrMc.FormatCols;
 begin
   kadb.SetFieldFormat('Tax_rate', 35);
   kadb.SetFieldFormat('DATE', 14);
-  kadb.SetFieldFormat('Voucher Date', 14);
+  kadb.SetFieldFormat('Voucher_Date', 14);
   kadb.SetFieldFormat('Invoice_Date', 14);
   kadb.SetFieldFormat('ID', 35);
   kadb.SetFieldFormat('NARRATION', 35);
@@ -2642,16 +2646,16 @@ begin
   kadb.SetFieldFormat('Batch', 35);
   kadb.SetFieldFormat('UserDesc', 35);
   kadb.SetFieldFormat('Unit', 35);
-  kadb.SetFieldFormat('Bank Ledger', 35);
+  kadb.SetFieldFormat('Bank_Ledger', 35);
   kadb.SetFieldFormat('Sales_Ledger', 35);
   kadb.SetFieldFormat('Purchase_Ledger', 35);
   kadb.SetFieldFormat('Bill_Ledger', 35);
-  kadb.SetFieldFormat('Credit Ledger', 35);
-  kadb.SetFieldFormat('Debit Ledger', 35);
+  kadb.SetFieldFormat('Credit_Ledger', 35);
+  kadb.SetFieldFormat('Debit_Ledger', 35);
   kadb.SetFieldFormat('LEDGER', 35);
   kadb.SetFieldFormat('Party Ledger', 35);
-  kadb.SetFieldFormat('Payment Ledger', 35);
-  kadb.SetFieldFormat('Receipt Ledger', 35);
+  kadb.SetFieldFormat('Payment_Ledger', 35);
+  kadb.SetFieldFormat('Receipt_Ledger', 35);
   kadb.SetFieldFormat('Voucher Ref', 35);
   kadb.SetFieldFormat('Bill Ref', 35);
   kadb.SetFieldFormat('GROUP', 35);
@@ -2660,7 +2664,6 @@ begin
   kadb.SetFieldFormat('SubGroup', 35);
   kadb.SetFieldFormat('Godown', 35);
   kadb.SetFieldFormat('Category', 35);
-//  kadb.Save(dbName);
   kadb.SetFieldFormat('TALLYID', 35);
   kadb.SetFieldFormat('REMOTEID', 35);
     end;
