@@ -27,7 +27,7 @@ uses
   ShellApi,
   xmldb_ML,
   PClientFns,
-//  Cfg,
+  DateUtils,
   MstListImp;
 
 type
@@ -48,6 +48,7 @@ type
     Label6: TLabel;
     Label8: TLabel;
     DateTimePicker1: TDateTimePicker;
+    lbl1: TLabel;
     procedure btnMergeClick(Sender: TObject);
     procedure btnRefreshClick(Sender: TObject);
   private
@@ -56,7 +57,7 @@ type
     { Public declarations }
   end;
 
-procedure UpdateMsg(Msg: string);
+procedure UpdateMsg(const aMsg: string);
 
 var
   frmMerge: TfrmMerge;
@@ -70,14 +71,18 @@ uses XlExport;
 procedure TfrmMerge.btnMergeClick(Sender: TObject);
 var
   xdb: TbjxMerge;
-  mr: integer;
+//  mr: integer;
   DParent, LParent: string;
   Obj:TbjMstListImp;
+  sDups: Integer;
+  CalcToDt, eDt: TDate;
 begin
+{
   mr  := MessageDlg('Newer Version of Tally installed?', mtConfirmation, mbYesNoCancel, 0);
 //  if mr = mrCancel then
   if mr <> mrYes then
     Exit;
+}
   if (Length(cmbParty.Text) = 0) or (Length(cmbDupLed.Text) = 0) then
   begin
     MessageDlg('Party and Duplicate can not be empty', mtError, [mbOK], 0);
@@ -88,12 +93,14 @@ begin
     MessageDlg('Both Party and Duplicate are the same', mtError, [mbOK], 0);
     Exit;
   end;
+
+  sDups := 0;
   Obj := TbjMstListImp.Create;
   Obj.Host := 'http://' + frmXlExport.edtHost.Text + ':'+
     frmXlExport.edtPort.Text;
- try
-    dParent := Obj.GetGroup(cmbDupLed.Text);
-    lParent := Obj.GetGroup(cmbParty.Text);
+  try
+    dParent := GetLedgerGroup(cmbDupLed.Text);
+    lParent := GetLedgerGroup(cmbParty.Text);
   finally
       Obj.Free;
   end;
@@ -124,24 +131,28 @@ begin
       if mr = mrNo then
         xdb.ImportNoDups := True;
 }
-
-      xdb.Process;
+      CalcToDt := DateTimePicker2.Date;
+      while DateTimePicker1.Date < CalcToDt do
+      begin
+        xdb.Process;
+        sDups := sDups + xdb.ndups;
+        xdb.ndups := 0;
+        CalcToDt := IncMonth(CalcToDt, -1);
+        eDt := EndOfAMonth(Yearof(CalcToDt), Monthof(CalcToDt));
+        if eDt <> CalcToDt then
+        begin
+          CalcToDt := eDt;
+//          ShowMessage(FormatDateTime('yyyyMMDD',CalcToDt));
+        end;
+        xdb.ToDt := FormatDateTime('yyyyMMDD',CalcToDt);
+      end;
     finally
-      MessageDlg(IntToStr(xdb.ndups) + ' Duplicates merged',
+      MessageDlg(IntToStr(sDups) + ' Duplicates merged',
       mtInformation, [mbOK],0);
       xdb.Free;
       btnMerge.Enabled := True;
       btnRefresh.Enabled := True;
     end;
-end;
-
-procedure UpdateMsg;
-begin
-  if length(msg) > 0 then
-    frmMerge.Info.Caption := Msg
-  else
-    frmMerge.Info.Caption := 'Done';
-  Application.ProcessMessages;
 end;
 
 procedure TfrmMerge.btnRefreshClick(Sender: TObject);
@@ -178,12 +189,11 @@ begin
     Obj.Free;
   end;
 
-  cmbFirm.Items.Add('');
+//  cmbFirm.Items.Add('');
   cmbFirm.Clear;
   for i:= 0 to CMPList.Count-1 do
     cmbFirm.Items.Add(CMPList.Strings[i]);
   cmbDupLed.Clear;
-  cmbDupLed.Items.Add('');
   for i:= 0 to LedList.Count-1 do
     cmbDupLed.Items.Add(LedList.Strings[i]);
   cmbParty.Clear;
@@ -192,12 +202,19 @@ begin
   finally
   btnMerge.Enabled := True;
   btnRefresh.Enabled := True;
+  MessageDlg(InttoStr(LedList.Count) + ' ledgers imported', mtInformation, [mbOK], 0);
   CMPList.Clear;
   CMPList.Free;
   LedList.Clear;
   LedList.Free;
   end;
-  MessageDlg('Done', mtInformation, [mbOK], 0);
+end;
+
+procedure UpdateMsg(const aMsg: string);
+begin
+  if Length(aMsg) > 0 then
+    frmMerge.Info.Caption := aMsg;
+  Application.ProcessMessages;
 end;
 
 end.
