@@ -1608,8 +1608,9 @@ begin
   BatchColValue :=  kadb.GetFieldString(dsl.UBatchName);
   if dsl.IsUserDescDefined then
   UserDescColValue :=  kadb.GetFieldString(dsl.UUserDescName);
-  if (Length(ItemColValue) > 0) and
-    (not kadb.IsEmptyField(dsl.UQtyName)) then
+  if (Length(ItemColValue) > 0)
+//    and (not kadb.IsEmptyField(dsl.UQtyName))
+    then
     VchExp.SetInvLine(ItemColValue,
     kadb.GetFieldCurr(dsl.UQtyName),
     kadb.GetFieldCurr(dsl.URateName),
@@ -1953,9 +1954,11 @@ begin
   begin
     dbParent := kadb.GetFieldString(dsl.USubGroupName);
     if Length(dbParent) > 0 then
+    begin
       MstExp.NewItemGroup(dbParent,
         kadb.GetFieldString(dsl.UMstGroupName));
       MstExp.Group := dbParent;
+    end;
   end;
   dbItem := kadb.GetFieldString(dsl.UItemName);
   if dsl.IsOBalDefined then
