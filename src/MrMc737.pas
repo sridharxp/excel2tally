@@ -131,6 +131,8 @@ TbjDSLParser = class(TinterfacedObject, IbjDSLParser)
     UBillRefName: string;
     UOBalName: string;
     UORateName: string;
+    UMRPRateName: string;
+    UGSTRateName: string;
     UAddressName: string;
     UMobileName: string;
     UeMailName: string;
@@ -167,6 +169,8 @@ TbjDSLParser = class(TinterfacedObject, IbjDSLParser)
 //    IsLedgerPhoneDefined: boolean;
     IsOBalDefined: boolean;
     IsORateDefined: boolean;
+    IsMRPRateDefined: boolean;
+    IsGSTRateDefined: boolean;
     IsMobileDefined: boolean;
     IseMailDefined: boolean;
     IsNarrationDefined: boolean;
@@ -289,6 +293,7 @@ TbjMrMc = class(TinterfacedObject, IbjXlExp, IbjMrMc)
     procedure CreateColLedger;
     procedure CreateItem(const level: integer);
     procedure NewIdLine;
+    procedure ProcessMaster;
     procedure Process;
     procedure ProcessRow;
     procedure ProcessCol(const level: integer);
@@ -420,6 +425,8 @@ begin
   uOBalName := 'O_BALANCE';
   uOBatchName := 'O_BATCH';
   UORateName := 'O_RATE';
+  UMRPRateName := 'MRPRATE';
+  UGSTRateName := 'GSTRATE';
   UAddressName := 'ADDRESS';
   UMobileName := 'Mobile';
   UeMailName := 'EMail';
@@ -913,6 +920,22 @@ Todo
         UORateName := str;
     end;
 
+    xCfg := Cfg.SearchForTag(nil, UMRPRateName);
+    if Assigned(xCfg) then
+    begin
+      str := xCfg.GetChildContent(UAliasName);
+      if Length(str) > 0 then
+        UMRPRateName := str;
+    end;
+
+    xCfg := Cfg.SearchForTag(nil, UGSTRateName);
+    if Assigned(xCfg) then
+    begin
+      str := xCfg.GetChildContent(UAliasName);
+      if Length(str) > 0 then
+        UGSTRateName := str;
+    end;
+
     xCfg := Cfg.SearchForTag(nil, UGodownName);
     if Assigned(xCfg) then
     begin
@@ -1146,8 +1169,12 @@ begin
       IsGroupDefined := True;
     if kadb.FindField(USubGroupName) <> nil then
       IsSubGroupDefined := True;
-    if kadb.FindField(UrATEname) <> nil then
+    if kadb.FindField(UORateName) <> nil then
       IsORateDefined := True;
+    if kadb.FindField(UMRPRateName) <> nil then
+      IsMRPRateDefined := True;
+    if kadb.FindField(UGSTRateName) <> nil then
+      IsGSTRateDefined := True;
   end;
   if IsIListDeclared then
   begin
@@ -1408,6 +1435,17 @@ begin
   OpenFile;
   dsl.CheckColName;
   CreateDefLedger;
+  ProcessMaster;
+  if dsl.IsMListDeclared then
+    Exit;
+{
+  if dsl.IsMListDeclared then
+  if MessageDlg('Allow modification of Masters?', mtConfirmation, [mbOK, mbCancel], 0) = mrOK then
+   begin
+    Env.ToUpdateMasters := True;
+    ToAutoCreateMst := True;
+  end;
+  
   kadb.First;
   IDstr := '';
   vTotal := 0;
@@ -1435,6 +1473,7 @@ begin
       MessageDlg('Done', mtInformation, [mbOK], 0);
     Exit;
   end;
+}
   kadb.First;
   IDstr := '';
   kadb.First;
@@ -1494,6 +1533,43 @@ begin
   Filter(ProcessedCount - SCount);
 end;
 
+procedure TbjMrMc.ProcessMaster;
+begin
+  if dsl.IsMListDeclared then
+  if MessageDlg('Allow modification of Masters?', mtConfirmation, [mbOK, mbCancel], 0) = mrOK then
+   begin
+    Env.ToUpdateMasters := True;
+    ToAutoCreateMst := True;
+  end;
+  kadb.First;
+  IDstr := '';
+  vTotal := 0;
+  while (not kadb.Eof)  do
+  begin
+    GenerateID;
+    CheckLedMst;
+    ExpItemMst;
+    if dsl.IsMultiRowVoucher then
+      CreateRowLedger;
+    if dsl.IsMultiColumnVoucher then
+      CreateColLedger;
+    kadb.Next;
+  end;
+  if dsl.IsMListDeclared then
+  begin
+    if IsCheckLedMst then
+    begin
+    if missingledgers > 0 then
+      MessageDlg(IntToStr(missingledgers)+ ' Ledgers Missing in Tally', mtInformation, [mbOK], 0)
+    else
+      MessageDlg('Done', mtInformation, [mbOK], 0);
+    end;
+    if IsExpItemMst then
+      MessageDlg('Done', mtInformation, [mbOK], 0);
+//    Exit;
+  end;
+end;
+
 procedure TbjMrMc.Process;
 var
   FoundNewId: boolean;
@@ -1535,12 +1611,9 @@ begin
   Amt[1] := GetAmt(1);
   if Abs(Amt[1]) >= 0.01 then
   begin
-//    VchExp.AddLine(LedgerColValue, SimpleRoundTo(Amt[1], -2), IsMinus);
     VchExp.AddLine(LedgerColValue, RoundCurr(Amt[1]), IsMinus);
     if dsl.IsAssessableDefined[1] then
       VchExp.SetAssessable(kadb.GetFieldCurr(dsl.UAssessableName[1]));
-//    VTotal := VTotal + SimpleRoundTo(Amt[1],-2);
-//    ProcessItem(1, SimpleRoundTo(Amt[1], -2));
     VTotal := VTotal + RoundCurr(Amt[1]);
     ProcessItem(1, RoundCurr(Amt[1]));
   end;
@@ -1561,12 +1634,9 @@ begin
   amt[level] := GetAmt(level);
   if abs(Amt[level]) >= 0.01 then
   begin
-//    VchExp.AddLine(LedgerColValue, SimpleRoundTo(Amt[level], -2), IsMinus);
     VchExp.AddLine(LedgerColValue, RoundCurr(Amt[level]), IsMinus);
     if dsl.IsAssessableDefined[level] then
       VchExp.SetAssessable(kadb.GetFieldCurr(dsl.UAssessableName[level]));
-//    VTotal := VTotal + SimpleRoundTo(Amt[level], -2);
-//    ProcessItem(level, simpleRoundTo(Amt[level], -2));
     VTotal := VTotal + RoundCurr(Amt[level]);
     ProcessItem(level, RoundCurr(Amt[level]));
     ProcessCol(level+1);
@@ -1603,7 +1673,6 @@ begin
 //  GodownColValue := '';
   if dsl.IsGodownDefined then
   GodownColValue :=  kadb.GetFieldString(dsl.UGodownName);
-//  BatchColValue :=  kadb.GetFieldString('Batch');
   if dsl.IsBatchDefined then
   BatchColValue :=  kadb.GetFieldString(dsl.UBatchName);
   if dsl.IsUserDescDefined then
@@ -1664,7 +1733,6 @@ AutoCreateMst does not affect explicit group or roundoff group
         else if dsl.IsLedgerDefined[i] then
         begin
             atoken := GetDictToken(i);
-//            MstExp.VchType := VchType;
             if Length(aToken) > 0 then
               MstExp.NewGST(LedgerColValue, GroupColValue, aToken)
             else
@@ -1750,7 +1818,6 @@ begin
 }
   if dsl.IsHSNDefined then
   begin
-//    HSNColValue := kadb.GetFieldString('HSN');
     HSNColValue := kadb.GetFieldString(dsl.UHSNName);
     GRate := kadb.GetFieldToken('Tax_rate');
     MstExp.NewHSN(ItemColValue, UnitColValue, HSNColValue, GRate);
@@ -1907,6 +1974,7 @@ var
   dbOBatch: string;
   wOBal: currency;
   ORate: currency;
+  MRPRate: currency;
   GRate: string;
 begin
   if not dsl.IsMListDeclared then
@@ -1916,6 +1984,7 @@ begin
   wOBal := 0;
   dbUnit := '';
   oRate := 0;
+  MRPRate := 0;
   if dsl.IsUnitDefined then
   begin
 //    dbUnit := kadb.GetFieldString('Unit');
@@ -1965,10 +2034,15 @@ begin
   wOBal := kadb.GetFieldCurr(dsl.UOBalName);
   if dsl.IsOBatchDefined then
     dbOBatch := kadb.GetFieldString(dsl.UOBatchName);
-  ORate := kadb.GetFieldCurr('O_Rate');
-  GRate := kadb.GetFieldString('GSTRate');
+  if dsl.IsORateDefined then
+    ORate := kadb.GetFieldCurr(dsl.UORateName);
+  if dsl.IsMRPRateDefined then
+    MRPRate := kadb.GetFieldCurr(dsl.UMrpRateName);
+  if dsl.IsGSTRateDefined then
+    GRate := kadb.GetFieldString(dsl.UGSTRateName);
   MstExp.OBal := wOBal;
   MstExp.ORate := ORate;
+  MstExp.MRPRate := MRPRate;
   MstExp.OBatch := dbOBatch;
   if dsl.IsOBatchDefined then
   if Length(kadb.GetFieldString(dsl.UOBatchName)) > 0 then
@@ -2107,6 +2181,7 @@ begin
   if dsl.IsIdDefined then
     IDstr := kadb.GetFieldString(dsl.UIdName);
   UIdint := kadb.CurrentRow;
+  NarrationColValue := '';
   GetDefaults;
   TID := '';
 { Let VchUpdate generate random id in case of no id }
@@ -2123,8 +2198,7 @@ begin
   end;
   if dsl.IsBillRefDefined then
     VchExp.BillRef := kadb.GetFieldString(dsl.UBillRefName);
-{  VchExp.VchNarration := NarrationColValue; }
-  NarrationColValue := '';
+{ Late binding of VchExp.VchNarration }
   VchExp.VchGSTN := '';
     if dsl.IsGSTNDefined[COLUMNLIMIT + 1] then
     VchExp.VchGSTN := kadb.GetFieldString(dsl.UGSTNName[COLUMNLIMIT+1]);
@@ -2178,8 +2252,8 @@ begin
   if Length(TypeColValue) = 0 then
     TypeColValue := dsl.DiTypeValue;
 
-  if dsl.IsNarrationDefined then
   if not dsl.IsIDGenerated then
+  if dsl.IsNarrationDefined then
     NarrationColValue := kadb.GetFieldString(dsl.UNarrationName);
 
   if dsl.IsChequeNoDefined then

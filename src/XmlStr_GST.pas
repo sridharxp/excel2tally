@@ -73,7 +73,7 @@ RCPT ='<Voucher>'+
 '<Alias>Voucher_No</Alias>'+
 '</VoucherNo>'+
 '<BillRef>'+
-'<Alias>Bill Ref</Alias>'+
+'<Alias>Bill_Ref</Alias>'+
 '</BillRef>'+
 '<RoundOff>'+
 '<Alias>Party_Ledger</Alias>'+
@@ -118,7 +118,7 @@ PYMT = '<Voucher>'+
 '<Alias>Voucher_No</Alias>'+
 '</VoucherNo>'+
 '<BillRef>'+
-'<Alias>Bill Ref</Alias>'+
+'<Alias>Bill_Ref</Alias>'+
 '</BillRef>'+
 '<LEDGER>'+
 '<Alias>Payment_Ledger</Alias>'+
@@ -156,6 +156,10 @@ JRNL = '<Voucher>'+
 //'<DefaultGroup>Sundry Debtors</DefaultGroup>'+
 '<IsMultiColumn>Yes</IsMultiColumn>'+
 '</Data>'+
+
+'<ID>'+
+'<Alias>ID</Alias>'+
+'</ID>'+
 '<VoucherRef>'+
 '<Alias>Voucher_Ref</Alias>'+
 '</VoucherRef>'+
@@ -163,8 +167,11 @@ JRNL = '<Voucher>'+
 '<DATE>'+
 '<Alias>DATE</Alias>'+
 '</DATE>'+
+'<VoucherNo>'+
+'<Alias>Voucher_No</Alias>'+
+'</VoucherNo>'+
 '<BillRef>'+
-'<Alias>Bill Ref</Alias>'+
+'<Alias>Bill_Ref</Alias>'+
 '</BillRef>'+
 '<LEDGER>'+
 '<Alias>Credit_Ledger</Alias>'+
@@ -218,7 +225,7 @@ BANK = '<Voucher>'+
 '<Alias>DATE</Alias>'+
 '</DATE>'+
 '<BillRef>'+
-'<Alias>Bill Ref</Alias>'+
+'<Alias>Bill_Ref</Alias>'+
 '</BillRef>'+
 '<LEDGER>'+
 '<Alias>LEDGER</Alias>'+
@@ -311,7 +318,7 @@ MYSALE = '<Voucher>'+
 '<IsReference>Yes</IsReference>'+
 '</VoucherRef>'+
 '<BillRef>'+
-'<Alias>Bill Ref</Alias>'+
+'<Alias>Bill_Ref</Alias>'+
 '</BillRef>'+
 
 '<ID>'+
@@ -651,7 +658,7 @@ MYPURC = '<Voucher>'+
 '<IsReference>Yes</IsReference>'+
 '</VoucherRef>'+
 '<BillRef>'+
-'<Alias>Bill Ref</Alias>'+
+'<Alias>Bill_Ref</Alias>'+
 '</BillRef>'+
 
 '<ID>'+
@@ -995,7 +1002,7 @@ SBILL = '<Voucher>'+
 '<IsReference>Yes</IsReference>'+
 '</VoucherRef>'+
 '<BillRef>'+
-'<Alias>Bill Ref</Alias>'+
+'<Alias>Bill_Ref</Alias>'+
 '</BillRef>'+
 '<DATE>'+
 '<Alias>Date</Alias>'+
@@ -1119,7 +1126,7 @@ PBILL = '<Voucher>'+
 '<IsReference>Yes</IsReference>'+
 '</VoucherRef>'+
 '<BillRef>'+
-'<Alias>Bill Ref</Alias>'+
+'<Alias>Bill_Ref</Alias>'+
 '</BillRef>'+
 
 '<ID>'+
@@ -1281,7 +1288,7 @@ GSTSALE = '<Voucher>'+
 '<IsReference>Yes</IsReference>'+
 '</VoucherRef>'+
 '<BillRef>'+
-'<Alias>Bill Ref</Alias>'+
+'<Alias>Bill_Ref</Alias>'+
 '</BillRef>'+
 '<DATE>'+
 '<Alias>Invoice_Date</Alias>'+
@@ -1586,7 +1593,7 @@ GSTPURC = '<Voucher>'+
 '<IsReference>Yes</IsReference>'+
 '</VoucherRef>'+
 '<BillRef>'+
-'<Alias>Bill Ref</Alias>'+
+'<Alias>Bill_Ref</Alias>'+
 '</BillRef>'+
 '<DATE>'+
 '<Alias>Invoice_Date</Alias>'+
@@ -1934,6 +1941,9 @@ INVMASTER = '<Voucher>'+
 '<O_RATE>'+
 '<Alias>O_Rate</Alias>'+
 '</O_RATE>'+
+'<MRPRATE>'+
+'<Alias>MRP_Rate</Alias>'+
+'</MRPRATE>'+
 '<GROUP>'+
 '<Alias>Group</Alias>'+
 '</GROUP>'+
@@ -1971,7 +1981,7 @@ CNOTE = '<Voucher>'+
 '<IsReference>Yes</IsReference>'+
 '</VoucherRef>'+
 '<BillRef>'+
-'<Alias>Bill Ref</Alias>'+
+'<Alias>Bill_Ref</Alias>'+
 '</BillRef>'+
 '<DATE>'+
 '<Alias>Invoice_Date</Alias>'+
@@ -2274,7 +2284,7 @@ DNOTE = '<Voucher>'+
 '<IsReference>Yes</IsReference>'+
 '</VoucherRef>'+
 '<BillRef>'+
-'<Alias>Bill Ref</Alias>'+
+'<Alias>Bill_Ref</Alias>'+
 '</BillRef>'+
 '<DATE>'+
 '<Alias>Invoice_Date</Alias>'+
@@ -2627,7 +2637,7 @@ MYCNOTE = '<Voucher>'+
 '<IsReference>Yes</IsReference>'+
 '</VoucherRef>'+
 '<BillRef>'+
-'<Alias>Bill Ref</Alias>'+
+'<Alias>Bill_Ref</Alias>'+
 '</BillRef>'+
 
 '<ID>'+

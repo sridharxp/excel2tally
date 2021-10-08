@@ -125,6 +125,7 @@ type
     FOBal: currency;
     FOBatch: string;
     FORate: currency;
+    FMRPRate: currency;
     FAddress: string;
     FMobile: string;
     FeMail: string;
@@ -193,6 +194,7 @@ type
     property OBal: currency write FOBal;
     property OBatch: string write FOBatch;
     property ORate: currency write FORate;
+    property MRPRate: currency write FMRPRate;
     property Address: string write FAddress;
     property Mobile: string write FMobile;
     property eMail: string write FeMail;
@@ -924,6 +926,14 @@ begin
   { STATEWISEDETAILS.LIST }
    xLdg := xLdg.GetParent;
   { GSTDETAILS }
+  xLdg := xLdg.GetParent;
+  end;
+  if fMRPRate > 0 then
+  begin
+    xLdg := xLdg.NewChild('MRPDETAILS.LIST', '');
+    xLdg := xLdg.NewChild('MRPRATEDETAILS.LIST', '');
+    xLdg.NewChild2('MRPRATE', FormatCurr(TallyAmtPicture, FMRPRate));
+   xLdg := xLdg.GetParent;
   xLdg := xLdg.GetParent;
   end;
   { STOCKITEM }
