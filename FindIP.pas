@@ -4,7 +4,9 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, Winsock;
+  Dialogs, StdCtrls,
+  Client,IdSSLOpenSSL,
+  Winsock;
 
 
 type
@@ -12,6 +14,9 @@ type
     btn1: TButton;
     lbl1: TLabel;
     lbl2: TLabel;
+    lbl3: TLabel;
+    lbl4: TLabel;
+    lblStatus: TLabel;
     procedure btn1Click(Sender: TObject);
   private
     { Private declarations }
@@ -19,6 +24,8 @@ type
     { Public declarations }
   end;
 
+function GetIPAddress:String;
+function GetmyIP:String;
 var
   frmFindIP: TfrmFindIP;
 
@@ -26,7 +33,7 @@ implementation
 
 {$R *.dfm}
 
-Function GetIPAddress():String;
+function GetIPAddress:String;
 type
   pu_long = ^u_long;
 var
@@ -50,7 +57,30 @@ end;
 procedure TfrmFindIP.btn1Click(Sender: TObject);
 begin
   Lbl1.Caption := GetIPAddress;
+  Lbl4.Caption := GetmyIP;
 end;
 
+function GetmyIP:String;
+var
+  Client: TbjClient;
+  SSL: TIdSSLIOHandlerSocketOpenSSL;
+begin
+  Client := TbjClient.Create;
+  try
+    try
+    Client.Host := 'https://ip.5ec.nl';
+    SSL := TIdSSLIOHandlerSocketOpenSSL.Create(Client.Id);
+    SSL.SSLOptions.SSLVersions := [sslvTLSv1, sslvTLSv1_1, sslvTLSv1_2];
+    Client.Id.IOHandler := SSL;
+    Client.Get;
+    Result := Client.xmlResponseString;
+  except
+      on E:Exception do
+      MessageDlg(E.message, mtError, [mbOK], 0);
+  end;
+  finally
+  Client.Free;
+  end;
+end;
 
 end.
