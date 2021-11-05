@@ -931,10 +931,14 @@ begin
   if fMRPRate > 0 then
   begin
     xLdg := xLdg.NewChild('MRPDETAILS.LIST', '');
+    xLdg.NewChild2('FROMDATE', FormatDateTime('YYYYMMDD', Now));
     xLdg := xLdg.NewChild('MRPRATEDETAILS.LIST', '');
     xLdg.NewChild2('MRPRATE', FormatCurr(TallyAmtPicture, FMRPRate));
+  { MRPRATEDETAILS.LIST }
    xLdg := xLdg.GetParent;
-  xLdg := xLdg.GetParent;
+
+  { MRPDETAILS.LIST }
+   xLdg := xLdg.GetParent;
   end;
   { STOCKITEM }
   xLdg := xLdg.GetParent;
@@ -2177,7 +2181,7 @@ var
   SystemGSTN: string;
   item: pGSTNRec;
   dupName: boolean;
-  GSTNParent: string;
+//  GSTNParent: string;
 begin
   dupName := False;
   If Length(aLedger) = 0 then
@@ -2216,12 +2220,13 @@ It does not use GetDupPartyGSTN
 { Different Name Sake GSTN - one part }
   if not Found then
   begin
-    GSTNParent := aParent;
-    if (Length(aGSTN) > 0) and (aParent = 'Suspense A/c') then
-    begin
-      GSTNParent := 'Sundry Debtors';
-    end;
-    CreateParty(aLedger, GSTNParent, aGSTN, aState);
+//    GSTNParent := aParent;
+//    if (Length(aGSTN) > 0) and (aParent = 'Suspense A/c') then
+//    begin
+//      GSTNParent := 'Sundry Debtors';
+//    end;
+    CreateParty(aLedger, aParent, aGSTN, aState);
+//    CreateParty(aLedger, GSTNParent, aGSTN, aState);
     LedPList.Add(PackStr(aLedger));
     if Length(aGSTN) > 0 then
     begin
