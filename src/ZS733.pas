@@ -127,6 +127,11 @@ type
     FORate: currency;
     FMRPRate: currency;
     FAddress: string;
+    FAddress1: string;
+    FAddress2: string;
+    FAddress3: string;
+    FAddress4: string;
+    FPincode: string;
     FMobile: string;
     FeMail: string;
     FIsBatchwiseOn: boolean;
@@ -200,6 +205,11 @@ type
     property eMail: string write FeMail;
     property IsBatchwiseOn: boolean write FIsBatchwiseOn;
     property UserDesc: string read FUserDesc write FUserDesc;
+    property Address1: string write FAddress1;
+    property Address2: string write FAddress2;
+    property Address3: string write FAddress3;
+    property Address4: string write FAddress4;
+    property Pincode: string write FPincode;
   end;
 
   TbjVchExp = class
@@ -509,7 +519,9 @@ begin
   xLdg.AddAttribute('ACTION','Create');
   xLdg := xLdg.NewChild('ADDRESS.LIST','');
   If Length(FAddress) > 0 then
+  begin
   xLdg.NewChild2('ADDRESS', FAddress );
+  end;
   { ADDRESS.LIST }
   xLdg := xLdg.GetParent;
   xLdg := xLdg.NewChild('NAME.LIST','');
@@ -730,7 +742,20 @@ begin
   xLdg.AddAttribute('ACTION','Create');
   xLdg := xLdg.NewChild('ADDRESS.LIST','');
   If Length(FAddress) > 0 then
+  begin
   xLdg.NewChild2('ADDRESS', FAddress );
+  end
+  else
+  begin
+  If Length(FAddress1) > 0 then
+  xLdg.NewChild2('ADDRESS', FAddress1);
+  If Length(FAddress2) > 0 then
+  xLdg.NewChild2('ADDRESS', FAddress2);
+  If Length(FAddress3) > 0 then
+  xLdg.NewChild2('ADDRESS', FAddress3);
+  If Length(FAddress4) > 0 then
+  xLdg.NewChild2('ADDRESS', FAddress4);
+  end;
   { ADDRESS.LIST }
   xLdg := xLdg.GetParent;
   xLdg := xLdg.NewChild('NAME.LIST','');
@@ -739,6 +764,8 @@ begin
   xLdg.NewChild2('NAME', FAlias );
   { NAME.LIST }
   xLdg := xLdg.GetParent;
+  if Length(FPincode) > 0 then
+    xLdg.NewChild2('PINCODE', FPincode);
   if Length(FeMail) > 0 then
     xLdg.NewChild2('EMAIL', FeMail);
   xLdg.NewChild2('SALESTAXNUMBER', GSTN);
@@ -2239,6 +2266,7 @@ It does not use GetDupPartyGSTN
     Exit;
   end;
   if found then
+  begin
     SystemGSTN := GetDupPartyGSTN(aLedger);
 { Same Name Different GSTN}
   if (not dupName) and (aGSTN <> SystemGSTN) then
@@ -2253,7 +2281,10 @@ It does not use GetDupPartyGSTN
       gstnlIST.Add(item);
       Result := aLedger+'_'+aGSTN;
     end;
-//    Exit;
+      Exit;
+    end;
+    if Env.ToUpdateMasters then
+      CreateParty(aLedger, aParent, aGSTN, aState);
   end;
 (*
   if (DupName) and (not Env.MergeDupLed4GSTN) then

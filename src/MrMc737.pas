@@ -134,6 +134,12 @@ TbjDSLParser = class(TinterfacedObject, IbjDSLParser)
     UMRPRateName: string;
     UGSTRateName: string;
     UAddressName: string;
+    UAddress1Name: string;
+    UAddress2Name: string;
+    UAddress3Name: string;
+    UAddress4Name: string;
+    UPincodeName: string;
+    UStateName: string;
     UMobileName: string;
     UeMailName: string;
     UTallyIDName: string;
@@ -166,7 +172,13 @@ TbjDSLParser = class(TinterfacedObject, IbjDSLParser)
     URateName: string;
     ToCheckInvCols: boolean;
     IsAddressDefined: boolean;
-//    IsLedgerPhoneDefined: boolean;
+    IsAddress1Defined: boolean;
+    IsAddress2Defined: boolean;
+    IsAddress3Defined: boolean;
+    IsAddress4Defined: boolean;
+    IsPincodeDefined: boolean;
+    IsStateDefined: boolean;
+    IsLedgerPhoneDefined: boolean;
     IsOBalDefined: boolean;
     IsORateDefined: boolean;
     IsMRPRateDefined: boolean;
@@ -428,6 +440,12 @@ begin
   UMRPRateName := 'MRPRATE';
   UGSTRateName := 'GSTRATE';
   UAddressName := 'ADDRESS';
+  UAddress1Name := 'ADDRESS1';
+  UAddress2Name := 'ADDRESS2';
+  UAddress3Name := 'ADDRESS3';
+  UAddress4Name := 'ADDRESS4';
+  UPincodeName := 'PINCODE';
+  UStateName := 'STATE';
   UMobileName := 'Mobile';
   UeMailName := 'EMail';
   UTallyIDName := 'TALLYID';
@@ -968,6 +986,48 @@ Todo
         UAddressName := str;
     end;
 
+    xCfg := Cfg.SearchForTag(nil, UAddress1Name);
+    if Assigned(xxCfg) then
+    begin
+      str := xxCfg.GetChildContent(UAliasName);
+      if Length(str) > 0 then
+        UAddress1Name := str;
+    end;
+    xCfg := Cfg.SearchForTag(nil, UAddress2Name);
+    if Assigned(xxCfg) then
+    begin
+      str := xxCfg.GetChildContent(UAliasName);
+      if Length(str) > 0 then
+        UAddress2Name := str;
+    end;
+    xCfg := Cfg.SearchForTag(nil, UAddress3Name);
+    if Assigned(xxCfg) then
+    begin
+      str := xxCfg.GetChildContent(UAliasName);
+      if Length(str) > 0 then
+        UAddress3Name := str;
+    end;
+    xCfg := Cfg.SearchForTag(nil, UAddress4Name);
+    if Assigned(xxCfg) then
+    begin
+      str := xxCfg.GetChildContent(UAliasName);
+      if Length(str) > 0 then
+        UAddress4Name := str;
+    end;
+    xCfg := Cfg.SearchForTag(nil, UPincodeName);
+    if Assigned(xxCfg) then
+    begin
+      str := xxCfg.GetChildContent(UAliasName);
+      if Length(str) > 0 then
+        UPincodeName := str;
+    end;
+    xCfg := Cfg.SearchForTag(nil, UStateName);
+    if Assigned(xxCfg) then
+    begin
+      str := xxCfg.GetChildContent(UAliasName);
+      if Length(str) > 0 then
+        UStateName := str;
+    end;
     xCfg := Cfg.SearchForTag(nil, UMobileName);
     if Assigned(xCfg) then
     begin
@@ -1159,6 +1219,18 @@ begin
       IsoBatchDefined := True;
     if kadb.FindField(UAddressName) <> nil then
       IsAddressDefined := True;
+    if kadb.FindField(UAddress1Name) <> nil then
+      IsAddress1Defined := True;
+    if kadb.FindField(UAddress2Name) <> nil then
+      IsAddress2Defined := True;
+    if kadb.FindField(UAddress3Name) <> nil then
+      IsAddress3Defined := True;
+    if kadb.FindField(UAddress4Name) <> nil then
+      IsAddress4Defined := True;
+    if kadb.FindField(UPincodeName) <> nil then
+      IsPincodeDefined := True;
+    if kadb.FindField(UStateName) <> nil then
+      IsStateDefined := True;
     if kadb.FindField(UMobileName) <> nil then
       IsMobileDefined := True;
     if kadb.FindField(UeMailName) <> nil then
@@ -1272,7 +1344,7 @@ begin
   notoskip := 0;
   FProcessedCount := 0;
   FToLog := True;
-  FdynPgLen := PgLen + Random(29);
+  FdynPgLen := PgLen + Random(36);
   askAgainToAutoCreateMst := True;
 end;
 
@@ -1540,6 +1612,8 @@ begin
    begin
     Env.ToUpdateMasters := True;
     ToAutoCreateMst := True;
+    AskAgainToAutoCreateMst := False;
+    AskedOnce := True;
   end;
   kadb.First;
   IDstr := '';
@@ -1883,6 +1957,7 @@ var
   dbAlias: string;
   wOBal: currency;
   wAddress, wMobile, weMail: string;
+  rAddress1, rAddress2, rAddress3, rAddress4, rPincode, rState: string;
 begin
   if not dsl.IsMListDeclared then
     Exit;
@@ -1898,8 +1973,26 @@ begin
   wOBal := kadb.GetFieldCurr(dsl.UOBalName);
   MstExp.OBal := wOBal;
   if dsl.IsAddressDefined then
-    wAddress := kadb.GetFieldString(dsl.UAddressName);
+    wAddress := kadb.GetFieldString(dsl.UAddressName)
+  else
+  begin
+    if dsl.IsAddress1Defined then
+      rAddress1 := kadb.GetFieldString(dsl.UAddress1Name);
+    if dsl.IsAddress2Defined then
+      rAddress2 := kadb.GetFieldString(dsl.UAddress2Name);
+    if dsl.IsAddress3Defined then
+      rAddress3 := kadb.GetFieldString(dsl.UAddress3Name);
+    if dsl.IsAddress4Defined then
+      rAddress4 := kadb.GetFieldString(dsl.UAddress4Name);
+  end;
+  if dsl.IsPincodeDefined then
+    rPincode := kadb.GetFieldString(dsl.UPincodeName);
   MstExp.Address := wAddress;
+  MstExp.Address1 := rAddress1;
+  MstExp.Address2 := rAddress2;
+  MstExp.Address3 := rAddress3;
+  MstExp.Address4 := rAddress4;
+  MstExp.Pincode := rPincode;
   if dsl.IsMobileDefined then
     wMobile := kadb.GetFieldString(dsl.UMobileName);
   MstExp.Mobile := wMobile;
@@ -1917,6 +2010,8 @@ begin
   begin
     dbGSTN := kadb.GetFieldString('GSTN');
     wLed := RpetObj.GetGSTNParty(dbGSTN);
+    IsThere := False;
+    if not Env.ToUpdateMasters then
     IsThere := MstExp.IsLedger(dbkLed);
     if not IsThere then
     begin
@@ -2797,7 +2892,13 @@ begin
 end;
 
 procedure TbjMrMc.CreateGSTLedger;
+var
+  rState: string;
 begin
+  if dsl.IsStateDefined then
+    rState := kadb.GetFieldString(dsl.UStateName);
+  if Length(rState) = 0 then
+    rState := UdefStateName;
   if kadb.GetFieldString('Group') = 'Duties & Taxes' then
   begin
     MstExp.NewGst(kadb.GetFieldString('Ledger'), 'Duties & Taxes', '12');
@@ -2807,7 +2908,8 @@ begin
     (kadb.GetFieldString('Group') = 'Sundry Creditors') then
   begin
     MstExp.NewParty(kadb.GetFieldString('Ledger'), kadb.GetFieldString('Group'),
-      kadb.GetFieldString('GSTN'), UdefStateName);
+//      kadb.GetFieldString('GSTN'), UdefStateName);
+      kadb.GetFieldString('GSTN'), rState);
     Exit;
   end;
   if (kadb.GetFieldString('Group') = 'Sales Accounts') or
