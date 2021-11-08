@@ -65,7 +65,6 @@ type
     FMstExp: TbjMstExp;
     FDefaultGSTState: string;
     FIsPostto1stLedgerwithGSTNon: boolean;
-//    FFirmGUID: string;
     FIsUniqueVchRefon: boolean;
     FGSTLedType: string;
     FLastAction: string;
@@ -103,7 +102,6 @@ type
     property MstExp: TbjMstExp read FMstExp write SetMst;
     property DefaultGSTState: string read FDefaultGSTState write FDefaultGSTState;
     property IsPostto1stLedgerwithGSTNon: boolean read FIsPostto1stLedgerwithGSTNon write FIsPostto1stLedgerwithGSTNon;
-//    property FirmGUID: string read FFirmGUID write FFirmGUID;
   	property IsUniqueVchRefon: boolean read FIsUniqueVchRefon write FIsUniqueVchRefon;
     property GSTLedType: string read FGSTLedType write FGSTLedType;
     property LastAction: string read FLastAction write FLastAction;
@@ -113,11 +111,8 @@ type
   TbjMstExp = class
   private
     { Private declarations }
-//    FVchType: string;
-//    FLedState: string;
     FAlias: string;
     FMailingName: string;
-//    FLedgerGroup: string;
     FGroup: string;
     FGodown: string;
     FCategory: string;
@@ -189,12 +184,9 @@ type
     procedure RefreshInvLists;
     property Alias: string write FAlias;
     property MailingName: string write FMailingName;
-//    property LedgerGroup: string read FLedgerGroup write FLedgerGroup;
-//    property VchType: string write FVchType;
     property Group: string write FGroup;
     property Godown: string write FGodown;
     property Category: string write FCategory;
-//    property LedState: string read FLedState write FLedState;
     property Env: TbjEnv read FEnv write SetEnv;
     property OBal: currency write FOBal;
     property OBatch: string write FOBatch;
@@ -243,7 +235,6 @@ type
     partyamt: currency;
     busidx: integer;
     busamt: currency;
-//    VchAction: string;
     xvou: IbjXml;
     xvch: IbjXml;
     xvchid: IbjXml;
@@ -254,10 +245,8 @@ type
     IsVchMode4Vch: boolean;
 
     CashBankPList: TStringList;
-//    procedure GetVchType(const aName: string);
     procedure CheckVchType(const ledger; const Amount: currency);
     procedure XmlHeader(const tgt:string);
-//    procedure XmlHeader(const tgt:string);
     procedure XmlFooter(const tgt:string);
     procedure SetVchHeader;
     function Pack(const Ledger: string; const Amount: currency; const Ref, RefType: string; const aTType: boolean): currency;
@@ -270,7 +259,6 @@ type
     procedure CheckDefGroup;
     procedure CheckError;
     procedure SetEnv(aEnv: TbjEnv);
-//    function GetMst: TbjMstExp;
     procedure SetMst(aMst: TbjMstExp);
     procedure ClearLines;
     procedure SetVchID(const ID: string);
@@ -279,12 +267,9 @@ type
     { Public declarations }
     constructor Create;
     destructor Destroy; override;
-//    procedure GetVchHeader(const ID, Date, Name, Narration: string); overload;
-//    procedure GetVchHeader(const ID: string); overload;
     function AddLine(const Ledger: string; const Amount: currency; const aTType: boolean): currency;
     function AddLinewithRef(const Ledger: string; const Amount: currency; const Ref, RefType: string): currency;
     function SetAssessable(const aAmount: currency): currency;
-//    function SetInvLine(const Item: string; const Qty, Rate, Amount: double): double;
     function SetInvLine(const Item: string; const Qty, Rate, Amount: currency; const Godown, Batch, UserDesc:string): currency;
     function Post(const Action: string; wem: boolean): string;
     function SPost(const Action: string; wem: boolean): string;
@@ -370,6 +355,7 @@ begin
   ip.Add('input CGST 14%');
   ip.Add('input IGST 28%');
   ip.Sorted := True;
+
   op.Add('Output SGST 1.5%');
   op.Add('Output CGST 1.5%');
   op.Add('Output IGST 3%');
@@ -471,21 +457,6 @@ begin
   inherited;
 end;
 
-(*
-Constructor Tbjxmlupdate.Create;
-begin
-  Inherited;
-
-{ For debugging }
-{  FBatchMode := False;}
-
-end;
-
-destructor Tbjxmlupdate.Destroy;
-begin
-  inherited;
-end;
-*)
 //For better exception handling removed
 Procedure TbjMstExp.CheckError;
 begin
@@ -520,7 +491,7 @@ begin
   xLdg := xLdg.NewChild('ADDRESS.LIST','');
   If Length(FAddress) > 0 then
   begin
-  xLdg.NewChild2('ADDRESS', FAddress );
+  xLdg.NewChild2('ADDRESS', FAddress);
   end;
   { ADDRESS.LIST }
   xLdg := xLdg.GetParent;
@@ -530,7 +501,11 @@ begin
   xLdg.NewChild2('NAME', FAlias );
   { NAME.LIST }
   xLdg := xLdg.GetParent;
-  if Length(FeMail) > 0 then
+{
+  if Length(FPincode) > 0 then
+    xLdg.NewChild2('PINCODE', FPincode);
+}  
+if Length(FeMail) > 0 then
     xLdg.NewChild2('EMAIL', FeMail);
   xLdg.NewChild2('PARENT', parent );
   if Length(FMobile) > 0 then
@@ -555,10 +530,6 @@ var
   percentage: string;
 begin
 {  Result := False; }
-{
-  If Length(Ledger) = 0 then
-    Exit;
-}
   IsTax := False;
   if Parent = 'Duties & Taxes' then
     IsTax := True;
@@ -700,10 +671,6 @@ end;
 function TbjMstExp.CreateGodown(const Gdn, Parent: string): boolean;
 begin
 {  Result := False; }
-{
-  If Length(Gdn) = 0 then
-    Exit;
-}
   xmlHeader('L');
   xLdg := xLdg.NewChild('TALLYMESSAGE','');
 
@@ -730,10 +697,6 @@ end;
 function TbjMstExp.CreateParty(const Ledger, Parent, GSTN, State: string ): boolean;
 begin
 {  Result := False; }
-{
-  If Length(Ledger) = 0 then
-    Exit;
-}
   xmlHeader('L');
   xLdg := xLdg.NewChild('TALLYMESSAGE','');
 
@@ -835,6 +798,7 @@ begin
   xLdg.NewChild2('OPENINGBALANCE', FormatCurr(TallyQtyPicture, FOBal)+' '+BaseUnit);
   if FORate > 0 then
     xLdg.NewChild2('OPENINGRATE', FormatCurr(TallyQtyPicture,FORate)+'/'+BaseUnit);;
+
   If Length(FGodown) > 0 then
   begin
     xLdg := xLdg.NewChild('BATCHALLOCATIONS.LIST','');
@@ -904,6 +868,7 @@ begin
   xLdg.NewChild2('OPENINGBALANCE', FormatCurr(TallyAmtPicture, FOBal)+' '+BaseUnit);
   if FORate > 0 then
     xLdg.NewChild2('OPENINGRATE', FormatCurr(TallyQtyPicture,FORate)+'/'+BaseUnit);;
+
   If Length(FGodown) > 0 then
   begin
   xLdg := xLdg.NewChild('BATCHALLOCATIONS.LIST','');
@@ -1011,7 +976,6 @@ end;
   Since Ledger List is sorted;
   Parent List if created would not be in sync
   parent parameter may still be needed for correctness
-  function Tbjxmlupdate.LedgerExists(var Ledger, Parent: string): boolean;
 }
 function TbjMstExp.IsLedger(const Ledger: string): boolean;
 var
@@ -1033,7 +997,6 @@ begin
 
   Result := LedPList.Find( PackStr(Ledger), index );
 { Idea to return existing ledger does not work as it is already packed }
-//    Ledger := LedPList.Strings[Index];
 end;
 
 function TbjMstExp.IsItem(const Item: string): boolean;
@@ -1382,8 +1345,6 @@ end;
 
 function TbjVchExp.AddLine(const Ledger: string; const Amount: currency; const aTType: boolean): currency;
 begin
-//  If AttYPE THEN
-//    sHOWMESSAGE(LEDGER);
   Pack(Ledger, Amount,'','', aTType);
   DrCrTotal := DrCrTotal + amount;
   RefLedger := Ledger;
@@ -1446,8 +1407,7 @@ begin
   Result := aAmount;
 end;
 
-{ Ro combine repeat Ledger Entries }
-//procedure Tbjxmlupdate.Pack(const Ledger: string; const Amount: double; const Ref, RefType: string);
+{ To combine repeat Ledger Entries }
 function TbjVchExp.Pack(const Ledger: string; const Amount: currency; const Ref, RefType: string; const aTType: boolean): currency;
 var
   item: pLine;
@@ -1769,7 +1729,6 @@ begin
       xvou.NewChild2('ISDEEMEDPOSITIVE', 'Yes')
     else
       xvou.NewChild2('ISDEEMEDPOSITIVE', 'No');
-//      xvou.NewChild2('STOCKITEMNAME', pInvLine(iLines.Items[idx])^.Item);
       xvou.NewChild2('AMOUNT', FormatCurr(TallyAmtPicture, pInvLine(iLines.Items[idx])^.Amount));
       xvou.NewChild2('ACTUALQTY', FormatCurr(TallyQtyPicture, pInvLine(iLines.Items[idx])^.Qty));
       xvou.NewChild2('BILLEDQTY', FormatCurr(TallyQtyPicture, pInvLine(iLines.Items[idx])^.Qty));
@@ -1823,11 +1782,9 @@ begin
   Env.Client.Host := Env.Host;
   Env.Client.xmlRequestString :=  xLdg.GetXml;
 { To debug }
-//  MessageDlg(xLDG.GetXML, mtInformation, [mbOK], 0);
   if Env.IsSaveXmlFileOn then
     xLdg.SaveXmlFile('Ledger.xml');
   Env.Client.post;
-//  Result := GetTallyReply;
 
   CheckError;
 {  xvch.Clear;}
@@ -1856,7 +1813,6 @@ begin
   if Env.IsSaveXmlFileOn then
     xvch.SaveXmlFile('Voucher.xml');
 { For debugging }
-//  MessageDlg(xvch.GetXML, mtInformation, [mbOK], 0);
   Env.Client.post;
 
   xvchid.Clear;
@@ -2208,7 +2164,6 @@ var
   SystemGSTN: string;
   item: pGSTNRec;
   dupName: boolean;
-//  GSTNParent: string;
 begin
   dupName := False;
   If Length(aLedger) = 0 then
@@ -2219,7 +2174,7 @@ begin
   begin
     SystemLedName := GetGSTNParty(aGSTN);
     if Length(SystemLedName) > 0 then
-{ 
+{
 There is a logic using SystemLedName.
 It does not use GetDupPartyGSTN 
 }
@@ -2253,7 +2208,6 @@ It does not use GetDupPartyGSTN
 //      GSTNParent := 'Sundry Debtors';
 //    end;
     CreateParty(aLedger, aParent, aGSTN, aState);
-//    CreateParty(aLedger, GSTNParent, aGSTN, aState);
     LedPList.Add(PackStr(aLedger));
     if Length(aGSTN) > 0 then
     begin
@@ -2300,7 +2254,6 @@ It does not use GetDupPartyGSTN
       Result := aLedger;
     end;
 { Same Name Different GSTN}
-  ShowMessage('May be this is needed');
   end;
 *)
 end;
@@ -2359,8 +2312,6 @@ end;
 procedure TbjMstExp.SetEnv(aEnv: TbjEnv);
 begin
   FEnv := aEnv;
-// if Assigned(aEnv) then
-//  aEnv.bjMstExp := Self;
 end;
 
 procedure TbjVchExp.SetEnv(aEnv: TbjEnv);
@@ -2387,7 +2338,6 @@ begin
 {  Result := '' }
   if not Assigned(GSTNList) then
   begin
-//    GSTNList := TList.Create;
   Rpet := TRpetGSTN.Create;
   try
     Rpet.Host := Env.Host;
@@ -2417,7 +2367,6 @@ begin
 {  Result := '' }
   if not Assigned(GSTNList) then
   begin
-//    GSTNList := TList.Create;
   Rpet := TRpetGSTN.Create;
   try
     Rpet.Host := Env.Host;
