@@ -93,6 +93,8 @@ TbjDSLParser = class(TinterfacedObject, IbjDSLParser)
     { Public declarations }
     RoundOffGroup: string;
     RoundOffGroupCol: string;
+    URoundOffAmountColName: string;
+    IsRoundOffAmountColDeclared: Boolean;
 {    Amt: array [1..COLUMNLIMIT] of double; }
 
 { COLUMNLIMIT - To limit looping  }
@@ -225,6 +227,7 @@ TbjDSLParser = class(TinterfacedObject, IbjDSLParser)
     IsOutItemDefined: boolean;
     IsLedgerDefined: array [1..COLUMNLIMIT] of boolean;
     IsRoundOffColDefined: boolean;
+    IsRoundOffAmountColDefined: boolean;
     IsAmtDefined: array [1..COLUMNLIMIT] of boolean;
     IsGSTNDefined: array [1..COLUMNLIMIT + 1] of boolean;
     IsInvDefined: array [1..COLUMNLIMIT + 1] of boolean;
@@ -289,6 +292,7 @@ TbjMrMc = class(TinterfacedObject, IbjXlExp, IbjMrMc)
     VTotal: currency;
     IsInventoryAssigned: Boolean;
     RoundOffName: string;
+    RoundOffActual: Currency;
     StartTime, EndTime, Elapsed: double;
     Hrs, Mins, Secs, Msecs: word;
     ToAutoCreateMst: boolean;
@@ -463,6 +467,7 @@ begin
   UOutAmtName := 'CrAMOUNT';
   UInGodownName := 'DrGODOWN';
   UOutGodownName := 'CrGODOWN';
+  URoundOffAmountColName := 'Invoice_Amt';
 end;
 
 destructor TbjDSLParser.Destroy;
@@ -588,6 +593,14 @@ AutoCreateMst affects default group only
       UGSTNName[COLUMNLIMIT+1] := str;
       if Length(str) > 0 then
         IsGSTNDeclared[COLUMNLIMIT+1] := True;
+    end;
+    xxCfg := xcfg.SearchForTag(nil, 'AmtCol');
+    if Assigned(xxCfg) then
+    begin
+      str := xxCfg.GetChildContent(UAliasName);
+      URoundOffAmountColName := str;
+      if Length(str) > 0 then
+        IsRoundOffAmountColDeclared := True;
     end;
   end;
 
@@ -1211,6 +1224,9 @@ begin
     IsMailingNameDefined := True;
   if kadb.FindField(UGodownName) <> nil then
     IsGodownDefined := True;
+  if IsRoundOffAmountColDeclared then
+  if kadb.FindField(URoundOffAmountColName) <> nil then
+    IsRoundOffColDefined := True;
   if IsMListDeclared then
   begin
     if kadb.FindField(UobALName) <> nil then
@@ -1778,6 +1794,8 @@ AutoCreateMst does not affect explicit group or roundoff group
 }
   for i:= 1 to COLUMNLIMIT do
   begin
+// Convert Declared to Defined
+    if dsl.IsGroupDeclared[i] then
     if Length(dsl.UGroupName[i]) > 0 then
       GroupColValue := kadb.GetFieldString(dsl.UGroupName[i]);
     if Length(GroupColValue) = 0 then
@@ -2514,6 +2532,13 @@ var
 begin
   Thisalso := False;
   IsMinus := False;
+  RoundOffActual := 0;
+  if dsl.IsRoundOffAmountColDefined then
+  begin
+    RoundOffActual := kadb.GetFieldCurr(dsl.URoundOffAmountColName);
+  end;
+  if RoundOffActual = 0 then
+  begin
   RoundOffAmount := Trunc(Vtotal) - VTotal;
   if RoundOffMethod = ' ' then
     RoundOffAmount :=  0;
@@ -2536,6 +2561,7 @@ begin
       VTotal := VTotal - 1;
     end;
   end;
+  end;
 {  CheckErrStr := '(FOR OBJECT: '; }
 //  vchAction := 'Create';
   If VchAction = 'Delete' then
@@ -2545,7 +2571,7 @@ begin
     raise Exception.Create('RemoteID column is not found');
     VchExp.RemoteID := RemoteID;
   end;
-  if Abs(VTotal) >= 0.01 then
+  if RoundOffActual = 0 then
   begin
     if RoundOffAmount <> 0 then
     begin
@@ -2560,6 +2586,23 @@ begin
     end
     else
       VchExp.AddLine(RoundOffName, - VTotal, IsMinus);
+  end
+  else
+  begin
+    RoundOffAmount := RoundOffActual - Abs(VTotal);
+    if RoundOffAmount <> 0 then
+    begin
+      VchExp.AddLine(RoundOffName, - VTotal, IsMinus);
+      if VTotal > 0 then
+      if RoundOffAmount < 0 then
+        IsMinus := True;
+      if VTotal < 0 then
+      if RoundOffAmount > 0 then
+        IsMinus := True;
+      VchExp.AddLine('RoundOff', RoundOffAmount, IsMinus);
+    end
+    else
+      VchExp.AddLine(RoundOffName, - RoundOffActual, IsMinus);
   end;
   if dsl.IsNarrationDefined then
     VchExp.VchNarration := NarrationColValue;
@@ -2572,6 +2615,7 @@ begin
   If VchAction = 'Delete' then
   RemoteID := '';
   VTotal := 0;
+  RoundOffActual := 0;
   FUpdate('Voucher: ' + Statmsg);
   FProcessedCount := FProcessedCount + 1;
 
