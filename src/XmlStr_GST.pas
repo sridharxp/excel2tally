@@ -598,7 +598,7 @@ MYSALE = '<Voucher>'+
 '<AmtCol>'+
 '<Alias>Delivery Charges</Alias>'+
 '<Group>Indirect Expenses</Group>'+
-'<Type>Cr</Type>'+   
+'<Type>Cr</Type>'+
 '<IsLedgerName>Yes</IsLedgerName>'+
 '</AmtCol>'+
 '</LEDGER>'+
@@ -1302,6 +1302,10 @@ GSTSALE = '<Voucher>'+
 '<GSTN>'+
 '<Alias>GSTN</Alias>'+
 '</GSTN>'+
+'<AmtCol>'+
+'<Alias>Invoice_Amt</Alias>'+
+'<Type>Cr</Type>'+
+'</AmtCol>'+
 '</RoundOff>'+
 
 '<NARRATION>'+
@@ -1457,7 +1461,7 @@ GSTSALE = '<Voucher>'+
 '<Value>IGST 28% Sales</Value>'+
 '</Dict>'+
 '<AmtCol>'+
-'<Alias>IGST Sales Value</Alias>'+
+'<Alias>IGST_Sales_Value</Alias>'+
 '<Type>Cr</Type>'+
 '</AmtCol>'+
 '</LEDGER>'+
@@ -1494,7 +1498,7 @@ GSTSALE = '<Voucher>'+
 '<Alias>IGST</Alias>'+
 '<Type>Cr</Type>'+
 '</AmtCol>'+
-'<Assessable>IGST Sales Value</Assessable>'+
+'<Assessable>IGST_Sales_Value</Assessable>'+
 '</LEDGER>'+
 
 '+<LEDGER>'+
@@ -1607,6 +1611,10 @@ GSTPURC = '<Voucher>'+
 '<GSTN>'+
 '<Alias>GSTN</Alias>'+
 '</GSTN>'+
+'<AmtCol>'+
+'<Alias>Invoice_Amt</Alias>'+
+'<Type>Cr</Type>'+
+'</AmtCol>'+
 '</RoundOff>'+
 
 '<NARRATION>'+
@@ -1760,7 +1768,7 @@ GSTPURC = '<Voucher>'+
 '<Value>IGST 28% Purchase</Value>'+
 '</Dict>'+
 '<AmtCol>'+
-'<Alias>IGST Purchase Value</Alias>'+
+'<Alias>IGST_Purchase_Value</Alias>'+
 '<Type>Dr</Type>'+
 '</AmtCol>'+
 '</LEDGER>'+
@@ -1797,7 +1805,7 @@ GSTPURC = '<Voucher>'+
 '<Alias>IGST</Alias>'+
 '<Type>Dr</Type>'+
 '</AmtCol>'+
-'<Assessable>IGST Purchase Value</Assessable>'+
+'<Assessable>IGST_Purchase_Value</Assessable>'+
 '</LEDGER>'+
 
 '+<LEDGER>'+
@@ -2167,7 +2175,7 @@ CNOTE = '<Voucher>'+
 '<Value>IGST 28% Sales</Value>'+
 '</Dict>'+
 '<AmtCol>'+
-'<Alias>IGST Sales Value</Alias>'+
+'<Alias>IGST_Sales_Value</Alias>'+
 '<Type>Dr</Type>'+
 '</AmtCol>'+
 '<Assessable>Return Value</Assessable>'+
@@ -2205,7 +2213,7 @@ CNOTE = '<Voucher>'+
 '<Alias>IGST</Alias>'+
 '<Type>Dr</Type>'+
 '</AmtCol>'+
-'<Assessable>IGST Sales Value</Assessable>'+
+'<Assessable>IGST_Sales_Value</Assessable>'+
 '</LEDGER>'+
 
 '+<LEDGER>'+

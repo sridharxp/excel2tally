@@ -1226,7 +1226,7 @@ begin
     IsGodownDefined := True;
   if IsRoundOffAmountColDeclared then
   if kadb.FindField(URoundOffAmountColName) <> nil then
-    IsRoundOffColDefined := True;
+    IsRoundOffAmountColDefined := True;
   if IsMListDeclared then
   begin
     if kadb.FindField(UobALName) <> nil then
@@ -1566,6 +1566,7 @@ begin
   IDstr := '';
   kadb.First;
   vTotal := 0;
+  RoundOffActual := 0;
   NewIdLine;
   IsIdOnlyChecked := True;
 { Make sure id is empty }
@@ -1692,7 +1693,12 @@ begin
     if dsl.IsIDGenerated then
     begin
       if Length(NarrationColValue) > 0 then
+      begin
+        if dsl.IsBank then
+        NarrationColValue := NarrationColValue + kadb.GetFieldString(dsl.UNarrationName)
+        else
         NarrationColValue := NarrationColValue + ' ' + kadb.GetFieldString(dsl.UNarrationName)
+      end
       else
         NarrationColValue := (kadb.GetFieldString(dsl.UNarrationName));
       end;
@@ -1947,7 +1953,7 @@ begin
       IDstr :=  IntToStr(kadb.CurrentRow);
 	  if kadb.IsEmptyField(dsl.UIdName) then
       kadb.SetFieldVal(dsl.UIdName, IDstr)
-      eLSE
+      else
       IDstr :=  kadb.GetFieldString(dsl.UIdName);
     end;
     vTotal := vTotal + kadb.GetFieldCurr(dsl.CrAmtCol) -
@@ -2377,6 +2383,8 @@ begin
   begin
     RemoteID := kadb.GetFieldString(dsl.URemoteIdName);
   end;
+  if dsl.IsRoundOffAmountColDefined then
+    RoundOffActual := kadb.GetFieldCurr(dsl.URoundOffAmountColName);
 end;
 
 {
@@ -2532,10 +2540,11 @@ var
 begin
   Thisalso := False;
   IsMinus := False;
-  RoundOffActual := 0;
+
   if dsl.IsRoundOffAmountColDefined then
   begin
-    RoundOffActual := kadb.GetFieldCurr(dsl.URoundOffAmountColName);
+    if VTotal < 0 then
+      RoundOffActual := -RoundOffActual;
   end;
   if RoundOffActual = 0 then
   begin
@@ -2589,10 +2598,10 @@ begin
   end
   else
   begin
-    RoundOffAmount := RoundOffActual - Abs(VTotal);
+    RoundOffAmount := RoundOffActual - VTotal;
     if RoundOffAmount <> 0 then
     begin
-      VchExp.AddLine(RoundOffName, - VTotal, IsMinus);
+      VchExp.AddLine(RoundOffName, - RoundOffActual, IsMinus);
       if VTotal > 0 then
       if RoundOffAmount < 0 then
         IsMinus := True;
@@ -2602,7 +2611,7 @@ begin
       VchExp.AddLine('RoundOff', RoundOffAmount, IsMinus);
     end
     else
-      VchExp.AddLine(RoundOffName, - RoundOffActual, IsMinus);
+      VchExp.AddLine(RoundOffName, -RoundOffActual, IsMinus);
   end;
   if dsl.IsNarrationDefined then
     VchExp.VchNarration := NarrationColValue;

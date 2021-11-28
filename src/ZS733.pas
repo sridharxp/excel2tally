@@ -2170,7 +2170,8 @@ begin
     Exit;
   if Length(aState) = 0 then
     aState := Env.DefaultGSTState;
-  if Length(aGSTN) > 0 then
+	{ Trim the space }
+  if Length(Trim(aGSTN)) > 0 then
   begin
     SystemLedName := GetGSTNParty(aGSTN);
     if Length(SystemLedName) > 0 then
