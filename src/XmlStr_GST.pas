@@ -602,6 +602,14 @@ MYSALE = '<Voucher>'+
 '<IsLedgerName>Yes</IsLedgerName>'+
 '</AmtCol>'+
 '</LEDGER>'+
+'+<LEDGER>'+
+'<Default>TCS on Sales</Default>'+
+'<Group>Duties &amp; Taxes</Group>'+
+'<AmtCol>'+
+'<Alias>TCS</Alias>'+
+'<Type>Dr</Type>'+
+'</AmtCol>'+
+'</LEDGER>'+
 
 '<VTYPE>'+
 '<Alias>VTYPE</Alias>'+
@@ -946,6 +954,14 @@ MYPURC = '<Voucher>'+
 '<IsLedgerName>Yes</IsLedgerName>'+
 '</AmtCol>'+
 '</LEDGER>'+
+'+<LEDGER>'+
+'<Default>TCS on Purchase</Default>'+
+'<Group>Duties &amp; Taxes</Group>'+
+'<AmtCol>'+
+'<Alias>TCS</Alias>'+
+'<Type>Cr</Type>'+
+'</AmtCol>'+
+'</LEDGER>'+
 
 '<VTYPE>'+
 '<Alias>VTYPE</Alias>'+
@@ -1085,6 +1101,14 @@ SBILL = '<Voucher>'+
 '<IsLedgerName>Yes</IsLedgerName>'+
 '</AmtCol>'+
 '</LEDGER>'+
+'+<LEDGER>'+
+'<Default>TCS on Sales</Default>'+
+'<Group>Duties &amp; Taxes</Group>'+
+'<AmtCol>'+
+'<Alias>TCS</Alias>'+
+'<Type>Dr</Type>'+
+'</AmtCol>'+
+'</LEDGER>'+
 
 '<VTYPE>'+
 '<Alias>VTYPE</Alias>'+
@@ -1209,6 +1233,14 @@ PBILL = '<Voucher>'+
 '<Group>Indirect Expenses</Group>'+
 '<Type>Dr</Type>'+
 '<IsLedgerName>Yes</IsLedgerName>'+
+'</AmtCol>'+
+'</LEDGER>'+
+'+<LEDGER>'+
+'<Default>TCS on Purchase</Default>'+
+'<Group>Duties &amp; Taxes</Group>'+
+'<AmtCol>'+
+'<Alias>TCS</Alias>'+
+'<Type>Cr</Type>'+
 '</AmtCol>'+
 '</LEDGER>'+
 
@@ -1540,6 +1572,14 @@ GSTSALE = '<Voucher>'+
 '<IsLedgerName>Yes</IsLedgerName>'+
 '</AmtCol>'+
 '</LEDGER>'+
+'+<LEDGER>'+
+'<Default>TCS on Sales</Default>'+
+'<Group>Duties &amp; Taxes</Group>'+
+'<AmtCol>'+
+'<Alias>TCS</Alias>'+
+'<Type>Dr</Type>'+
+'</AmtCol>'+
+'</LEDGER>'+
 
 '<VTYPE>'+
 '<Alias>VTYPE</Alias>'+
@@ -1836,6 +1876,14 @@ GSTPURC = '<Voucher>'+
 '<Group>Indirect Expenses</Group>'+
 '<Type>Dr</Type>'+
 '<IsLedgerName>Yes</IsLedgerName>'+
+'</AmtCol>'+
+'</LEDGER>'+
+'+<LEDGER>'+
+'<Default>TCS on Purchase</Default>'+
+'<Group>Duties &amp; Taxes</Group>'+
+'<AmtCol>'+
+'<Alias>TCS</Alias>'+
+'<Type>Cr</Type>'+
 '</AmtCol>'+
 '</LEDGER>'+
 
