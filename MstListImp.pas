@@ -72,15 +72,17 @@ type
     function GetLedText: string;
     function GetItemText: string;
 
-    function GetGroup(const aled:string): string;
+//    function GetGroup(const aled:string): string;
     function GetCMPText: string;
-    function GetSalesList: TStringList;
-    function GetPurcList: TStringList;
-    function GetTaxList: TStringList;
+//    function GetSalesList: TStringList;
+    function GetSalesText: string;
+    function GetPurcText: string;
+    function GetTaxText: string;
 //  function GetParentList: TStringList;
     function GetPartyText(const Include: boolean): string;
     function GetCashBankText(const Include: boolean): string;
     procedure SetHost(const aHost: string);
+   procedure GetPartyList(var PList, NPList: TStringList);
   published
     property Firm: String read FFirm write FFirm;
     property Host: string  read FHost write SetHost;
@@ -308,11 +310,12 @@ begin
   if LedPList.Count > 0 then
   begin
     LedPList.Sorted := True;
-    Result := LedPList;
 //    ShowMessage(Ledplist.text);
-    Exit;
   end;
+  Result := LedPList;
+    Exit;
 
+(*
 { Change for Collection }
 { LedPList := TStringList.Create; }
 //  LedPlist.Sorted := True;
@@ -355,7 +358,83 @@ begin
   end;
   LedPlist.Sorted := True;
   Result := LedPList;
+*)
 end;
+
+function TbjMstListImp.GetGrpLedText(const aGrp: string): string;
+var
+  strx: IbjXml;
+  strs: string;
+  OResult: IbjXml;
+  CollName: string;
+  parentName: string;
+  DNode, RecNode, LedNode, ParentNode: IbjXml;
+  LedPList: TStringList;
+  i, Children: integer;
+  LStr: string;
+begin
+  LedPList := TStringList.Create;
+
+  strx := CreatebjXmlDocument;
+  strs := '<CHILDOF>' + TextToXML(aGrp) + '</CHILDOF>';
+  strs := Strs + '<BELONGSTO>' + 'Yes' + '</BELONGSTO>';
+  strx.LoadXml(strs);
+  CollName := 'Ledger';
+  LedPList.Add('PARENT');
+  OResult := CreatebjXmlDocument;
+  OResult.LoadXml(Col2Eval(CollName, 'Ledger', strx, LedPList));
+  LedPList.Clear;
+  LedNode := OResult.SearchforTag(nil, 'LEDGER');
+  while Assigned(LedNode) do
+  begin
+{
+    ParentNode := OResult.SearchforTag(LedNode, 'PARENT');
+    if not Assigned(ParentNode) then
+      continue;
+    ParentName := ParentNode.GetContent;
+    if ParentName = aGrp then
+}
+    lStr := LedNode.GetAttrValue('NAME');
+    if Length(lStr) > 0 then
+      LedPList.Add(lStr);
+    LedNode := OResult.SearchforTag(LedNode, 'LEDGER');
+  end;
+  if LedPList.Count > 0 then
+    LedPList.Sorted := True;
+  begin
+  end;
+    Result := LedPlist.Text;
+    LedPList.Free;
+    Exit;
+
+(*
+  LedPList.Clear;
+  GetMstXML;
+  Dnode := xMst.SearchForTag(nil, 'REQUESTDATA');
+  if Assigned(DNode) then
+  begin
+    Children := DNode.GetNumChildren;
+    for i := 0 to Children - 1 do
+    begin
+      RecNode := DNode.GetChild(i);
+      LedNode := RecNode.SearchForTag(nil, 'LEDGER');
+      if LedNode <> nil then
+      begin
+        ParentNode := LedNode.SearchforTag(nil, 'PARENT');
+        if not Assigned(ParentNode) then
+          continue;
+        ParentName := ParentNode.GetContent;
+        if ParentName = aGrp then
+          LedPList.Add( LedNode.GetAttrValue('NAME'));
+      end;
+    end;
+    if LedPList.Count > 0 then
+      Result := LedPlist.Text;
+      LedPList.Free;
+  end;
+*)
+end;
+
 (*
 function TbjMstListImp.GetCashLedPackedList: TStringList;
 var
@@ -478,10 +557,11 @@ begin
   if LedPList.Count > 0 then
   begin
     LedPList.Sorted := True;
+  end;
     Result := LedPList.Text;
     LedPList.Free;
     Exit;
-  end;
+(*
   LedPList.Clear;
   GetMstXML;
   Dnode := xMst.SearchForTag(nil, 'REQUESTDATA');
@@ -519,6 +599,7 @@ begin
   LedPlist.Sorted := True;
   Result := LedPList.Text;
   LedPList.Free;
+*)
 end;
 function TbjMstListImp.GetCashBankText(const Include: boolean): string;
 var
@@ -530,6 +611,11 @@ var
   grp: string;
   ok: boolean;
 begin
+  if Include then
+    Result := GetGrpLedText('Cash-in-Hand') +
+      GetGrpLedText('BankAccounts');
+  if Length(Result) > 0 then
+    Exit;
   LedPList := TStringList.Create;
   CollName := 'Ledger';
   LedPList.Add('PARENT');
@@ -568,10 +654,13 @@ begin
   if LedPList.Count > 0 then
   begin
     LedPList.Sorted := True;
-    Result := LedPList.Text;
+  end;
+  Result := LedPList.Text;
     LedPList.Free;
     Exit;
-  end;
+
+  
+(*
   LedPList.Clear;
   GetMstXML;
   Dnode := xMst.SearchForTag(nil, 'REQUESTDATA');
@@ -606,11 +695,11 @@ begin
       end;
     end;
   end;
-  LedPlist.Sorted := True;
   Result := LedPList.Text;
   LedPList.Free;
+*)
 end;
-
+{
 function TbjMstListImp.GetGroup(const aled:string): string;
 var
   DNode, RecNode, LedNode: IbjXml;
@@ -682,14 +771,50 @@ begin
 end;
 }
 
-function TbjMstListImp.GetTaxList: TStringList;
+function TbjMstListImp.GetTaxText: string;
 var
-  DNode, RecNode, LedNode: IbjXml;
+  OResult: IbjXml;
+  DNode, RecNode, LedNode, ParentNode: IbjXml;
+  CollName: string;
   LedPList: TStringList;
   i, Children: integer;
   grp: string;
   ok: boolean;
 begin
+  LedPList := TStringList.Create;
+  CollName := 'Ledger';
+  LedPList.Add('PARENT');
+  OResult := CreatebjXmlDocument;
+  OResult.LoadXml(ColEval(CollName, 'Ledger', LedPList));
+  LedPList.Clear;
+  LedNode := OResult.SearchforTag(nil, 'LEDGER');
+  while Assigned(LedNode) do
+  begin
+    ok := False;
+    ParentNode := OResult.SearchforTag(LedNode, 'PARENT');
+    if not Assigned(ParentNode) then
+      continue;
+    grp := ParentNode.GetContent;
+    if (grp = 'Duties & Taxes') then
+      ok := True;
+    if ok then
+    begin
+      if ToPack then
+        LedPList.Add( PackStr(LedNode.GetAttrValue('NAME')))
+      else
+        LedPList.Add( LedNode.GetAttrValue('NAME'));
+    end;
+    LedNode := OResult.SearchforTag(LedNode, 'LEDGER');
+  end;
+  if LedPList.Count > 0 then
+  begin
+    LedPList.Sorted := True;
+  end;
+    Result := LedPList.Text;
+    LedPList.Free;
+    Exit;
+
+(*
   LedPList := TStringList.Create;
   GetMstXML;
   Dnode := xMst.SearchForTag(nil, 'REQUESTDATA');
@@ -717,7 +842,8 @@ begin
     end;
   end;
   LedPlist.Sorted := True;
-  Result := LedPList;
+  Result := LedPList.Text;
+*)
 end;
 
 {
@@ -762,14 +888,52 @@ begin
   Result := LedPList;
 end;
 }
-function TbjMstListImp.GetSalesList: TStringList;
+//nction TbjMstListImp.GetSalesList: TStringList;
+function  TbjMstListImp.GetSalesText: string;
 var
-  DNode, RecNode, LedNode: IbjXml;
+  OResult: IbjXml;
+  DNode, RecNode, LedNode, ParentNode: IbjXml;
+  CollName: string;
   LedPList: TStringList;
   i, Children: integer;
   grp: string;
   ok: boolean;
 begin
+  LedPList := TStringList.Create;
+
+  CollName := 'Ledger';
+  LedPList.Add('PARENT');
+  OResult := CreatebjXmlDocument;
+  OResult.LoadXml(ColEval(CollName, 'Ledger', LedPList));
+  LedPList.Clear;
+  LedNode := OResult.SearchforTag(nil, 'LEDGER');
+  while Assigned(LedNode) do
+  begin
+    ok := False;
+    ParentNode := OResult.SearchforTag(LedNode, 'PARENT');
+    if not Assigned(ParentNode) then
+      continue;
+    grp := ParentNode.GetContent;
+    if (grp = 'Sales Accounts') then
+      ok := True;
+    if ok then
+    begin
+      if ToPack then
+        LedPList.Add( PackStr(LedNode.GetAttrValue('NAME')))
+      else
+        LedPList.Add( LedNode.GetAttrValue('NAME'));
+    end;
+    LedNode := OResult.SearchforTag(LedNode, 'LEDGER');
+  end;
+  if LedPList.Count > 0 then
+  begin
+    LedPList.Sorted := True;
+  end;
+  Result := LedPList.Text;
+  LedPList.Free;
+  Exit;
+  
+(*  
   LedPList := TStringList.Create;
   GetMstXML;
   Dnode := xMst.SearchForTag(nil, 'REQUESTDATA');
@@ -798,16 +962,53 @@ begin
   end;
   LedPlist.Sorted := True;
   Result := LedPList;
+*)
 end;
 
-function TbjMstListImp.GetPurcList: TStringList;
+function TbjMstListImp.GetPurcText: string;
 var
-  DNode, RecNode, LedNode: IbjXml;
+  OResult: IbjXml;
+  DNode, RecNode, LedNode, ParentNode: IbjXml;
+  CollName: string;
   LedPList: TStringList;
   i, Children: integer;
   grp: string;
   ok: boolean;
 begin
+  LedPList := TStringList.Create;
+
+  CollName := 'Ledger';
+  LedPList.Add('PARENT');
+  OResult := CreatebjXmlDocument;
+  OResult.LoadXml(ColEval(CollName, 'Ledger', LedPList));
+  LedPList.Clear;
+  LedNode := OResult.SearchforTag(nil, 'LEDGER');
+  while Assigned(LedNode) do
+  begin
+    ok := False;
+    ParentNode := OResult.SearchforTag(LedNode, 'PARENT');
+    if not Assigned(ParentNode) then
+      continue;
+    grp := ParentNode.GetContent;
+    if (grp = 'Purchase Accounts') then
+      ok := True;
+    if ok then
+    begin
+      if ToPack then
+        LedPList.Add( PackStr(LedNode.GetAttrValue('NAME')))
+      else
+        LedPList.Add( LedNode.GetAttrValue('NAME'));
+    end;
+    LedNode := OResult.SearchforTag(LedNode, 'LEDGER');
+  end;
+  if LedPList.Count > 0 then
+  begin
+    LedPList.Sorted := True;
+  end;
+  Result := LedPList.Text;
+  LedPList.Free;
+  Exit;
+(*
   LedPList := TStringList.Create;
   GetMstXML;
   Dnode := xMst.SearchForTag(nil, 'REQUESTDATA');
@@ -834,8 +1035,7 @@ begin
       end;
     end;
   end;
-  LedPlist.Sorted := True;
-  Result := LedPList;
+*)
 end;
 
 //procedure TbjMstList.GetLedText(var Data:pchar; out Size:integer);
@@ -896,6 +1096,8 @@ function TbjMstListImp.GetItemPackedList: TStringList;
 var
   OResult: IbjXml;
   CollName: string;
+  strx: IbjXml;
+  iStr: string;
 
   DNode, RecNode: IbjXml;
   i, Children: integer;
@@ -908,27 +1110,32 @@ begin
 //  ItemPList.Add('NAME');
 //  StrS.Add('PARENT');
   OResult := CreatebjXmlDocument;
-  OResult.LoadXml(ColEval(CollName, 'StockItem', ItemPList));
+//  OResult.LoadXml(ColEval(CollName, 'StockItem', ItemPList));
+  OResult.LoadXml(Col2Eval(CollName, 'StockItem', strx, ItemPList));
   ItemPList.Clear;
 //  ShowMessage(OResult.GetXML);
   ItemNode := OResult.SearchforTag(nil, 'COLLECTION');
   ItemNode := OResult.SearchforTag(ItemNode, 'STOCKITEM');
   while Assigned(ItemNode) do
   begin
+    iStr := ItemNode.GetAttrValue('NAME');
+    if Length(iStr) > 0 then
+    begin
     if ToPack then
-    ItemPList.Add(PackStr(ItemNode.GetAttrValue('NAME')))
+        ItemPList.Add(PackStr(iStr))
     else
-    ItemPList.Add(ItemNode.GetAttrValue('NAME'));
+        ItemPList.Add(iStr);
+    end;
     ItemNode := OResult.SearchforTag(ItemNode, 'STOCKITEM');
   end;
   if ItemPList.Count > 0 then
   begin
     ItemPList.Sorted := True;
-    Result := ItemPList;
-//    ShowMessage(Itemplist.text);
-    Exit;
   end;
+  Result := ItemPList;
+    Exit;
 
+(*
 { Change for Collection }
 {  ItemPList := TStringList.Create; }
 //  ItemPlist.Sorted := True;
@@ -953,13 +1160,15 @@ begin
   end;
   ItemPlist.Sorted := True;
   Result := ItemPList;
+*)
 end;
 
 function TbjMstListImp.GetUnitPackedList: TStringList;
 var
   OResult: IbjXml;
   CollName: string;
-
+  strx: IbjXml;
+  uStr: string;
   DNode, RecNode: IbjXml;
   i, Children: integer;
   UnitNode: IbjXml;
@@ -971,27 +1180,33 @@ begin
 //  UnitPList.Add('NAME');
 //  StrS.Add('PARENT');
   OResult := CreatebjXmlDocument;
-  OResult.LoadXml(ColEval(CollName, 'Unit', uNITPList));
+//  OResult.LoadXml(ColEval(CollName, 'Unit', uNITPList));
+  OResult.LoadXml(Col2Eval(CollName, 'Unit', strx, UnitPList));
   uNITPList.Clear;
 //  ShowMessage(OResult.GetXML);
   UnitNode := OResult.SearchforTag(nil, 'COLLECTION');
   UnitNode := OResult.SearchforTag(UnitNode, 'UNIT');
   while Assigned(UnitNode) do
   begin
+    uStr :=  UnitNode.GetAttrValue('NAME');
+    if Length(uStr) > 0 then
+    begin
     if ToPack then
-    UnitPList.Add(PackStr(uNITNode.GetAttrValue('NAME')))
+        UnitPList.Add(PackStr(uStr))
     else
-    UnitPList.Add(uNITNode.GetAttrValue('NAME'));
+        UnitPList.Add(uStr);
+    end;
     UnitNode := OResult.SearchforTag(UnitNode, 'UNIT');
   end;
   if UnitPList.Count > 0 then
   begin
     UnitPList.Sorted := True;
-    Result := UnitPList;
 {   ShowMessage(Unitplist.text); }
-    Exit;
   end;
+  Result := UnitPList;
+  Exit;
 
+(*
 { Change for Collection }
 {  UnitPList := TStringList.Create; }
 //  ItemPlist.Sorted := True;
@@ -1016,10 +1231,15 @@ begin
   end;
   UnitPlist.Sorted := True;
   Result := UnitPList;
+*)
 end;
 
 function TbjMstListImp.GetItemGroupPackedList: TStringList;
 var
+  OResult: IbjXml;
+  CollName: string;
+  strx: IbjXml;
+  gStr: string;
   DNode, RecNode: IbjXml;
   i, Children: integer;
   GroupNode: IbjXml;
@@ -1027,57 +1247,77 @@ var
 begin
   GrpPList := TStringList.Create;
 //  ItemPlist.Sorted := True;
-  GetInvXML;
-  Dnode := xInv.SearchForTag(nil, 'REQUESTDATA');
-  if Assigned(DNode) then
+  CollName := 'STOCKGROUP';
+  OResult := CreatebjXmlDocument;
+  OResult.LoadXml(Col2Eval(CollName, 'STOCKGROUP', strx, GrpPList));
+  GrpPList.Clear;
+  GroupNode := OResult.SearchforTag(nil, 'COLLECTION');
+  GroupNode := OResult.SearchforTag(GroupNode, 'STOCKGROUP');
+  while Assigned(GroupNode) do
   begin
-    Children := DNode.GetNumChildren;
-    for i := 0 to Children - 1 do
-    begin
-      RecNode := DNode.GetChild(i);
-      GroupNode := RecNode.SearchForTag(nil, 'STOCKGROUP');
-      if GroupNode <> nil then
+    gStr := GroupNode.GetAttrValue('NAME');
+    if Length(gStr) > 0 then
       begin
       if ToPack then
-        GrpPList.Add( PackStr(GroupNode.GetAttrValue('NAME')))
+        GrpPList.Add(PackStr(gStr))
       else
-        GrpPList.Add( GroupNode.GetAttrValue('NAME'));
+        GrpPList.Add(gStr);
       end;
+    GroupNode := OResult.SearchforTag(GroupNode, 'STOCKGROUP');
     end;
+  if GrpPList.Count > 0 then
+  begin
+    GrpPList.Sorted := True;
   end;
+  Result := GrpPList;
+  Exit;
+(*
   GrpPlist.Sorted := True;
   Result := GrpPList;
+*)
 end;
 
 function TbjMstListImp.GetCategoryPackedList: TStringList;
 var
+  OResult: IbjXml;
+  CollName: string;
+  strx: IbjXml;
+  cStr: string;
   DNode, RecNode: IbjXml;
   i, Children: integer;
-  GroupNode: IbjXml;
-  GrpPList: TStringList;
+  CategoryNode: IbjXml;
+  StkCatPList: TStringList;
 begin
-  GrpPList := TStringList.Create;
+  StkCatPList := TStringList.Create;
 //  ItemPlist.Sorted := True;
-  GetInvXML;
-  Dnode := xInv.SearchForTag(nil, 'REQUESTDATA');
-  if Assigned(DNode) then
+  CollName := 'STOCKCATEGORY';
+  OResult := CreatebjXmlDocument;
+  OResult.LoadXml(Col2Eval(CollName, 'STOCKCATEGORY', strx, StkCatPList));
+  StkCatPList.Clear;
+  CategoryNode := OResult.SearchforTag(nil, 'COLLECTION');
+  CategoryNode := OResult.SearchforTag(CategoryNode, 'STOCKCATEGORY');
+  while Assigned(CategoryNode) do
   begin
-    Children := DNode.GetNumChildren;
-    for i := 0 to Children - 1 do
-    begin
-      RecNode := DNode.GetChild(i);
-      GroupNode := RecNode.SearchForTag(nil, 'CATEGORY');
-      if GroupNode <> nil then
+    cStr := CategoryNode.GetAttrValue('NAME');
+    if Length(cStr) > 0 then
       begin
       if ToPack then
-        GrpPList.Add( PackStr(GroupNode.GetAttrValue('NAME')))
+        StkCatPList.Add(PackStr(cStr))
       else
-        GrpPList.Add( GroupNode.GetAttrValue('NAME'));
+        StkCatPList.Add(cStr);
       end;
+    CategoryNode := OResult.SearchforTag(CategoryNode, 'STOCKCATEGORY');
     end;
+  if StkCatPList.Count > 0 then
+  begin
+    StkCatPList.Sorted := True;
   end;
+  Result := StkCatPList;
+  Exit;
+(*
   GrpPlist.Sorted := True;
   Result := GrpPList;
+*)
 end;
 
 function TbjMstListImp.GetGodownPackedList: TStringList;
@@ -1093,37 +1333,69 @@ var
 begin
   GdnPList := TStringList.Create;
 //  ItemPlist.Sorted := True;
-  GetInvXML;
-  Dnode := xInv.SearchForTag(nil, 'REQUESTDATA');
-  if Assigned(DNode) then
+  CollName := 'GODOWN';
+  OResult := CreatebjXmlDocument;
+  OResult.LoadXml(Col2Eval(CollName, 'GODOWN', strx, GdnPList));
+  GdnPList.Clear;
+  GodownNode := OResult.SearchforTag(nil, 'COLLECTION');
+  GodownNode := OResult.SearchforTag(GodownNode, 'GODOWN');
+  while Assigned(GodownNode) do
   begin
-    Children := DNode.GetNumChildren;
-    for i := 0 to Children - 1 do
-    begin
-      RecNode := DNode.GetChild(i);
-      GodownNode := RecNode.SearchForTag(nil, 'STOCKGROUP');
-      if GodownNode <> nil then
+    gStr := GodownNode.GetAttrValue('NAME');
+    if Length(gStr) > 0 then
       begin
       if ToPack then
-        GdnPList.Add( PackStr(GodownNode.GetAttrValue('NAME')))
+        GdnPList.Add(PackStr(gStr))
       else
-        GdnPList.Add( GodownNode.GetAttrValue('NAME'));
+        GdnPList.Add(gStr);
       end;
+    GodownNode := OResult.SearchforTag(GodownNode, 'GODOWN');
     end;
+  if GdnPList.Count > 0 then
+  begin
+    GdnPList.Sorted := True;
   end;
+  Result := GdnPList;
+  Exit;
+(*
   GdnPlist.Sorted := True;
   Result := GdnPList;
+*)
 end;
 
 //procedure TbjMstList.GetItemText(var data:pchar; out size:integer);
 function TbjMstListImp.GetItemText: string;
 var
+  strx: IbjXml;
+  OResult: IbjXml;
+  CollName: string;
+  iStr: string;
   ItemNode: IbjXml;
   ItemList: TStringList;
 //  i, TxtLen: integer;
 //  str: string;
 begin
   ItemList := TStringList.Create;
+  strx := CreatebjXmlDocument;
+  CollName := 'STOCKITEM';
+  OResult := CreatebjXmlDocument;
+  OResult.LoadXml(Col2Eval(CollName, 'STOCKITEM', strx, ItemList));
+  ItemList.Clear;
+  ItemNode := OResult.SearchforTag(nil, 'STOCKITEM');
+  while Assigned(ItemNode) do
+  begin
+    iStr := ItemNode.GetAttrValue('NAME');
+    if Length(iStr) > 0 then
+      ItemList.Add(iStr);
+    ItemNode := OResult.SearchforTag(ItemNode, 'STOCKITEM');
+  end;
+  if ItemList.Count > 0 then
+  begin
+    Result := ItemList.Text;
+    ItemList.Free;
+    Exit;
+  end;
+  ItemList.Clear;
   GetInvXML;
   ItemNode := XInv.SearchForTag(nil, 'STOCKITEM');
   while ItemNode <> nil do
@@ -1158,4 +1430,122 @@ finalization
     vList.Free;
   end;
 }
+procedure TbjMstListImp.GetPartyList(var PList, NPList: TStringList);
+var
+  OResult: IbjXml;
+  DNode, RecNode, LedNode, ParentNode: IbjXml;
+  CollName: string;
+  LedPList: TStringList;
+  i, Children: integer;
+  grp: string;
+  ok: boolean;
+begin
+  LedPList := TStringList.Create;
+  PList := TStringList.Create;
+  NPList := TStringList.Create;
+  PList.Clear;
+  NPList.Clear;
+
+  CollName := 'Ledger';
+  LedPList.Add('PARENT');
+  OResult := CreatebjXmlDocument;
+  OResult.LoadXml(ColEval(CollName, 'Ledger', LedPList));
+  LedPList.Clear;
+  LedNode := OResult.SearchforTag(nil, 'LEDGER');
+  while Assigned(LedNode) do
+  begin
+    ok := False;
+    ParentNode := OResult.SearchforTag(LedNode, 'PARENT');
+    if not Assigned(ParentNode) then
+      continue;
+    grp := ParentNode.GetContent;
+//    if Include then
+//    begin
+      if (grp = 'Sundry Debtors') or
+        (grp = 'Sundry Creditors') then
+        ok := True;
+//    end
+//    else
+//     begin
+      if (grp <> 'Sundry Debtors') and
+        (grp <> 'Sundry Creditors') then
+        ok := False;
+//    end;
+    if ok then
+    begin
+      if ToPack then
+        PList.Add( PackStr(LedNode.GetAttrValue('NAME')))
+      else
+        PList.Add( LedNode.GetAttrValue('NAME'));
+    end
+    else
+    begin
+      if ToPack then
+        NPList.Add( PackStr(LedNode.GetAttrValue('NAME')))
+      else
+        NPList.Add( LedNode.GetAttrValue('NAME'));
+    end;
+    LedNode := OResult.SearchforTag(LedNode, 'LEDGER');
+  end;
+  if PList.Count > 0 then
+  begin
+    PList.Sorted := True;
+  end;
+  if NPList.Count > 0 then
+  begin
+    NPList.Sorted := True;
+  end;
+  LedPList.Free;
+  Exit;
+	
+(*
+  PList.Clear;
+  NPList.Clear;
+  GetMstXML;
+  Dnode := xMst.SearchForTag(nil, 'REQUESTDATA');
+  if Assigned(DNode) then
+  begin
+    Children := DNode.GetNumChildren;
+    for i := 0 to Children - 1 do
+    begin
+      RecNode := DNode.GetChild(i);
+      LedNode := RecNode.SearchForTag(nil, 'LEDGER');
+      if LedNode <> nil then
+      begin
+        ok := False;
+        grp := LedNode.GetChildContent('PARENT');
+//        if Include then
+//        begin
+          if (grp = 'Sundry Debtors') or (grp = 'Sundry Creditors') then
+            ok := True;
+//		    end
+//		    else
+//		    begin
+          if (grp <> 'Sundry Debtors') and (grp <> 'Sundry Creditors') then
+            ok := False;
+//		    end;
+        if ok then
+        begin
+          if ToPack then
+            PList.Add( PackStr(LedNode.GetAttrValue('NAME')))
+          else
+            PList.Add( LedNode.GetAttrValue('NAME'));
+        end
+       else
+       begin
+          if ToPack then
+            NPList.Add( PackStr(LedNode.GetAttrValue('NAME')))
+          else
+            NPList.Add( LedNode.GetAttrValue('NAME'));
+       end;
+      end;
+    end;
+  end;
+  PList.Sorted := True;
+  NPList.Sorted := True;
+  LedPList.Free;
+*)
+end;
+
+
 end.
