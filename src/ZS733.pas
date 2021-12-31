@@ -893,6 +893,10 @@ begin
     xLdg := xLdg.NewChild('GSTDETAILS.LIST', '');
     xLdg.NewChild2('APPLICABLEFROM', '20180701');
     xLdg.NewChild2('HSNCODE', aHSN);
+    if StrToIntDef(GRate, 0) = 0 then
+    xLdg.NewChild2('TAXABILITY', 'Exempt')
+    else
+    if Length(GRate) > 0 then
     xLdg.NewChild2('TAXABILITY', 'Taxable');
     xLdg := xLdg.NewChild('STATEWISEDETAILS.LIST', '');
     xLdg.NewChild2('STATENAME', #4 +' Any' );

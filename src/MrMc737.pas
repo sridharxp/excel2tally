@@ -442,7 +442,7 @@ begin
   uOBatchName := 'O_BATCH';
   UORateName := 'O_RATE';
   UMRPRateName := 'MRPRATE';
-  UGSTRateName := 'GSTRATE';
+  UGSTRateName := 'GSTRate';
   UAddressName := 'ADDRESS';
   UAddress1Name := 'ADDRESS1';
   UAddress2Name := 'ADDRESS2';
@@ -1917,7 +1917,9 @@ begin
   if dsl.IsHSNDefined then
   begin
     HSNColValue := kadb.GetFieldString(dsl.UHSNName);
-    GRate := kadb.GetFieldToken('Tax_rate');
+//    GRate := kadb.GetFieldToken('Tax_rate');
+	  if dsl.IsGSTRateDefined then
+    GRate := kadb.GetFieldToken(dsl.UGSTRateName);
     MstExp.NewHSN(ItemColValue, UnitColValue, HSNColValue, GRate);
   end
   else

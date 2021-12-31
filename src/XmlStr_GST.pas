@@ -644,6 +644,9 @@ MYSALE = '<Voucher>'+
 '<Value>'+
 '<Alias>Bill_Value</Alias>'+
 '</Value>'+
+'<GSTRate>'+
+'<Alias>Tax_rate</Alias>'+
+'</GSTRate>'+
 '</INVENTORY>'+
 '</Voucher>';
 
@@ -996,6 +999,9 @@ MYPURC = '<Voucher>'+
 '<Value>'+
 '<Alias>Bill_Value</Alias>'+
 '</Value>'+
+'<GSTRate>'+
+'<Alias>Tax_rate</Alias>'+
+'</GSTRate>'+
 '</INVENTORY>'+
 '</Voucher>';
 
@@ -1542,9 +1548,6 @@ GSTSALE = '<Voucher>'+
 '</AmtCol>'+
 '</LEDGER>'+
 
-'<GSTRate>'+
-'<Alias>Tax_rate</Alias>'+
-'</GSTRate>'+
 
 '+<LEDGER>'+
 '<Group>Bank Accounts</Group>'+
@@ -1611,8 +1614,10 @@ GSTSALE = '<Voucher>'+
 '<RATE>'+
 '<Alias>Rate</Alias>'+
 '</RATE>'+
+'<GSTRate>'+
+'<Alias>Tax_rate</Alias>'+
+'</GSTRate>'+
 '</INVENTORY>'+
-'</Voucher>'+
 '</Voucher>';
 
 GSTPURC = '<Voucher>'+
@@ -1857,9 +1862,6 @@ GSTPURC = '<Voucher>'+
 '</AmtCol>'+
 '</LEDGER>'+
 
-'<GSTRate>'+
-'<Alias>Tax_rate</Alias>'+
-'</GSTRate>'+
 
 '+<LEDGER>'+
 '<AmtCol>'+
@@ -1922,6 +1924,9 @@ GSTPURC = '<Voucher>'+
 '<Alias>Purchase_Value</Alias>'+
 '</Value>'+
 }
+'<GSTRate>'+
+'<Alias>Tax_rate</Alias>'+
+'</GSTRate>'+
 '</INVENTORY>'+
 '</Voucher>';
 
@@ -2273,9 +2278,6 @@ CNOTE = '<Voucher>'+
 '</AmtCol>'+
 '</LEDGER>'+
 
-'<GSTRate>'+
-'<Alias>Tax_rate</Alias>'+
-'</GSTRate>'+
 
 '+<LEDGER>'+
 '<Group>Bank Accounts</Group>'+
@@ -2333,6 +2335,9 @@ CNOTE = '<Voucher>'+
 '<Value>'+
 '<Alias>Return Value</Alias>'+
 '</Value>'+
+'<GSTRate>'+
+'<Alias>Tax_rate</Alias>'+
+'</GSTRate>'+
 '</INVENTORY>'+
 '</Voucher>';
 
@@ -2573,9 +2578,6 @@ DNOTE = '<Voucher>'+
 '</AmtCol>'+
 '</LEDGER>'+
 
-'<GSTRate>'+
-'<Alias>Tax_rate</Alias>'+
-'</GSTRate>'+
 
 '+<LEDGER>'+
 '<AmtCol>'+
@@ -2624,6 +2626,9 @@ DNOTE = '<Voucher>'+
 '<Value>'+
 '<Alias>Return Value</Alias>'+
 '</Value>'+
+'<GSTRate>'+
+'<Alias>Tax_rate</Alias>'+
+'</GSTRate>'+
 '</INVENTORY>'+
 '</Voucher>';
 
