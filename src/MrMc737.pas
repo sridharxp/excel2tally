@@ -924,6 +924,13 @@ Todo
       if Length(str) > 0 then
         UUserDescName := str;
     end;
+    xxCfg := xCfg.SearchForTag(nil, UGSTRateName);
+    if Assigned(xxCfg) then
+    begin
+      str := xxCfg.GetChildContent(UAliasName);
+      if Length(str) > 0 then
+        UGSTRateName := str;
+    end;
   end;
   if IsMListDeclared then
   begin

@@ -339,7 +339,9 @@ MYSALE = '<Voucher>'+
 '<GSTN>'+
 '<Alias>GSTN</Alias>'+
 '</GSTN>'+
-
+'<AliasName>'+
+'<Alias>Alias</Alias>'+
+'</AliasName>'+
 '</RoundOff>'+
 '+<LEDGER>'+
 '<Default>GST 3% Sales</Default>'+
@@ -690,6 +692,9 @@ MYPURC = '<Voucher>'+
 '<GSTN>'+
 '<Alias>GSTN</Alias>'+
 '</GSTN>'+
+'<AliasName>'+
+'<Alias>Alias</Alias>'+
+'</AliasName>'+
 '</RoundOff>'+
 
 
@@ -1344,6 +1349,9 @@ GSTSALE = '<Voucher>'+
 '<Alias>Invoice_Amt</Alias>'+
 '<Type>Cr</Type>'+
 '</AmtCol>'+
+'<AliasName>'+
+'<Alias>Alias</Alias>'+
+'</AliasName>'+
 '</RoundOff>'+
 
 '<NARRATION>'+
@@ -1660,6 +1668,9 @@ GSTPURC = '<Voucher>'+
 '<Alias>Invoice_Amt</Alias>'+
 '<Type>Cr</Type>'+
 '</AmtCol>'+
+'<AliasName>'+
+'<Alias>Alias</Alias>'+
+'</AliasName>'+
 '</RoundOff>'+
 
 '<NARRATION>'+
