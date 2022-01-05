@@ -16,7 +16,7 @@ See the GNU General Public License for more details.
 You should have received a copy of the GNU General Public License version 3
 along with Excel to Tally. If not, see <http://www.gnu.org/licenses/>.
 *)
-unit xmldb_MI;
+unit xmldb_ML;
 
 interface
 
@@ -26,11 +26,11 @@ uses
   DateFns,
   StrUtils,
   Client,
-  bjxml3_1;
-
+  bjxml3_1,
+  PClientFns;
 
 type
-  Tfnupdate = procedure(msg: string);
+  Tfnupdate = procedure(const aMsg: string);
 
 type
   TbjxMerge = class
@@ -41,8 +41,8 @@ type
     FFirm: String;
     FFrmDt: string;
     FToDT: string;
-    FItem: string;
-    FDupItem: string;
+    FParty: string;
+    FDupLed: string;
   protected
     rDB: string;
     xDB: string;
@@ -50,30 +50,32 @@ type
     Client: TbjClient;
     aID: Ibjxml;
     vID: Ibjxml;
-    lID: Ibjxml;
+    LID: Ibjxml;
+    PLID: Ibjxml;
   public
     { Public declarations }
     ndups: Integer;
-    SaveXMLFile: boolean;
+    IsSaveXMLFileOn: boolean;
     TallyVersion: string;
 {    ImportNoDups: Boolean; }
     CurDt: string;
     FUpdate: TfnUpdate;
     constructor Create;
     destructor Destroy; override;
-    procedure GetItemVchRgtr;
+    procedure GetLedVchRgtr;
     procedure GetVouXML;
     procedure PostVouXML;
     procedure Process;
-    procedure ReplDupItem;
+    procedure ReplDupLed;
     procedure ErrorCheck;
+    procedure SetHost(const aHost: string);
   published
     property Firm: String read FFirm write FFirm;
-    property Host: String read FHost write FHost;
+    property Host: String read FHost write SetHost;
     property FrmDt: string Read FFrmDt write FFrmDt;
     property ToDt: string Read FToDt write FToDt;
-    property Item: string Read FItem write FItem;
-    property DupItem: string Read FDupItem write FDupItem;
+    property Party: string Read FParty write FParty;
+    property DupLed: string Read FDupLed write FDupLed;
   end;
 
 implementation
@@ -82,7 +84,7 @@ Constructor TbjxMerge.Create;
 begin
   FHost := 'http://127.0.0.1:9000';
   Client := TbjClient.Create;
-  SaveXMLFile := True;
+{  SaveXMLFile := True; }
 end;
 
 
@@ -100,13 +102,17 @@ begin
 //  else
     raise exception.Create('Error Getting Data from Tally');
 end;
+procedure TbjXMerge.SetHost(const aHost: string);
+begin
+  FHost := aHost;
+end;
 
 procedure TbjxMerge.Process;
 var
   rDoc: Ibjxml;
   rID: Ibjxml;
 begin
-  GetItemVchRgtr;
+  GetLedVchRgtr;
   rDoc := CreatebjXmlDocument;
   rDoc.LoadXML(rDB);
   rID := rDoc.SearchForTag(nil, 'DSPVCHDATE');
@@ -119,22 +125,23 @@ begin
     end;
     CurDt := rID.GetContent;
     if Assigned(FUpdate) then
-      FUpdate('Processing ' + CurDt);
+      FUpdate(DupLed + ' ' + CurDt);
     GetVouXML;
-    ReplDupItem;
-  rID := rDoc.SearchForTag(rID, 'DSPVCHDATE');
+    ReplDupLed;
+    rID := rDoc.SearchForTag(rID, 'DSPVCHDATE');
   end;
 end;
 
-procedure TbjxMerge.GetItemVchRgtr;
+procedure TbjxMerge.GetLedVchRgtr;
 begin
   FxReq := '<ENVELOPE><HEADER><TALLYREQUEST>Export Data</TALLYREQUEST></' +
     'HEADER>'+
   '<BODY><EXPORTDATA><REQUESTDESC>' +
-  '<REPORTNAME>Stock Vouchers</REPORTNAME>'
-//  '<REPORTNAME>All Stock Items</REPORTNAME>'
+  '<REPORTNAME>Ledger Vouchers</REPORTNAME>'
   +'<STATICVARIABLES>';
+{
   FxReq := FXReq + '<SVEXPORTFORMAT>' + '$$SysName:XML' + '</SVEXPORTFORMAT>';
+}
   if (Length(FFirm) <> 0) then
     FxReq := FXReq + '<SVCURRENTCOMPANY>' + FFirm + '</SVCURRENTCOMPANY>';
   if ( Length(FFrmDt) <> 0 ) and ( Length(FToDt) <> 0 ) then
@@ -142,65 +149,44 @@ begin
     FxReq := FXReq + '<SVFROMDATE>' + FFrmDt + '</SVFROMDATE>';
     FxReq := FXReq + '<SVTODATE>' + FToDt + '</SVTODATE>';
   end;
-    FxReq := FXReq + '<STOCKITEMNAME>' +  DupItem + '</STOCKITEMNAME>';
+  FxReq := FXReq + '<LEDGERNAME>' +  DupLed + '</LEDGERNAME>';
   FxReq := FXReq +
   '</STATICVARIABLES>'+
   '</REQUESTDESC>'+
   '</EXPORTDATA></BODY></ENVELOPE>';
 
-  if SaveXMLFile then
-      Client.xmlResponsefile := 'iTEMVouRgtr.xml';
+  if IsSaveXMLFileOn then
+      Client.xmlResponsefile := 'LedVchRgr.xml';
   Client.Host := FHost;
   Client.xmlRequestString := Fxreq;
   Client.post;
   Errorcheck;
   rdb := Client.xmlResponseString;
-//  ShowMessage(rdb);
 end;
 
 procedure TbjxMerge.GetVouXML;
 begin
-//  '<REPORTNAME>Day Book</REPORTNAME>'+
-//  '<REPORTNAME>All Masters</REPORTNAME>'+
+  FxReq := '<ENVELOPE><HEADER><VERSION>1</VERSION>';
+  FxReq := FxReq + '<TALLYREQUEST>EXPORT</TALLYREQUEST>';
+  FxReq := FxReq + '<TYPE>DATA</TYPE>';
+  FxReq := FxReq + '<ID>Daybook</ID>';
+  FxReq := FxReq + '</HEADER><BODY><DESC>';
 
-  FxReq := '<ENVELOPE><HEADER><TALLYREQUEST>Export Data</TALLYREQUEST></' +
-    'HEADER>'+
-  '<BODY><EXPORTDATA><REQUESTDESC>' +
-  '<REPORTNAME>Voucher Register</REPORTNAME>'
-//  '<REPORTNAME>Day Book</REPORTNAME>'
-  +'<STATICVARIABLES>';
+  FxReq := FxReq + '<STATICVARIABLES>';
+{
 
-//  FxReq := FXReq + '<SVEXPORT>' + 'True' + '</SVEXPORT>';
-  FxReq := FXReq + '<SVEXPORTFORMAT>' + '$$SysName:XML' + '</SVEXPORTFORMAT>';
-
+}
   if (Length(FFirm) <> 0) then
     FxReq := FXReq + '<SVCURRENTCOMPANY>' + FFirm + '</SVCURRENTCOMPANY>';
 
-//  if ( Length(FFrmDt) <> 0 ) and ( Length(FToDt) <> 0 ) then
-//  begin
-//    FxReq := FXReq + '<SVFROMDATE>' + FFrmDt + '</SVFROMDATE>';
-//    FxReq := FXReq + '<SVTODATE>' + FToDt + '</SVTODATE>';
-//  end;
-//    FxReq := FXReq + '<SVCURRENTDATE>' + FormatDateTime('DD-MM-YYYY', CurDate)
-    FxReq := FXReq + '<SVCURRENTDATE>' + CurDt + '</SVCURRENTDATE>';
+  FxReq := FXReq + '<SVCURRENTDATE>' + CurDt + '</SVCURRENTDATE>';
 
-    FxReq := FXReq + '<IsStockReport>' +  'true' + '</IsStockReport>';
-//    FxReq := FXReq + '<STOCKITEMNAME>' +  DupItem + '</STOCKITEMNAME>';
-    FxReq := FXReq + '<OnlyAccVouchers>' +  'true' + '</OnlyAccVouchers>';
-//    FxReq := FXReq + '<OnlyInvVouchers>' +  'True' + '</OnlyInvVouchers>';
-//    FxReq := FXReq + '<$$IsSales:SVVoucherType>' + 'False' +
-//      '</$$IsSales:SVVoucherType>';
-//    Sort : Default : $Date, $SortPosition, $VoucherTypeName
-//  if (Length(FVCHType) <> 0) then
-//    FxReq := FXReq + '<VOUCHERTYPENAME>' + FVCHType + '</VOUCHERTYPENAME>';
+  FxReq := FXReq + '</STATICVARIABLES>';
 
-  FxReq := FXReq +
-  '</STATICVARIABLES>'+
-  '</REQUESTDESC>'+
-  '</EXPORTDATA></BODY></ENVELOPE>';
+  FxReq := FXReq + '</DESC></BODY></ENVELOPE>';
 
-  if SaveXMLFile then
-      Client.xmlResponsefile := 'VouReg.xml';
+  if IsSaveXMLFileon then
+    Client.xmlResponsefile := 'Daybook.xml';
   Client.Host := FHost;
   Client.xmlRequestString := Fxreq;
   Client.post;
@@ -220,7 +206,7 @@ begin
 
 //  FxReq := FXReq + '<SVEXPORTFORMAT>' + '$$SysName:XML' + '</SVEXPORTFORMAT>';
 { Not needed }
-  FxReq := FXReq + '<SVOverwriteImpVch>' + 'true' + '</SVOverwriteImpVch>';
+  FxReq := FXReq + '<SVOverwriteImpVch>' + 'Yes' + '</SVOverwriteImpVch>';
 
   if (Length(FFirm) <> 0) then
     FxReq := FXReq + '<SVCURRENTCOMPANY>' + FFirm + '</SVCURRENTCOMPANY>';
@@ -231,8 +217,10 @@ begin
   yDB := FXReq + yDB +
     '</TALLYMESSAGE></REQUESTDATA></IMPORTDATA></BODY></ENVELOPE>';
   VDoc := CreatebjXmlDocument;
-//  vDoc.LoadXML(yDB);
-//  vDoc.SaveXmlFile('Voucher.xml');
+  VDoc.LoadXML(ydb);
+{
+  VDoc.SaveXmlFile('Voucher.xml');
+}
   Client.Host := FHost;
   Client.xmlRequestString := yDB;
   Client.post;
@@ -241,51 +229,79 @@ begin
 end;
 
 { rfReplaceAll rfIgnoreCase }
-procedure TbjxMerge.ReplDupItem;
+procedure TbjxMerge.ReplDupLed;
 var
   VDoc: Ibjxml;
   alterid: string;
 begin
   VDoc := CreatebjXmlDocument;
   VDoc.LoadXML(xDB);
+{
+  VDoc.SaveXmlFile('Daybook.xml');
+}
   vid := vDoc.SearchForTag(nil, 'VOUCHER');
   if not Assigned(vID) then
     Exit;
-  lID := vID.SearchForTag(nil, 'STOCKITEMNAME');
+  LID := vID.SearchForTag(nil, 'LEDGERNAME');
+  PLID := vID.SearchForTag(nil, 'PARTYLEDGERNAME');
   aID := vID.SearchForTag(nil, 'ALTERID');
-  while Assigned(lID) do
+//  aID := vID.SearchForTag(nil, 'MASTERID');
+  while Assigned(LID) do
   begin
-    if lID.GetContent = DupItem then
+    if LID.GetContent = DupLed then
       Break;
-    lID := vID.SearchForTag(lID, 'STOCKITEMNAME');
+    LID := vID.SearchForTag(LID, 'LEDGERNAME');
+  end;
+  while Assigned(PLID) do
+  begin
+    if PLID.GetContent = DupLed then
+      Break;
+    PLID := vID.SearchForTag(PLID, 'PARTYLEDGERNAME');
   end;
   while Assigned(vID) do
   begin
-    if Assigned(lID) then
-    if lID.GetContent = DupItem then
+    if Assigned(LID) then
+    if LID.GetContent = DupLed then
     begin
       alterid := aID.GetContent;
       vID.RemoveAttr('ACTION');
       vID.AddAttribute('TAGNAME', 'ALTERID');
       vID.AddAttribute('TAGVALUE', alterid);
       vID.AddAttribute('ACTION', 'Alter');
-      lID.setContent(Item);
-//      if Assigned(plID) and (plID.GetContent = DupItem) then
-//        plID.SetContent(Item);
+      while Assigned(lID) do
+      begin
+        if LID.GetContent = DupLed then
+          LID.setContent(Party);
+        LID := vID.SearchForTag(LID, 'LEDGERNAME');
+      end;
+      while Assigned(PLID) do
+      begin
+        if Assigned(PLID) and (PLID.GetContent = DupLed) then
+          PLID.SetContent(Party);
+        PLID := vID.SearchForTag(PLID, 'PARTYLEDGERNAME');
+      end;
       yDB := vID.GetXML;
       PostVouXML;
     end;
     vID := vDoc.SearchForTag(vID, 'VOUCHER');
     if not Assigned(vID) then
       Exit;
-    lID := vID.SearchForTag(nil, 'STOCKITEMNAME');
+    lID := vID.SearchForTag(nil, 'LEDGERNAME');
+    PLID := vID.SearchForTag(nil, 'PARTYLEDGERNAME');
     aID := vID.SearchForTag(nil, 'ALTERID');
-    while Assigned(lID) do
+//    aID := vID.SearchForTag(nil, 'MASTERID');
+    while Assigned(LID) do
     begin
-      if lID.GetContent = DupItem then
+      if LID.GetContent = DupLed then
         Break;
-      lID := vID.SearchForTag(lID, 'STOCKITEMNAME');
+      LID := vID.SearchForTag(LID, 'LEDGERNAME');
     end;
+  while Assigned(PLID) do
+  begin
+    if PLID.GetContent = DupLed then
+      Break;
+    PLID := vID.SearchForTag(PLID, 'PARTYLEDGERNAME');
+  end;
   end;
 end;
 

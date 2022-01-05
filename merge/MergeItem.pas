@@ -27,7 +27,7 @@ uses
   ShellApi,
   xmldb_MI,
   PClientFns,
-//  Cfg,
+  DateUtils,
   MstListImp;
 
 type
@@ -58,7 +58,7 @@ type
     { Public declarations }
   end;
 
-procedure UpdateMsg(Msg: string);
+procedure UpdateMsg(const aMsg: string);
 
 var
   frmMergeItem: TfrmMergeItem;
@@ -76,11 +76,13 @@ var
 //  DParent, LParent: string;
 //  Obj: TbjMstListImp;
   ItemUnit, DupUnit: string;
+  sDups: Integer;
+  CalcToDt, eDt: TDate;
 begin
-  mr  := MessageDlg('Newer Version of Tally installed?', mtConfirmation, mbYesNoCancel, 0);
+//  mr  := MessageDlg('Newer Version of Tally installed?', mtConfirmation, mbYesNoCancel, 0);
 //  if mr = mrCancel then
-  if mr <> mrYes then
-    Exit;
+//  if mr <> mrYes then
+//    Exit;
 {
   if Length(cmbLedger.Text) = 0 then
   begin
@@ -136,7 +138,7 @@ begin
       if Length(Trim(xdb.ToDt)) = 0 then
         xdb.ToDt := FormatDateTime('yyyyMMDD',Now);
 
-      xdb.SaveXMLFile := False;
+      xdb.IsSaveXMLFileOn := False;
 //      xdb.Ledger := cmbLedger.Text;
       xdb.Item := cmbItem.Text;
       xdb.DupItem := cmbDupItem.Text;
@@ -146,23 +148,27 @@ begin
       if mr = mrNo then
         xdb.ImportNoDups := True;
 }
-      xdb.Process;
+      CalcToDt := DateTimePicker2.Date;
+      while DateTimePicker1.Date < CalcToDt do
+      begin
+        xdb.Process;
+        sDups := sDups + xdb.ndups;
+        xdb.ndups := 0;
+        CalcToDt := IncMonth(CalcToDt, -1);
+        eDt := EndOfAMonth(Yearof(CalcToDt), Monthof(CalcToDt));
+        if eDt <> CalcToDt then
+        begin
+          CalcToDt := eDt;
+        end;
+        xdb.ToDt := FormatDateTime('yyyyMMDD',CalcToDt);
+      end;
     finally
-      MessageDlg(IntToStr(xdb.ndups) + ' Duplicates merged',
+      MessageDlg(IntToStr(sDups) + ' Duplicates merged',
       mtInformation, [mbOK],0);
       xdb.Free;
       btnMerge.Enabled := True;
       btnRefresh.Enabled := True;
     end;
-end;
-
-procedure UpdateMsg;
-begin
-  if length(msg) > 0 then
-    frmMergeItem.Info.Caption := Msg
-  else
-    frmMergeItem.Info.Caption := 'Done';
-  Application.ProcessMessages;
 end;
 
 procedure TfrmMergeItem.btnRefreshClick(Sender: TObject);
@@ -179,57 +185,57 @@ begin
  // lEDList := TStringList.Create;
   ItemList := TStringList.Create;
   try
-  Obj := TbjMstListImp.Create;
-  Obj.ToPack := False;
-  Obj.Host := 'http://' + frmXlExport.edtHost.Text + ':' +
+    Obj := TbjMstListImp.Create;
+    Obj.ToPack := False;
+    Obj.Host := 'http://' + frmXlExport.edtHost.Text + ':' +
     frmXlExport.edtPort.Text;
-  try
     try
-      CMPList.Text := Obj.GetCMPText;
-      CMPList.Sorted := True;
+      try
+        CMPList.Text := Obj.GetCMPText;
+        CMPList.Sorted := True;
 //      case cmbLedGroup.ItemIndex of
 //      2 :
 //        LedList.Text := Obj.GetPartyText(False);
 //      else
 //        LedList.Text := Obj.GetPartyText(True);
 //      end;
-      ItemList.Text := Obj.GetItemText;
+        ItemList.Text := Obj.GetItemText;
 //      LedList.Text := Obj.GetSalesList.Text + Obj.GetPurcList.Text;
 //      LedList := Obj.GetSalesList;
-      ItemList.Sorted := True;
-    except
-      MessageDlg('Error Connecting to Tally', mtError, [mbOK], 0);
+        ItemList.Sorted := True;
+      except
+        MessageDlg('Error Connecting to Tally', mtError, [mbOK], 0);
+      end;
+    finally
+      Obj.Free;
     end;
-  finally
-    Obj.Free;
-  end;
 
-  cmbFirm.Items.Add('');
-  cmbFirm.Clear;
-  for i:= 0 to CMPList.Count-1 do
-    cmbFirm.Items.Add(CMPList.Strings[i]);
-  cmbDupItem.Clear;
-  cmbDupItem.Items.Add('');
-  for i:= 0 to ItemList.Count-1 do
-    cmbDupItem.Items.Add(ItemList.Strings[i]);
-  cmbItem.Clear;
-  for i:= 0 to ItemList.Count-1 do
-    cmbItem.Items.Add(ItemList.Strings[i]);
+    cmbFirm.Items.Add('');
+    cmbFirm.Clear;
+    for i:= 0 to CMPList.Count-1 do
+      cmbFirm.Items.Add(CMPList.Strings[i]);
+    cmbDupItem.Clear;
+    cmbDupItem.Items.Add('');
+    for i:= 0 to ItemList.Count-1 do
+      cmbDupItem.Items.Add(ItemList.Strings[i]);
+    cmbItem.Clear;
+    for i:= 0 to ItemList.Count-1 do
+      cmbItem.Items.Add(ItemList.Strings[i]);
 //  CmbLedger.Clear;
 //  cmbLedger.Items.Add('');
 //  for i:= 0 to LedList.Count-1 do
 //    cmbLedger.Items.Add(LedList.Strings[i]);
   finally
-  btnMerge.Enabled := True;
-  btnRefresh.Enabled := True;
-  CMPList.Clear;
-  CMPList.Free;
-  ItemList.Clear;
-  ItemList.Free;
+    btnMerge.Enabled := True;
+    btnRefresh.Enabled := True;
+    MessageDlg(InttoStr(ItemList.Count) + ' items imported', mtInformation, [mbOK], 0);
+    CMPList.Clear;
+    CMPList.Free;
+    ItemList.Clear;
+    ItemList.Free;
 //  LedList.Clear;
 //  LedList.Free;
   end;
-  MessageDlg('Done', mtInformation, [mbOK], 0);
 end;
 
 procedure TfrmMergeItem.mniTestTallyClick(Sender: TObject);
@@ -266,6 +272,13 @@ begin
   url := 'https://download.microsoft.com/download/3/5/C/35C84C36-661A-44E6-9324-8786B8DBE231/AccessDatabaseEngine.exe';
   URL := StringReplace(URL, '"', '%22', [rfReplaceAll]);
   ShellExecute(0, 'open', PChar(URL), nil, nil, SW_SHOWNORMAL);
+end;
+
+procedure UpdateMsg(const aMsg: string);
+begin
+  if Length(aMsg) > 0 then
+    frmMergeItem.Info.Caption := aMsg;
+  Application.ProcessMessages;
 end;
 
 end.

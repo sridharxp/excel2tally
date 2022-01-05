@@ -104,7 +104,7 @@ begin
   finally
       Obj.Free;
   end;
-  if DParent <> LParent then
+  if (DParent <> LParent) and (cmbLedGroup.ItemIndex = 2) then
   begin
     MessageDlg('Groups differ', mtError, [mbOK], 0);
     Exit;
@@ -122,7 +122,7 @@ begin
       if Length(Trim(xdb.ToDt)) = 0 then
         xdb.ToDt := FormatDateTime('yyyyMMDD',Now);
 
-      xdb.SaveXMLFile := False;
+      xdb.IsSaveXMLFileOn := False;
       xdb.Party := cmbParty.Text;
       xdb.DupLed := cmbDupLed.Text;
       xdb.Host := 'http://' + frmXlExport.edtHost.Text + ':'+
@@ -142,7 +142,6 @@ begin
         if eDt <> CalcToDt then
         begin
           CalcToDt := eDt;
-//          ShowMessage(FormatDateTime('yyyyMMDD',CalcToDt));
         end;
         xdb.ToDt := FormatDateTime('yyyyMMDD',CalcToDt);
       end;
