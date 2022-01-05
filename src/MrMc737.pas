@@ -1225,8 +1225,8 @@ begin
     IsUserDescDefined := True;
   if kadb.FindField(UUnitName) <> nil then
     IsUnitDefined := True;
-  if kadb.FindField(UAliasName) <> nil then
-    IsAliasDefined := True;
+//  if kadb.FindField(UAliasName) <> nil then
+//    IsAliasDefined := True;
   if kadb.FindField(UMailingName) <> nil then
     IsMailingNameDefined := True;
   if kadb.FindField(UGodownName) <> nil then
@@ -1234,8 +1234,12 @@ begin
   if IsRoundOffAmountColDeclared then
   if kadb.FindField(URoundOffAmountColName) <> nil then
     IsRoundOffAmountColDefined := True;
+  if kadb.FindField(UGSTRateName) <> nil then
+    IsGSTRateDefined := True;
   if IsMListDeclared then
   begin
+  if kadb.FindField(UAliasName) <> nil then
+    IsAliasDefined := True;
     if kadb.FindField(UobALName) <> nil then
       IsobALDefined := True;
     if kadb.FindField(UoBatchName) <> nil then
@@ -1268,8 +1272,8 @@ begin
       IsORateDefined := True;
     if kadb.FindField(UMRPRateName) <> nil then
       IsMRPRateDefined := True;
-    if kadb.FindField(UGSTRateName) <> nil then
-      IsGSTRateDefined := True;
+//    if kadb.FindField(UGSTRateName) <> nil then
+//      IsGSTRateDefined := True;
   end;
   if IsIListDeclared then
   begin
@@ -1294,10 +1298,10 @@ begin
       IsAmtDefined[j] := True;
     end;
   end;
-  if kadb.FindField(RoundOffCol) <> nil then
-    IsRoundOffColDefined := True;
-  if kadb.FindField(RoundOffGroupCol) <> nil then
-    IsRoundOffGroupColDefined := True;
+//  if kadb.FindField(RoundOffCol) <> nil then
+//    IsRoundOffColDefined := True;
+//  if kadb.FindField(RoundOffGroupCol) <> nil then
+//    IsRoundOffGroupColDefined := True;
 
   if IsVListDeclared then
   begin
@@ -1310,6 +1314,12 @@ begin
     if Length(DiTypeValue) = 0 then
       if not IsVtypeDefined then
       CheckColumn(UVTypeName);
+    if kadb.FindField(RoundOffCol) <> nil then
+      IsRoundOffColDefined := True;
+    if kadb.FindField(RoundOffGroupCol) <> nil then
+      IsRoundOffGroupColDefined := True;
+    if kadb.FindField(UAliasName) <> nil then
+      IsRoundOffAliasColDefined := True;
   end;
   if ToCheckInvCols then
     if IsItemDefined then
@@ -1798,6 +1808,7 @@ var
   LedgerColValue: string;
   GroupColValue: string;
   GSTNColValue: string;
+  RoundOffAliasColValue: string;
   RoundOffGroupColValue: string;
   atoken: string;
   oLedger: string;
@@ -1849,9 +1860,13 @@ AutoCreateMst does not affect explicit group or roundoff group
       end;
     end;
   end;
+  MstExp.Alias := '';
   for i := 1 to COLUMNLIMIT do
   if dsl.IsInvDefined[i] then
     CreateItem(i);
+  if dsl.IsRoundOffAliasColDefined then
+    RoundOffAliasColValue :=  kadb.GetFieldString(dsl.UAliasName);
+  MstExp.Alias := RoundOffAliasColValue;
 
   if dsl.IsRoundOffGroupColDefined then
     RoundOffGroupColValue :=  kadb.GetFieldString(dsl.RoundOffGroupCol);
