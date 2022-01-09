@@ -251,7 +251,7 @@ type
     procedure SetVchHeader;
     function Pack(const Ledger: string; const Amount: currency; const Ref, RefType: string; const aTType: boolean): currency;
     procedure Unpack;
-    procedure SetGSTLedType;
+//    procedure SetGSTLedType;
     procedure AttachInv(const rled: string);
     procedure AttachAssessable(const rled: string);
     procedure AddInDirect(const idx: integer);
@@ -1418,6 +1418,7 @@ var
   step: integer;
   idx: integer;
   Obj: TbjMstListImp;
+  aLedger: string;
 begin
   if not Assigned(CashBankPList) then
   begin
@@ -1435,10 +1436,25 @@ begin
    if IsContra then
    if not CashBankPList.Find(ledger, idx) then
      IsContra := False;
+
+  aLedger := Ledger;
+  if Env.GSTLedType = 'Min' then
+  begin
+      if (Env.ip.Find(Ledger, idx)) or (Env.op.Find(Ledger, idx)) then
+    begin
+      if (pos('SGST', Ledger) > 0) then
+        aLedger := 'SGST'
+      else if (pos('CGST', Ledger) > 0) then
+        aLedger := 'CGST'
+      else if (pos('IGST', Ledger) > 0) then
+        aLedger := 'IGST';
+    end;
+  end;
+
   for Step := 1 to Lines.Count do
   begin
     Item := Lines.Items[Step - 1];
-    if (Item^.Ledger = Ledger) and
+    if (Item^.Ledger = aLedger) and
       (Item^.Ref = Ref) and
       (Item^.RefType = RefType) and
       (Item^.IsNegative = aTType) then
@@ -1449,7 +1465,7 @@ begin
     end;
   end;
   Item := new(pLine);
-  Item^.Ledger :=  Ledger;
+  Item^.Ledger :=  aLedger;
   Item^.Amount :=  Amount;
   Item^.Ref :=  Ref;
   Item^.RefType :=  RefType;
@@ -1458,6 +1474,7 @@ begin
   Result := Amount;
 end;
 
+{
 Procedure TbjVchExp.SetGSTLedType;
 var
   Item: pLine;
@@ -1477,6 +1494,7 @@ begin
         Item.Ledger := 'CGST';
       if (Env.ip.Find(Item.Ledger, idx)) and (pos('IGST', Item.Ledger) > 0) then
         Item.Ledger := 'IGST';
+
       if (Env.op.Find(Item.Ledger, idx)) and (pos('SGST', Item.Ledger) > 0) then
         Item.Ledger := 'SGST';
       if (Env.op.Find(Item.Ledger, idx)) and (pos('CGST', Item.Ledger) > 0) then
@@ -1486,7 +1504,71 @@ begin
     end;
   end;
 end;
-{ To push largest (Cr or Dr) entries to the top of the voucher }
+}
+{
+To push largest (Cr or Dr) entries to the top of the voucher
+For Reference old version is kept here
+Procedure TbjVchExp.UnPack;
+var
+  Item: pLine;
+  i: Integer;
+begin
+  SetGSTLedType;
+  for i := 0 to Lines.Count-1 do
+  begin
+    Item := Lines.Items[i];
+    CheckVchType(Item^.Ledger, Item^.Amount);
+    if IsVchTypeMatched then
+    begin
+      if Abs(Item^.Amount) > partyamt then
+      begin
+        partyamt := Abs(Item^.Amount);
+        partyidx := i;
+        Item^.Ref := BillRef;
+        Item^.RefType := 'New Ref';
+        if (WSType = 'Receipt')  or (WSType = 'Payment') then
+          Item^.RefType := 'Agst Ref';
+      end;
+    end
+  end;
+  for i := 0 to Lines.Count-1 do
+  begin
+    Item := Lines.Items[i];
+    if i <> partyidx then
+    if Abs(Item^.Amount) > busamt then
+    begin
+      busamt := Abs(Item^.Amount);
+      busidx := i;
+    end;
+  end;
+  if Lines.Count > 0 then
+  begin
+    if partyidx <> -1 then
+    begin
+      AddInDirect(partyidx);
+    end;
+    if busidx <> -1 then
+    begin
+      AddInDirect(busidx);
+    end;
+    for i:= 0 to Lines.count-1 do
+    begin
+      if i = partyidx then
+        continue;
+      if i = busidx then
+        continue;
+      AddInDirect(i);
+    end;
+    IsVchTypeMatched := True;
+  end;
+
+  ClearLines;
+  partyidx := -1;
+  partyamt := 0;
+  busidx := -1;
+  busamt := 0;
+end;
+}
 Procedure TbjVchExp.UnPack;
 var
   Item: pLine;
@@ -1495,7 +1577,7 @@ var
 begin
   PartyisDebit := False;
   j := -1;
-  SetGSTLedType;
+//  SetGSTLedType;
   for i := 0 to Lines.Count-1 do
   begin
     Item := Lines.Items[i];
