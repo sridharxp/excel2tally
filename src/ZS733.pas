@@ -2226,6 +2226,11 @@ It does not use GetDupPartyGSTN
   end;
   if found then
   begin
+    if Env.ToUpdateMasters then
+    begin
+      CreateParty(aLedger, aParent, aGSTN, aState);
+      Exit;
+    end;
     SystemGSTN := GetDupPartyGSTN(aLedger);
 { Same Name Different GSTN}
   if (not dupName) and (aGSTN <> SystemGSTN) then
@@ -2242,8 +2247,6 @@ It does not use GetDupPartyGSTN
     end;
       Exit;
     end;
-    if Env.ToUpdateMasters then
-      CreateParty(aLedger, aParent, aGSTN, aState);
   end;
 (*
   if (DupName) and (not Env.MergeDupLed4GSTN) then
