@@ -2260,11 +2260,11 @@ begin
   if Length(Trim(aGSTN)) > 0 then
   begin
     SystemLedName := GetGSTNParty(aGSTN);
-    if Length(SystemLedName) > 0 then
 {
 There is a logic using SystemLedName.
 It does not use GetDupPartyGSTN 
 }
+    if Length(SystemLedName) > 0 then
     if aLedger <> SystemLedName then
       dupName := True
     else
@@ -2277,7 +2277,13 @@ It does not use GetDupPartyGSTN
 { Different Name Sake GSTN - one part }
   if dupName then
   begin
-    if Env.IsPostto1stLedgerwithGSTNon then
+    if Env.ToUpdateMasters then
+    begin
+      CreateParty(aLedger, aParent, aGSTN, aState);
+      Result := aLedger;
+      Exit;
+    end
+    else  if Env.IsPostto1stLedgerwithGSTNon then
      begin
 //       if aLedger <> SystemLedName then
          Result := SystemLedName;
@@ -2311,6 +2317,7 @@ It does not use GetDupPartyGSTN
     if Env.ToUpdateMasters then
     begin
       CreateParty(aLedger, aParent, aGSTN, aState);
+      Result := aLedger;
       Exit;
     end;
     SystemGSTN := GetDupPartyGSTN(aLedger);

@@ -192,6 +192,7 @@ TbjDSLParser = class(TinterfacedObject, IbjDSLParser)
     IsTallyIdDefined: boolean;
     IsRemoteIDDefined: boolean;
     IsRoundOffGroupColDefined: boolean;
+    IsRoundOffAliasColDefined: boolean;
     UidName: string;
     IsIDGenerated: Boolean;
     IsDaybook: Boolean;
@@ -288,7 +289,6 @@ TbjMrMc = class(TinterfacedObject, IbjXlExp, IbjMrMc)
     TypeColValue: string;
 
     notoskip: integer;
-//    ProcessedCount: integer;
     VTotal: currency;
     IsInventoryAssigned: Boolean;
     RoundOffName: string;
@@ -348,7 +348,6 @@ TbjMrMc = class(TinterfacedObject, IbjXlExp, IbjMrMc)
     XmlFile: string;
     FileFmt: string;
     IsDateCheck: boolean;
-//    SCount: integer;
     FUpdate: TfnUpdate;
 
   
@@ -364,7 +363,6 @@ TbjMrMc = class(TinterfacedObject, IbjXlExp, IbjMrMc)
     constructor Create;
     destructor Destroy; override;
     procedure Execute;
-//  published
 { Logging is optional }
     property ToLog: boolean read FToLog write FToLog;
 { Auto Create Master is optional }
@@ -594,6 +592,7 @@ AutoCreateMst affects default group only
       if Length(str) > 0 then
         IsGSTNDeclared[COLUMNLIMIT+1] := True;
     end;
+
     xxCfg := xcfg.SearchForTag(nil, 'AmtCol');
     if Assigned(xxCfg) then
     begin
@@ -924,6 +923,7 @@ Todo
       if Length(str) > 0 then
         UUserDescName := str;
     end;
+	
     xxCfg := xCfg.SearchForTag(nil, UGSTRateName);
     if Assigned(xxCfg) then
     begin
@@ -1307,8 +1307,6 @@ begin
   begin
     if Length(DiLedgerValue[1]) = 0 then
       CheckColumn(ULedgerName[1]);
-//  if not IsMListDeclared then
-//  begin
     if Length(DiDateValue) = 0 then
       CheckColumn(UDateName);
     if Length(DiTypeValue) = 0 then
@@ -1648,7 +1646,9 @@ begin
     ToAutoCreateMst := True;
     AskAgainToAutoCreateMst := False;
     AskedOnce := True;
-  end;
+  end
+  else
+      Env.ToUpdateMasters := False;
   kadb.First;
   IDstr := '';
   vTotal := 0;
@@ -1897,6 +1897,7 @@ AutoCreateMst does not affect explicit group or roundoff group
       MstExp.NewLedger(LedgerColValue, RoundOffGroupColValue, 0);
 //    FUpdate('Ledger: ' + LedgerColValue);
   end;
+  MstExp.Alias := '';
 end;
 
 procedure TbjMrMc.CreateItem(const level: integer);
@@ -2060,6 +2061,7 @@ begin
     wLed := RpetObj.GetGSTNParty(dbGSTN);
     IsThere := False;
     if not Env.ToUpdateMasters then
+    begin
     IsThere := MstExp.IsLedger(dbkLed);
     if not IsThere then
     begin
@@ -2067,10 +2069,12 @@ begin
       if dbkLed <> wLed then
         Exit;
     end;
+    end;
+    IsThere := MstExp.IsLedger(dbkLed);
     if not IsThere then
     begin
       if AskAgainToAutoCreateMst then
-        if MessageDlg('Create missing Ledger ' + dbkLed +' ?', mtConfirmation, mbOKCancel, 0) = mrCancel then
+        if MessageDlg('Create/Update Ledger ' + dbkLed +' ?', mtConfirmation, mbOKCancel, 0) = mrCancel then
           ToAutoCreateMst := False
         else
           ToAutoCreateMst := True;
@@ -2087,11 +2091,12 @@ begin
         missingledgers := missingledgers + 1;
       end
       else
-     begin
+      begin
         CreateGSTLedger;
-     end;
-    end
-    else
+      end;
+    end;
+    if IsThere and not Env.ToUpdateMasters then
+    begin
     if dsl.IsGSTNDefined[1] then
       if not kadb.IsEmptyField('GSTN') then
       begin
@@ -2099,13 +2104,15 @@ begin
         if Length(wGSTN) = 0 then
         begin
           kadb.SetFieldVal('TALLYID', 'Update GSTN');
-      end;
+        end;
       if dbGSTN <> wGSTN then
         kadb.SetFieldVal('TALLYID', 'New GSTN - Repeat Name');
       if dbkLed <> wLed then
         kadb.SetFieldVal('TALLYID', wLed + ' - Repeat GSTN');
       end;
   end;
+  end;
+  FUpdate('Ledger: ' + dbkLed);
 end;
 
 procedure TbjMrMc.ExpItemMst;
@@ -2298,9 +2305,7 @@ AutoCreateMst does not affect explicit group or roundoff group
       GSTNColValue := kadb.GetFieldString(dsl.UGSTNName[1]);
       StateColValue := GetGSTState(GSTNColValue);
       if not IsPostto1stLedgerwithGSTNon then
-      MstExp.NewParty(LedgerColValue,
-        GroupColValue,
-        GSTNColValue,
+      MstExp.NewParty(LedgerColValue, GroupColValue, GSTNColValue,
         StateColValue)
       else
       begin
