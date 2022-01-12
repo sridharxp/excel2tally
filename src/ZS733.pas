@@ -1438,7 +1438,7 @@ begin
      IsContra := False;
 
   aLedger := Ledger;
-  if Env.GSTLedType = 'Min' then
+  if (Env.GSTLedType = 'Min') or (Env.GSTLedType = 'Mean') then
   begin
       if (Env.ip.Find(Ledger, idx)) or (Env.op.Find(Ledger, idx)) then
     begin
@@ -1448,6 +1448,13 @@ begin
         aLedger := 'CGST'
       else if (pos('IGST', Ledger) > 0) then
         aLedger := 'IGST';
+      if  (Env.GSTLedType = 'Mean') then
+      begin
+        if WsType = 'Sales' then
+          aLedger := 'Output ' + aLedger;
+        if WsType = 'Purchase' then
+          aLedger := 'Input ' + aLedger;
+      end;
     end;
   end;
 

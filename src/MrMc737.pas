@@ -3023,6 +3023,8 @@ begin
     MstExp.NewGst('IGST 18% Sales', 'Sales Accounts', '18');
     MstExp.NewGst('IGST 28% Sales', 'Sales Accounts', '28');
 
+    if GSTLedType = 'Max' then
+    begin
     MstExp.NewGst('Output SGST 1.5%', 'Duties & Taxes', '3');
     MstExp.NewGst('Output CGST 1.5%', 'Duties & Taxes', '3');
     MstExp.NewGst('Output IGST 3%', 'Duties & Taxes', '3');
@@ -3038,6 +3040,7 @@ begin
     MstExp.NewGst('Output SGST 14%', 'Duties & Taxes', '28');
     MstExp.NewGst('Output CGST 14%', 'Duties & Taxes', '28');
     MstExp.NewGst('Output IGST 28%', 'Duties & Taxes', '28');
+  end;
   end;
   if VchType = 'Purchase' then
   begin
@@ -3055,6 +3058,8 @@ begin
     MstExp.NewGst('IGST 18% Purchase', 'Purchase Accounts', '18');
     MstExp.NewGst('IGST 28% ', 'Purchase Accounts', '28');
 
+    if GSTLedType = 'Max' then
+    begin
     MstExp.NewGst('Input SGST 1.5%', 'Duties & Taxes', '3');
     MstExp.NewGst('intput CGST 1.5%', 'Duties & Taxes', '3');
     MstExp.NewGst('input IGST 3%', 'Duties & Taxes', '3');
@@ -3071,12 +3076,28 @@ begin
     MstExp.NewGst('input SGST 14%', 'Duties & Taxes', '28');
     MstExp.NewGst('input CGST 14%', 'Duties & Taxes', '28');
     MstExp.NewGst('input IGST 28%', 'Duties & Taxes', '28');
+    end;
   end;
   if (VchType = 'Sales') or (VchType = 'Purchase') then
   begin
     MstExp.NewGst('SGST', 'Duties & Taxes', '12');
     MstExp.NewGst('CGST', 'Duties & Taxes', '12');
     MstExp.NewGst('IGST', 'Duties & Taxes', '12');
+  end;
+  if GSTLedType = 'Mean' then
+  begin
+  if (VchType = 'Sales') then
+  begin
+    MstExp.NewGst('Output SGST', 'Duties & Taxes', '12');
+    MstExp.NewGst('Output CGST', 'Duties & Taxes', '12');
+    MstExp.NewGst('Output IGST', 'Duties & Taxes', '12');
+  end;
+  if (VchType = 'Purchase') then
+  begin
+    MstExp.NewGst('Input SGST', 'Duties & Taxes', '12');
+    MstExp.NewGst('Input CGST', 'Duties & Taxes', '12');
+    MstExp.NewGst('Input IGST', 'Duties & Taxes', '12');
+  end;
   end;
 end;
 
