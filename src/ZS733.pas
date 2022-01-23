@@ -1105,12 +1105,23 @@ begin
     xLed.Clear;
     xLdg := xLed.NewChild('ENVELOPE','');
     xLdg := xLdg.NewChild('HEADER','');
+{$IFNDEF Newformat}
     xLdg.NewChild2('TALLYREQUEST','Import Data');
+{$ELSE}
+    xLdg.NewChild2('VERSION','1');
+    xLdg.NewChild2('TALLYREQUEST','IMPORT');
+    xLdg.NewChild2('TYPE','DATA');
+    xLdg.NewChild2('ID','All Masters');
+{$ENDIF}
     xLdg := xLdg.GetParent;
     xLdg := xLdg.NewChild('BODY','');
+{$IFNDEF Newformat}
     xLdg := xLdg.NewChild('IMPORTDATA','');
     xLdg := xLdg.NewChild('REQUESTDESC','');
     xLdg.NewChild2('REPORTNAME', 'All Masters');
+{$ELSE}
+    xLdg := xLdg.NewChild('DESC','');
+{$ENDIF}
     xLdg := xLdg.NewChild('STATICVARIABLES','');
     xLdg.NewChild2('SVEXPORTFORMAT', '$$SysName:XML');
     if length(Env.FFirm) > 0 then
@@ -1122,7 +1133,11 @@ begin
       xLdg := xLdg.GetParent;
   { REQUESTDESC }
     xLdg := xLdg.GetParent;
+{$IFNDEF Newformat}
     xLdg := xLdg.NewChild('REQUESTDATA','');
+{$ELSE}
+    xLdg := xLdg.NewChild('DATA','');
+{$ENDIF}
   end;
 end;
 
@@ -1133,10 +1148,23 @@ begin
     xvch.Clear;
     xvou := xVch.NewChild('ENVELOPE','');
     xvou := xvou.NewChild('HEADER','');
+{$IFNDEF Newformat}
     xvou.NewChild2('TALLYREQUEST','Import Data');
+{$ELSE}
+    xvou.NewChild2('VERSION','1');
+    xvou.NewChild2('TALLYREQUEST','IMPORT');
+    xvou.NewChild2('TYPE','DATA');
+    xvou.NewChild2('ID','All Masters');
+{$ENDIF}
     xVou := xVou.GetParent;
     xvou := xvou.NewChild('BODY','');
+{$IFNDEF Newformat}
     xvou := xvou.NewChild('IMPORTDATA','');
+    xvou := xvou.NewChild('REQUESTDESC','');
+    xvou.NewChild2('REPORTNAME', 'All Masters');
+{$ELSE}
+    xvou := xvou.NewChild('DESC','');
+{$ENDIF}
     xvou := xvou.NewChild('REQUESTDESC','');
     xvou.NewChild2('REPORTNAME', 'All Masters');
     xvou := xvou.NewChild('STATICVARIABLES','');
@@ -1150,7 +1178,11 @@ begin
       xVou := xVou.GetParent;
   { REQUESTDESC }
     xvou := xvou.GetParent;
+{$IFNDEF Newformat}
     xvou := xvou.NewChild('REQUESTDATA','');
+{$ELSE}
+    xvou := xvou.NewChild('DATA','');
+{$ENDIF}
   end;
 end;
 
@@ -1292,8 +1324,10 @@ Procedure TbjMstExp.XmlFooter(const tgt:string);
 begin
   if tgt = 'L' then
   begin
+{$IFNDEF Newformat}
 { REQUESTDATA }
     xLdg := xLdg.GetParent;
+{$ENDIF}
 { IMPORTDATA }
     xLdg := xLdg.GetParent;
 { BODY }

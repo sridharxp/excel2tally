@@ -308,6 +308,9 @@ MYSALE = '<Voucher>'+
 '<DefaultGroup>Sundry Debtors</DefaultGroup>'+
 '<IsMultiRow>No</IsMultiRow>'+
 '<IsMultiColumn>Yes</IsMultiColumn>'+
+'<KeyCol>VoucherRef</KeyCol>'+
+'<KeyCol>Sales_Value</KeyCol>'+
+'<KeyCol>Invoice_Date</KeyCol>'+
 '</Data>'+
 
 '<VoucherNo>'+
@@ -658,6 +661,9 @@ MYPURC = '<Voucher>'+
 '<DefaultGroup>Sundry Debtors</DefaultGroup>'+
 '<IsMultiRow>No</IsMultiRow>'+
 '<IsMultiColumn>Yes</IsMultiColumn>'+
+'<KeyCol>VoucherRef</KeyCol>'+
+'<KeyCol>Purchase_Value</KeyCol>'+
+'<KeyCol>Invoice_Date</KeyCol>'+
 '</Data>'+
 
 '<VoucherNo>'+
@@ -1318,6 +1324,9 @@ GSTSALE = '<Voucher>'+
 '<DefaultGroup>Sundry Debtors</DefaultGroup>'+
 '<IsMultiRow>Yes</IsMultiRow>'+
 '<IsMultiColumn>Yes</IsMultiColumn>'+
+'<KeyCol>VoucherRef</KeyCol>'+
+'<KeyCol>Sales_Value</KeyCol>'+
+'<KeyCol>Invoice_Date</KeyCol>'+
 '</Data>'+
 
 '<ID>'+
@@ -1634,6 +1643,9 @@ GSTPURC = '<Voucher>'+
 '<DefaultGroup>Sundry Creditors</DefaultGroup>'+
 '<IsMultiRow>Yes</IsMultiRow>'+
 '<IsMultiColumn>Yes</IsMultiColumn>'+
+'<KeyCol>VoucherRef</KeyCol>'+
+'<KeyCol>Purchase_Value</KeyCol>'+
+'<KeyCol>Invoice_Date</KeyCol>'+
 '</Data>'+
 
 '<ID>'+
