@@ -90,7 +90,6 @@ TbjDSLParser = class(TinterfacedObject, IbjDSLParser)
     DiRoundOff: string;
     RoundOffCol: string;
 
-    { Public declarations }
     RoundOffGroup: string;
     RoundOffGroupCol: string;
     URoundOffAmountColName: string;
@@ -717,10 +716,11 @@ AutoCreateMst affects default group only
     end;
   end;
 
-  xCfg := cfg.SearchForTag(nil, 'Bill Ref');
+  xCfg := cfg.SearchForTag(nil, UBillRefName);
   if Assigned(xCfg) then
   begin
-    str := xCfg.GetContent;
+//    str := xCfg.GetContent;
+    str := xCfg.GetChildContent(UAliasName);
     if Length(str) > 0 then
     begin
       UBillRefName := str;
@@ -1161,7 +1161,6 @@ Todo
     end;
   end;
 
-//Shifted from ChckcolNames as this is Xml file specific
 { If Ledger is definded corresponding amount column should be defined }
 { gaps should not exist }
   for i := 1 to COLUMNLIMIT do
@@ -1225,8 +1224,6 @@ begin
     IsUserDescDefined := True;
   if kadb.FindField(UUnitName) <> nil then
     IsUnitDefined := True;
-//  if kadb.FindField(UAliasName) <> nil then
-//    IsAliasDefined := True;
   if kadb.FindField(UMailingName) <> nil then
     IsMailingNameDefined := True;
   if kadb.FindField(UGodownName) <> nil then
@@ -1272,8 +1269,6 @@ begin
       IsORateDefined := True;
     if kadb.FindField(UMRPRateName) <> nil then
       IsMRPRateDefined := True;
-//    if kadb.FindField(UGSTRateName) <> nil then
-//      IsGSTRateDefined := True;
   end;
   if IsIListDeclared then
   begin
@@ -1298,10 +1293,6 @@ begin
       IsAmtDefined[j] := True;
     end;
   end;
-//  if kadb.FindField(RoundOffCol) <> nil then
-//    IsRoundOffColDefined := True;
-//  if kadb.FindField(RoundOffGroupCol) <> nil then
-//    IsRoundOffGroupColDefined := True;
 
   if IsVListDeclared then
   begin
@@ -1333,13 +1324,13 @@ begin
   end;
   for i := 1 to COLUMNLIMIT+1 do
   begin
-        if IsGSTNDeclared[i] then
-          if kadb.FindField(UGSTNName[i]) <> nil then
-          begin
-            IsGSTNDefined[i] := True;
-            if not IsLedgerDefined[i] then
-              raise Exception.Create('Check CreateColLedger');
-          end;
+    if IsGSTNDeclared[i] then
+    if kadb.FindField(UGSTNName[i]) <> nil then
+    begin
+      IsGSTNDefined[i] := True;
+      if not IsLedgerDefined[i] then
+        raise Exception.Create('Check CreateColLedger');
+    end;
   end;
 end;
 
@@ -1473,7 +1464,6 @@ begin
       MstExp.NewLedger(dsl.DiLedgerValue[DeclaredLedgers], 'Indirect Expenses', 0);
     end;
   end;
-// Ledger Creation should be done only when necessary
 { Create Default Ledgers }
   for i := 1 to COLUMNLIMIT do
   begin
@@ -1482,15 +1472,6 @@ begin
       if (Length(dsl.DiLedgerValue[i]) > 0) then
         MstExp.NewLedger(dsl.DiLedgerValue[i], dsl.LedgerGroup[i], 0);
   end;
-{
-  if dsl.IsRoundOffGroupColDefined then
-  begin
-    RoundOffGroupColValue :=  kadb.GetFieldString(dsl.RoundOffGroupCol);
-    ShowMessage(RoundOffGroupColValue);
-    if Length(RoundOffGroupColValue) = 0 then
-      RoundOffGroupColValue := dsl.RoundOffGroup;
-  end;
-}
   if Length(dsl.RoundOffGroup) > 0 then
   if Length(dsl.DiRoundOff) > 0 then
     MstExp.NewLedger(dsl.DiRoundOff, dsl.RoundOffGroup, 0);
@@ -1505,7 +1486,6 @@ begin
          ditem := dsl.LedgerDict[i].Items[j];
          if (Length(dsl.LedgerGroup[i]) > 0) then
          begin
-//           MstExp.VchType := VchType;
            LedgerColValue := pDict(dItem)^.Value;
            MstExp.NewGST(LedgerColValue, dsl.LedgerGroup[i], pDict(dItem)^.Token);
          end;
@@ -1515,11 +1495,9 @@ begin
     for j := 0 to dsl.LedgerDict[COLUMNLIMIT+1].Count-1 do
     begin
       ditem := dsl.LedgerDict[COLUMNLIMIT+1].Items[j];
-//      if (Length(dsl.RoundOffGroup) > 0) then
       if (Length(dsl.RoundOffGroup) > 0) then
       begin
         LedgerColValue := pDict(dItem)^.Value;
-//        MstExp.NewLedger(LedgerColValue, dsl.RoundOffGroup, 0);
         MstExp.NewLedger(LedgerColValue, dsl.RoundOffGroup, 0);
       end;
     end;
@@ -1541,42 +1519,6 @@ begin
   ProcessMaster;
   if dsl.IsMListDeclared then
     Exit;
-{
-  if dsl.IsMListDeclared then
-  if MessageDlg('Allow modification of Masters?', mtConfirmation, [mbOK, mbCancel], 0) = mrOK then
-   begin
-    Env.ToUpdateMasters := True;
-    ToAutoCreateMst := True;
-  end;
-  
-  kadb.First;
-  IDstr := '';
-  vTotal := 0;
-  while (not kadb.Eof)  do
-  begin
-    GenerateID;
-    CheckLedMst;
-    ExpItemMst;
-    if dsl.IsMultiRowVoucher then
-      CreateRowLedger;
-    if dsl.IsMultiColumnVoucher then
-      CreateColLedger;
-    kadb.Next;
-  end;
-  if dsl.IsMListDeclared then
-  begin
-    if IsCheckLedMst then
-    begin
-    if missingledgers > 0 then
-      MessageDlg(IntToStr(missingledgers)+ ' Ledgers Missing in Tally', mtInformation, [mbOK], 0)
-    else
-      MessageDlg('Done', mtInformation, [mbOK], 0);
-    end;
-    if IsExpItemMst then
-      MessageDlg('Done', mtInformation, [mbOK], 0);
-    Exit;
-  end;
-}
   kadb.First;
   IDstr := '';
   kadb.First;
@@ -1604,10 +1546,6 @@ begin
     Process;
     if IsIdOnlyChecked then
       Continue;
-
-
-
-
     kadb.Next;
     if not kadb.Eof then
       notoskip := notoskip + 1;
@@ -1623,15 +1561,10 @@ begin
   timestr := InttoStr(Mins) + ' minute(s) ' + InttoStr(Secs) +' Seconds'
   else
   timestr := InttoStr(Secs) +' Seconds';
-
-
-
-
     StatusMsg := InttoStr(ProcessedCount) + '/' + InttoStr(FdynPgLen) +
     ' Vouchers processed; ' +
     InttoStr(SCount) + ' Success. ' + timestr;
   FUpdate(StatusMsg);
-//  if not dsl.IsRemoteIdDefined then
   MessageDlg(InttoStr(ProcessedCount) + ' Vouchers processed; To Cancel this post use Success.xls ',
       mtInformation, [mbOK], 0);
   Filter(ProcessedCount - SCount);
@@ -1674,7 +1607,6 @@ begin
     end;
     if IsExpItemMst then
       MessageDlg('Done', mtInformation, [mbOK], 0);
-//    Exit;
   end;
 end;
 
@@ -1940,9 +1872,8 @@ begin
   if dsl.IsHSNDefined then
   begin
     HSNColValue := kadb.GetFieldString(dsl.UHSNName);
-//    GRate := kadb.GetFieldToken('Tax_rate');
-	  if dsl.IsGSTRateDefined then
-    GRate := kadb.GetFieldToken(dsl.UGSTRateName);
+	if dsl.IsGSTRateDefined then
+      GRate := kadb.GetFieldToken(dsl.UGSTRateName);
     MstExp.NewHSN(ItemColValue, UnitColValue, HSNColValue, GRate);
   end
   else
@@ -1976,16 +1907,16 @@ begin
     begin
       if Length(IDstr) = 0 then
       IDstr :=  IntToStr(kadb.CurrentRow);
-	  if kadb.IsEmptyField(dsl.UIdName) then
-      kadb.SetFieldVal(dsl.UIdName, IDstr)
+      if kadb.IsEmptyField(dsl.UIdName) then
+        kadb.SetFieldVal(dsl.UIdName, IDstr)
       else
-      IDstr :=  kadb.GetFieldString(dsl.UIdName);
+        IDstr :=  kadb.GetFieldString(dsl.UIdName);
     end;
     vTotal := vTotal + kadb.GetFieldCurr(dsl.CrAmtCol) -
               kadb.GetFieldCurr(dsl.DrAmtCol);
   end;
-    if not dsl.IsIdDefined then
-      Exit;
+  if not dsl.IsIdDefined then
+    Exit;
   if dsl.IsBank then
   begin
     if (kadb.GetFieldCurr(dsl.CrAmtCol) <> 0) or
@@ -2057,11 +1988,15 @@ begin
   end;
   if Length(dbkLed) > 0 then
   begin
+    if Env.ToUpdateMasters then
+    begin
+      FUpdate('Ledger: ' + dbkLed);
+      CreateGSTLedger;
+      Exit;
+    end;
     dbGSTN := kadb.GetFieldString('GSTN');
     wLed := RpetObj.GetGSTNParty(dbGSTN);
     IsThere := False;
-    if not Env.ToUpdateMasters then
-    begin
     IsThere := MstExp.IsLedger(dbkLed);
     if not IsThere then
     begin
@@ -2069,8 +2004,6 @@ begin
       if dbkLed <> wLed then
         Exit;
     end;
-    end;
-    IsThere := MstExp.IsLedger(dbkLed);
     if not IsThere then
     begin
       if AskAgainToAutoCreateMst then
@@ -2094,9 +2027,8 @@ begin
       begin
         CreateGSTLedger;
       end;
-    end;
-    if IsThere and not Env.ToUpdateMasters then
-    begin
+    end
+    else
     if dsl.IsGSTNDefined[1] then
       if not kadb.IsEmptyField('GSTN') then
       begin
@@ -2105,12 +2037,11 @@ begin
         begin
           kadb.SetFieldVal('TALLYID', 'Update GSTN');
         end;
-      if dbGSTN <> wGSTN then
-        kadb.SetFieldVal('TALLYID', 'New GSTN - Repeat Name');
-      if dbkLed <> wLed then
-        kadb.SetFieldVal('TALLYID', wLed + ' - Repeat GSTN');
+        if dbGSTN <> wGSTN then
+          kadb.SetFieldVal('TALLYID', 'New GSTN - Repeat Name');
+        if dbkLed <> wLed then
+          kadb.SetFieldVal('TALLYID', wLed + ' - Repeat GSTN');
       end;
-  end;
   end;
   FUpdate('Ledger: ' + dbkLed);
 end;
@@ -2137,7 +2068,6 @@ begin
   MRPRate := 0;
   if dsl.IsUnitDefined then
   begin
-//    dbUnit := kadb.GetFieldString('Unit');
     dbUnit := kadb.GetFieldString(dsl.UUnitName);
     MstExp.NewUnit(dbUnit);
   end;
@@ -2244,12 +2174,6 @@ begin
   end;
   if dsl.IsOutItemDefined then
   begin
-{
-  if dsl.IsBatchDefined then
-  BatchColValue :=  kadb.GetFieldString('Batch');
-  if dsl.IsUserDescDefined then
-  UserDescColValue :=  kadb.GetFieldString(dsl.UUserDescName);
-}
   ItemColValue := kadb.GetFieldString(dsl.UOutItemName);
   GodownColValue := kadb.GetFieldString(dsl.UOutGodownName);
   if (Length(ItemColValue) > 0) and
@@ -2262,12 +2186,6 @@ begin
   end;
   if dsl.IsInItemDefined then
   begin
-{
-  if dsl.IsBatchDefined then
-  BatchColValue :=  kadb.GetFieldString('Batch');
-  if dsl.IsUserDescDefined then
-  UserDescColValue :=  kadb.GetFieldString(dsl.UUserDescName);
-}
   ItemColValue := kadb.GetFieldString(dsl.UInItemName);
   GodownColValue := kadb.GetFieldString(dsl.UInGodownName);
   if (Length(ItemColValue) > 0) and
@@ -2363,7 +2281,6 @@ begin
   notoskip := 0;
 end;
 
-{***}
 procedure TbjMrMc.GetDefaults;
 begin
 {  GetSingleValues; }
@@ -2577,28 +2494,27 @@ begin
   end;
   if RoundOffActual = 0 then
   begin
-  RoundOffAmount := Trunc(Vtotal) - VTotal;
-  if RoundOffMethod = ' ' then
-    RoundOffAmount :=  0;
-  if RoundOffMethod = 'W' then
-  begin
-    if Abs(RoundOffAmount) > 0.5 then
-//      RoundOffMethod := 'N';
-      thisalso := True;
-  end;
-  if (RoundOffMethod = 'N') or thisalso then
-  begin
-    if RoundOffAmount < 0 then
+    RoundOffAmount := Trunc(Vtotal) - VTotal;
+    if RoundOffMethod = ' ' then
+      RoundOffAmount :=  0;
+    if RoundOffMethod = 'W' then
     begin
-      RoundOffAmount :=  RoundOffAmount + 1;
-      VTotal := VTotal + 1;
-    end
-    else if RoundOffAmount > 0 then
-    begin
-      RoundOffAmount := RoundOffAmount - 1;
-      VTotal := VTotal - 1;
+      if Abs(RoundOffAmount) > 0.5 then
+        thisalso := True;
     end;
-  end;
+    if (RoundOffMethod = 'N') or thisalso then
+    begin
+      if RoundOffAmount < 0 then
+      begin
+        RoundOffAmount :=  RoundOffAmount + 1;
+        VTotal := VTotal + 1;
+      end
+      else if RoundOffAmount > 0 then
+      begin
+        RoundOffAmount := RoundOffAmount - 1;
+        VTotal := VTotal - 1;
+      end;
+    end;
   end;
 {  CheckErrStr := '(FOR OBJECT: '; }
 //  vchAction := 'Create';
@@ -2613,13 +2529,13 @@ begin
   begin
     if RoundOffAmount <> 0 then
     begin
-    VchExp.AddLine(RoundOffName, - trunc(VTotal), IsMinus);
-  if VTotal > 0 then
-  if RoundOffAmount < 0 then
-      IsMinus := True;
-  if VTotal < 0 then
-  if RoundOffAmount > 0 then
-      IsMinus := True;
+      VchExp.AddLine(RoundOffName, - trunc(VTotal), IsMinus);
+      if VTotal > 0 then
+      if RoundOffAmount < 0 then
+        IsMinus := True;
+      if VTotal < 0 then
+      if RoundOffAmount > 0 then
+        IsMinus := True;
       VchExp.AddLine('RoundOff', RoundOffAmount, IsMinus);
     end
     else
@@ -2709,6 +2625,7 @@ begin
   FFirmGUID := aGUID;
   Env.GUID := aGuid;
 end;
+
 procedure TbjMrMc.SetHost(const aHost: string);
 begin
   FHost := aHost;
@@ -2723,11 +2640,13 @@ begin
   FIsPostto1stLedgerwithGSTNon := aChoice;
   Env.IsPostto1stLedgerwithGSTNon := aChoice;
 end;
+
 procedure TbjMrMc.SetIsUniqueVchRef(const aChoice: Boolean);
 begin
   FIsUniqueVchRefon := aChoice;
   Env.IsUniqueVchRefon := aChoice;
 end;
+
 procedure TbjMrMc.SetGSTLedType(const aType: string);
 begin
   FGSTLedType := aType;
@@ -2750,14 +2669,12 @@ begin
   str := copy(aGSTN, 1, 2);
   if Length(Trim(str)) = 0 then
   begin
-//  Result := UdefStateName;
   Exit;
   end;
   if not tryStrtoInt(str, idx) then
   begin
     MessageDlg('Error in GSTN, Row: '+ IntToStr(kadb.CurrentRow+1) , mterror, [mbOK], 0);
     kadb.SetFieldVal('TALLYID', 'GSTN');
-//    Result := UDefStateName;
     Exit;
   end;
   Case idx of
@@ -2794,7 +2711,6 @@ begin
        31: str := 'Lakshdweep';
        32: str := 'Kerala';
        33: str := 'Tamil Nadu';
-//       34: str := 'Pondicherry';
        34: str := 'Puducherry';
        35: str := 'Andaman & Nicobar Islands';
        36: str := 'Telangana';
@@ -2857,7 +2773,6 @@ var
   inErr: boolean;
 begin
   kadb.SaveAs('.\Data\Success.xls');
-//  if (aFailure = 0) then
   inErr := True;
   kadb.First;
   while not kadb.EOF do
@@ -2868,7 +2783,7 @@ begin
       kadb.Delete;
       Continue;
     end;
-//    Exit;
+
     if not kadb.IsEmptyField(dsl.UTallyIDName) then
       if kadb.GetFieldCurr(dsl.UTallyIDName) >  0 then
       begin
@@ -2882,7 +2797,7 @@ begin
   end;
   UnFilter;
 end;
-//  KAdb.Save('.\Data\Response.xls');
+
 procedure TbjMrMc.FormatCols;
 begin
   kadb.SetFieldFormat('Tax_rate', 35);
@@ -2911,7 +2826,7 @@ begin
   kadb.SetFieldFormat('Payment_Ledger', 35);
   kadb.SetFieldFormat('Receipt_Ledger', 35);
   kadb.SetFieldFormat('Voucher Ref', 35);
-  kadb.SetFieldFormat('Bill Ref', 35);
+  kadb.SetFieldFormat('Bill_Ref', 35);
   kadb.SetFieldFormat('GROUP', 35);
   kadb.SetFieldFormat('Alias', 35);
   kadb.SetFieldFormat('GSTRate', 35);
@@ -2920,7 +2835,7 @@ begin
   kadb.SetFieldFormat('Category', 35);
   kadb.SetFieldFormat('TALLYID', 35);
   kadb.SetFieldFormat('REMOTEID', 35);
-    end;
+end;
 
 procedure TbjMrMc.UnFilter;
 var
@@ -2990,7 +2905,6 @@ begin
     (kadb.GetFieldString('Group') = 'Sundry Creditors') then
   begin
     MstExp.NewParty(kadb.GetFieldString('Ledger'), kadb.GetFieldString('Group'),
-//      kadb.GetFieldString('GSTN'), UdefStateName);
       kadb.GetFieldString('GSTN'), rState);
     Exit;
   end;
@@ -3008,7 +2922,6 @@ begin
   FUpdate('Creating default GST ledgers...');
   if VchType = 'Sales' then
   begin
-//    MstExp.VchType := 'Sales';
     MstExp.NewGst('GST Sales Exempted', 'Sales Accounts', '0');
     MstExp.NewGst('GST 3% Sales', 'Sales Accounts', '3');
     MstExp.NewGst('GST 5% Sales', 'Sales Accounts', '5');
@@ -3040,11 +2953,10 @@ begin
     MstExp.NewGst('Output SGST 14%', 'Duties & Taxes', '28');
     MstExp.NewGst('Output CGST 14%', 'Duties & Taxes', '28');
     MstExp.NewGst('Output IGST 28%', 'Duties & Taxes', '28');
-  end;
+    end;
   end;
   if VchType = 'Purchase' then
   begin
-//    MstExp.VchType := 'Purchase';
     MstExp.NewGst('GST Purchase Exempted', 'Purchase Accounts', '0');
     MstExp.NewGst('GST 3% Purchase', 'Purchase Accounts', '3');
     MstExp.NewGst('GST 5% Purchase', 'Purchase Accounts', '5');
@@ -3071,7 +2983,6 @@ begin
     MstExp.NewGst('input IGST 12%', 'Duties & Taxes', '12');
     MstExp.NewGst('input SGST 9%', 'Duties & Taxes', '18');
     MstExp.NewGst('input CGST 9%', 'Duties & Taxes', '18');
-//    MstExp.NewGst('input IGST 18%', 'Duties &amp; Taxes', '18');
     MstExp.NewGst('input IGST 18%', 'Duties & Taxes', '18');
     MstExp.NewGst('input SGST 14%', 'Duties & Taxes', '28');
     MstExp.NewGst('input CGST 14%', 'Duties & Taxes', '28');
@@ -3111,6 +3022,7 @@ begin
   FVchAction := aAction;
   VchExp.VchAction := VchAction;
 end;
+
 function RoundCurr(const Value: Currency): Currency;
 var
   V64: Int64 absolute Result;

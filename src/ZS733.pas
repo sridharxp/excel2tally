@@ -2344,22 +2344,6 @@ It does not use GetDupPartyGSTN
       Exit;
     end;
   end;
-(*
-  if (DupName) and (not Env.MergeDupLed4GSTN) then
-  begin
-    CreateParty(aLedger, aParent, aGSTN, aState);
-    LedPList.Add(PackStr(aLedger));
-    if Length(aGSTN) > 0 then
-    begin
-      item := new(pGSTNRec);
-      item.Name := aLedger;
-      item.GSTN := aGSTN;
-      gstnlIST.Add(item);
-      Result := aLedger;
-    end;
-{ Same Name Different GSTN}
-  end;
-*)
 end;
 
 procedure TbjMstExp.NewGST(const aLedger, aParent: string; const TaxRate: string);
@@ -2499,30 +2483,4 @@ begin
 end;
 }
 
-{
-initialization
-begin
-  if not Assigned(bjEnv) then
-  begin
-    bjEnv := TbjEnv.Create;
-  end;
-  if not Assigned(bjMstExp) then
-  begin
-    bjMstExp := TbjMstExp.Create;
-    bjMstExp.bjEnv := bjEnv;
-  end;
-  if not Assigned(bjVchExp) then
-  begin
-    bjVchExp := TbjVchExp.Create;
-    bjVchExp.bjEnv := bjEnv;
-    bjVchExp.bjMstExp := bjMstExp;
-  end;
-end;
-finalization
-begin
-  bjVchExp.Free;
-  bjMstExp.Free;
-  bjEnv.Free;
-end;
-}
 end.
