@@ -30,7 +30,6 @@ uses
   bjxml3_1;
 
 type
-//  TbjMstListImp = class(TComponent)
   TbjMstListImp = class
   private
     { Private declarations }
@@ -62,8 +61,6 @@ type
     constructor Create;
     destructor Destroy; override;
     function GetLedPackedList: TStringList;
-{    procedure GetGrpLedList; }
-//    function GetLedPackedList: TStringList;
     function GetItemPackedList: TStringList;
     function GetUnitPackedList: TStringList;
     function GetItemGroupPackedList: TStringList;
@@ -72,13 +69,10 @@ type
     function GetLedText: string;
     function GetItemText: string;
 
-//    function GetGroup(const aled:string): string;
     function GetCMPText: string;
-//    function GetSalesList: TStringList;
     function GetSalesText: string;
     function GetPurcText: string;
     function GetTaxText: string;
-//  function GetParentList: TStringList;
     function GetPartyText(const Include: boolean): string;
     function GetCashBankText(const Include: boolean): string;
     procedure SetHost(const aHost: string);
@@ -257,20 +251,26 @@ end;
 
 function TbjMstListImp.GetLedPackedList: TStringList;
 var
+  xSVar, xStr, xFormula: IbjXml;
   OResult: IbjXml;
-  NameListNode, AliasNode: IbjXml;
   CollName: string;
+  LedNode: IbjXml;
+  NameListNode, AliasNode: IbjXml;
   AliasName: string;
-  DNode, RecNode, LedNode: IbjXml;
-  LedPList: TStringList;
-  i, Children: integer;
+  LedPList: THashedStringList;
 begin
+  LedPList := THashedStringList.Create;
+  xSVar := CreatebjXmlDocument;
+  xStr := CreatebjXmlDocument;
   CollName := 'Ledger';
-  LedPList := TStringList.Create;
   OResult := CreatebjXmlDocument;
-  LedPList.Add('NAME');
-  OResult.LoadXml(ColEval(CollName, 'Ledger', LedPList));
-  LedPList.Clear;
+  xSVar.LoadXML('<STATICVARIABLES>'+
+  '<SVEXPORTFORMAT>$$SysName:XML</SVEXPORTFORMAT>'+
+  '</STATICVARIABLES>');
+  xStr.LoadXML('<NATIVEMETHOD>NAME</NATIVEMETHOD>');
+
+  OResult.LoadXml(ColeXEval(CollName, 'Ledger', xSVar, xStr, xFormula));
+//  orESULT.SaveXmlFile('aLIAS.XML');
   LedNode := OResult.SearchforTag(nil, 'COLLECTION');
   LedNode := OResult.SearchforTag(LedNode, 'LEDGER');
   while Assigned(LedNode) do
@@ -305,7 +305,6 @@ begin
 {    ShowMessage(LedPList.Text); }
   end;
   Result := LedPList;
-  Exit;
 
 end;
 
@@ -315,10 +314,8 @@ var
   strs: string;
   OResult: IbjXml;
   CollName: string;
-  parentName: string;
-  LedNode, ParentNode: IbjXml;
+  LedNode: IbjXml;
   LedPList: TStringList;
-  i, Children: integer;
   LStr: string;
 begin
   LedPList := TStringList.Create;
@@ -353,7 +350,6 @@ begin
     LedPList.Sorted := True;
     Result := LedPlist.Text;
     LedPList.Free;
-    Exit;
 
 end;
 
@@ -450,37 +446,35 @@ end;
 
 function TbjMstListImp.GetTaxText: string;
 var
+  xSVar, xStr, xFormula: IbjXml;
   OResult: IbjXml;
-  DNode, RecNode, LedNode, ParentNode: IbjXml;
   CollName: string;
+  LedNode: IbjXml;
   LedPList: TStringList;
-  i, Children: integer;
-  grp: string;
-  ok: boolean;
+  rTaxGrpName: string;
 begin
   LedPList := TStringList.Create;
+  xSVar := CreatebjXmlDocument;
+  xStr := CreatebjXmlDocument;
+  xFormula := CreatebjXmlDocument;
+  rTaxGrpName := TexttoXml('Duties & Taxes');
   CollName := 'Ledger';
-  LedPList.Add('PARENT');
+  xSVar.LoadXML('<STATICVARIABLES>'+
+  '<SVEXPORTFORMAT>$$SysName:XML</SVEXPORTFORMAT>'+
+  '</STATICVARIABLES>');
+  xStr.LoadXML('<FILTERS>VTYPE</FILTERS>');
+    xFormula.LoadXML('<SYSTEM TYPE="Formulae" NAME="VTYPE">'+
+  '$Parent="'+rTaxGrpName+'"</SYSTEM>');
+
   OResult := CreatebjXmlDocument;
-  OResult.LoadXml(ColEval(CollName, 'Ledger', LedPList));
-  LedPList.Clear;
+  OResult.LoadXml(ColExEval(CollName, 'Ledger', xSVar, xStr, xFormula));
   LedNode := OResult.SearchforTag(nil, 'LEDGER');
   while Assigned(LedNode) do
   begin
-    ok := False;
-    ParentNode := OResult.SearchforTag(LedNode, 'PARENT');
-    if not Assigned(ParentNode) then
-      continue;
-    grp := ParentNode.GetContent;
-    if (grp = 'Duties & Taxes') then
-      ok := True;
-    if ok then
-    begin
       if ToPack then
         LedPList.Add( PackStr(LedNode.GetAttrValue('NAME')))
       else
         LedPList.Add( LedNode.GetAttrValue('NAME'));
-    end;
     LedNode := OResult.SearchforTag(LedNode, 'LEDGER');
   end;
   if LedPList.Count > 0 then
@@ -489,7 +483,6 @@ begin
   end;
     Result := LedPList.Text;
     LedPList.Free;
-    Exit;
 
 end;
 
@@ -587,6 +580,7 @@ end;
 //procedure TbjMstList.GetLedText(var Data:pchar; out Size:integer);
 function TbjMstListImp.GetLedText: string;
 var
+  xSVar, xStr, xFormula: IbjXml;
   LedNode: IbjXml;
   LedList: TStringList;
 begin
@@ -595,6 +589,9 @@ begin
   LedNode := XMst.SearchForTag(nil, 'LEDGER');
   while LedNode <> nil do
   begin
+    if ToPack then
+      LedList.Add(PackStr(LedNode.GetAttrValue('NAME')))
+    else
     LedList.Add(LedNode.GetAttrValue('NAME'));
     LedNode:= XMst.SearchForTag( LedNode, 'LEDGER' );
   end;
@@ -608,78 +605,77 @@ end;
 
 function TbjMstListImp.GetItemPackedList: TStringList;
 var
+  xSVar, xStr, xFormula: IbjXml;
   OResult: IbjXml;
   CollName: string;
-  xSVar, xStr, xFormula: IbjXml;
   iStr: string;
-
-  DNode, RecNode: IbjXml;
-  i, Children: integer;
   ItemNode: IbjXml;
-  ItemPList: TStringList;
+  ItemList: TStringList;
 begin
-  ItemPList := TStringList.Create;
-
-  CollName := 'StockItem';
-  OResult := CreatebjXmlDocument;
+  ItemList := TStringList.Create;
   xSVar := CreatebjXmlDocument;
+
+  CollName := 'STOCKITEM';
+  OResult := CreatebjXmlDocument;
     xSVar.LoadXML('<STATICVARIABLES>'+
 '<SVEXPORTFORMAT>$$SysName:XML</SVEXPORTFORMAT>'+
 '</STATICVARIABLES>');
-  OResult.LoadXml(ColExEval(CollName, 'StockItem', xSVar, xStr, xFormula));
-  ItemPList.Clear;
-  ItemNode := OResult.SearchforTag(nil, 'COLLECTION');
-  ItemNode := OResult.SearchforTag(ItemNode, 'STOCKITEM');
+  OResult.LoadXml(ColExEval(CollName, 'STOCKITEM', xSVar, xStr, xFormula));
+  ItemNode := OResult.SearchforTag(nil, 'STOCKITEM');
   while Assigned(ItemNode) do
   begin
     iStr := ItemNode.GetAttrValue('NAME');
-    if Length(iStr) > 0 then
+    if Length(iStr) = 0 then
     begin
-    if ToPack then
-        ItemPList.Add(PackStr(iStr))
-    else
-        ItemPList.Add(iStr);
+      ItemNode := OResult.SearchforTag(ItemNode, 'STOCKITEM');
+      Continue;
     end;
+    if ToPack then
+      ItemList.Add(PackStr(iStr))
+    else
+      ItemList.Add(iStr);
     ItemNode := OResult.SearchforTag(ItemNode, 'STOCKITEM');
   end;
-  if ItemPList.Count > 0 then
+  if ItemList.Count > 0 then
   begin
-    ItemPList.Sorted := True;
+    ItemList.Sorted := True;
   end;
-  Result := ItemPList;
-    Exit;
+  Result := ItemList;
 
 end;
 
 function TbjMstListImp.GetUnitPackedList: TStringList;
 var
+  xSVar, xStr, xFormula: IbjXml;
   OResult: IbjXml;
   CollName: string;
-  strx: IbjXml;
   uStr: string;
-  DNode, RecNode: IbjXml;
-  i, Children: integer;
   UnitNode: IbjXml;
   UnitPList: TStringList;
 begin
   UnitPList := TStringList.Create;
+  xSVar := CreatebjXmlDocument;
 
+  xSVar.LoadXML('<STATICVARIABLES>'+
+  '<SVEXPORTFORMAT>$$SysName:XML</SVEXPORTFORMAT>'+
+  '</STATICVARIABLES>');
   CollName := 'Unit';
   OResult := CreatebjXmlDocument;
-  OResult.LoadXml(Col2Eval(CollName, 'Unit', strx, UnitPList));
-  uNITPList.Clear;
+  OResult.LoadXml(ColExEval(CollName, 'Unit', xSVar, xStr, xFormula));
   UnitNode := OResult.SearchforTag(nil, 'COLLECTION');
   UnitNode := OResult.SearchforTag(UnitNode, 'UNIT');
   while Assigned(UnitNode) do
   begin
     uStr :=  UnitNode.GetAttrValue('NAME');
-    if Length(uStr) > 0 then
+    if Length(uStr) = 0 then
     begin
+      UnitNode := OResult.SearchforTag(UnitNode, 'UNIT');
+      continue;
+    end;
     if ToPack then
         UnitPList.Add(PackStr(uStr))
     else
         UnitPList.Add(uStr);
-    end;
     UnitNode := OResult.SearchforTag(UnitNode, 'UNIT');
   end;
   if UnitPList.Count > 0 then
@@ -688,38 +684,40 @@ begin
 {   ShowMessage(Unitplist.text); }
   end;
   Result := UnitPList;
-  Exit;
 
 end;
 
 function TbjMstListImp.GetItemGroupPackedList: TStringList;
 var
+  xSVar, xStr, xFormula: IbjXml;
   OResult: IbjXml;
   CollName: string;
-  strx: IbjXml;
   gStr: string;
-  DNode, RecNode: IbjXml;
-  i, Children: integer;
   GroupNode: IbjXml;
   GrpPList: TStringList;
 begin
   GrpPList := TStringList.Create;
+  xSVar := CreatebjXmlDocument;
   CollName := 'STOCKGROUP';
   OResult := CreatebjXmlDocument;
-  OResult.LoadXml(Col2Eval(CollName, 'STOCKGROUP', strx, GrpPList));
-  GrpPList.Clear;
+  xSVar.LoadXML('<STATICVARIABLES>'+
+  '<SVEXPORTFORMAT>$$SysName:XML</SVEXPORTFORMAT>'+
+  '</STATICVARIABLES>');
+  OResult.LoadXml(ColExEval(CollName, 'STOCKGROUP', xSVar, xStr, xFormula));
   GroupNode := OResult.SearchforTag(nil, 'COLLECTION');
   GroupNode := OResult.SearchforTag(GroupNode, 'STOCKGROUP');
   while Assigned(GroupNode) do
   begin
     gStr := GroupNode.GetAttrValue('NAME');
-    if Length(gStr) > 0 then
+    if Length(gStr) = 0 then
       begin
+      GroupNode := OResult.SearchforTag(GroupNode, 'STOCKGROUP');
+      continue
+    end;
       if ToPack then
         GrpPList.Add(PackStr(gStr))
       else
         GrpPList.Add(gStr);
-      end;
     GroupNode := OResult.SearchforTag(GroupNode, 'STOCKGROUP');
     end;
   if GrpPList.Count > 0 then
@@ -727,37 +725,40 @@ begin
     GrpPList.Sorted := True;
   end;
   Result := GrpPList;
-  Exit;
+{  ShowMessage(GrpPList.text); }
 end;
 
 function TbjMstListImp.GetCategoryPackedList: TStringList;
 var
+  xSVar, xStr, xFormula: IbjXml;
   OResult: IbjXml;
   CollName: string;
-  strx: IbjXml;
   cStr: string;
-  DNode, RecNode: IbjXml;
-  i, Children: integer;
   CategoryNode: IbjXml;
   StkCatPList: TStringList;
 begin
   StkCatPList := TStringList.Create;
+  xSVar := CreatebjXmlDocument;
   CollName := 'STOCKCATEGORY';
   OResult := CreatebjXmlDocument;
-  OResult.LoadXml(Col2Eval(CollName, 'STOCKCATEGORY', strx, StkCatPList));
-  StkCatPList.Clear;
+  xSVar.LoadXML('<STATICVARIABLES>'+
+  '<SVEXPORTFORMAT>$$SysName:XML</SVEXPORTFORMAT>'+
+  '</STATICVARIABLES>');
+  OResult.LoadXml(ColExEval(CollName, 'STOCKCATEGORY', xSVar, xStr, xFormula));
   CategoryNode := OResult.SearchforTag(nil, 'COLLECTION');
   CategoryNode := OResult.SearchforTag(CategoryNode, 'STOCKCATEGORY');
   while Assigned(CategoryNode) do
   begin
     cStr := CategoryNode.GetAttrValue('NAME');
-    if Length(cStr) > 0 then
+    if Length(cStr) = 0 then
       begin
+      CategoryNode := OResult.SearchforTag(CategoryNode, 'STOCKCATEGORY');
+       continue;
+    end;
       if ToPack then
         StkCatPList.Add(PackStr(cStr))
       else
         StkCatPList.Add(cStr);
-      end;
     CategoryNode := OResult.SearchforTag(CategoryNode, 'STOCKCATEGORY');
     end;
   if StkCatPList.Count > 0 then
@@ -765,37 +766,41 @@ begin
     StkCatPList.Sorted := True;
   end;
   Result := StkCatPList;
-  Exit;
+{  ShowMessage(StkCatplist.text); }
 end;
 
 function TbjMstListImp.GetGodownPackedList: TStringList;
 var
+  xSVar, xStr, xFormula: IbjXml;
   OResult: IbjXml;
   CollName: string;
-  strx: IbjXml;
   gStr: string;
-  DNode, RecNode: IbjXml;
-  i, Children: integer;
+
   GodownNode: IbjXml;
   GdnPList: TStringList;
 begin
   GdnPList := TStringList.Create;
+  xSVar := CreatebjXmlDocument;
   CollName := 'GODOWN';
   OResult := CreatebjXmlDocument;
-  OResult.LoadXml(Col2Eval(CollName, 'GODOWN', strx, GdnPList));
-  GdnPList.Clear;
+  xSVar.LoadXML('<STATICVARIABLES>'+
+  '<SVEXPORTFORMAT>$$SysName:XML</SVEXPORTFORMAT>'+
+  '</STATICVARIABLES>');
+  OResult.LoadXml(ColExEval(CollName, 'GODOWN', xSVar, xStr, xFormula));
   GodownNode := OResult.SearchforTag(nil, 'COLLECTION');
   GodownNode := OResult.SearchforTag(GodownNode, 'GODOWN');
   while Assigned(GodownNode) do
   begin
     gStr := GodownNode.GetAttrValue('NAME');
-    if Length(gStr) > 0 then
+    if Length(gStr) = 0 then
       begin
+      GodownNode := OResult.SearchforTag(GodownNode, 'GODOWN');
+      Continue;
+    end;
       if ToPack then
         GdnPList.Add(PackStr(gStr))
       else
         GdnPList.Add(gStr);
-      end;
     GodownNode := OResult.SearchforTag(GodownNode, 'GODOWN');
     end;
   if GdnPList.Count > 0 then
@@ -803,51 +808,19 @@ begin
     GdnPList.Sorted := True;
   end;
   Result := GdnPList;
-  Exit;
+{  ShowMessage(Gdnplist.text); }
 end;
 
 //procedure TbjMstList.GetItemText(var data:pchar; out size:integer);
 function TbjMstListImp.GetItemText: string;
 var
-  strx: IbjXml;
-  OResult: IbjXml;
-  CollName: string;
-  iStr: string;
-  ItemNode: IbjXml;
-  ItemList: TStringList;
+  ItemPList: TStringList;
 begin
-  ItemList := TStringList.Create;
-  strx := CreatebjXmlDocument;
-  CollName := 'STOCKITEM';
-  OResult := CreatebjXmlDocument;
-  OResult.LoadXml(Col2Eval(CollName, 'STOCKITEM', strx, ItemList));
-  ItemList.Clear;
-  ItemNode := OResult.SearchforTag(nil, 'STOCKITEM');
-  while Assigned(ItemNode) do
-  begin
-    iStr := ItemNode.GetAttrValue('NAME');
-    if Length(iStr) > 0 then
-      ItemList.Add(iStr);
-    ItemNode := OResult.SearchforTag(ItemNode, 'STOCKITEM');
-  end;
-  if ItemList.Count > 0 then
-  begin
-    Result := ItemList.Text;
-    ItemList.Free;
-    Exit;
-  end;
-  ItemList.Clear;
-  GetInvXML;
-  ItemNode := XInv.SearchForTag(nil, 'STOCKITEM');
-  while ItemNode <> nil do
-  begin
-    ItemList.Add(ItemNode.GetAttrValue('NAME'));
-    ItemNode:= XInv.SearchForTag( ItemNode, 'STOCKITEM' );
-  end;
-  try
-  Result := ItemList.Text;
-  finally
-    ItemList.Free;
-  end;
+  ItemPList := GetItemPackedList;
+  Result := ItemPList.Text;
+  ItemPList.Free;
+{  ShowMessage(Result); }
 end;
+
+
 end.

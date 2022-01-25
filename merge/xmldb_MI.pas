@@ -196,8 +196,8 @@ begin
 end;
 
 procedure TbjxMerge.PostVouXML;
-var
-  VDoc: Ibjxml;
+//var
+//  VDoc: Ibjxml;
 begin
   FxReq := '<ENVELOPE><HEADER><VERSION>1</VERSION>';
   FxReq := FxReq + '<TALLYREQUEST>IMPORT</TALLYREQUEST>';
@@ -217,11 +217,11 @@ begin
     '</TALLYMESSAGE></DATA></BODY></ENVELOPE>';
   Client.Host := FHost;
   Client.xmlRequestString := yDB;
-
+{
   VDoc := CreatebjXmlDocument;
   vDoc.LoadXML(yDB);
   vDoc.SaveXmlFile('Voucher.xml');
-
+}
   Client.post;
   Errorcheck;
   ndups := ndups + 1;
@@ -256,12 +256,8 @@ begin
       vID.AddAttribute('TAGNAME', 'ALTERID');
       vID.AddAttribute('TAGVALUE', alterid);
       vID.AddAttribute('ACTION', 'Alter');
-      while Assigned(lid) do
-      begin
-        if lID.GetContent = DupItem then
           lID.setContent(Item);
         lID := vID.SearchForTag(lID, 'STOCKITEMNAME');
-      end;
       yDB := vID.GetXML;
       PostVouXML;
     end;

@@ -21,13 +21,14 @@ unit xmldb_ML;
 interface
 
 uses
-  Classes, SysUtils, DateUtils,
-  Dialogs,
+  Classes, SysUtils,
+  DateUtils,
   DateFns,
   StrUtils,
   Client,
   bjxml3_1,
-  PClientFns;
+  PClientFns,
+  Dialogs;
 
 type
   Tfnupdate = procedure(const aMsg: string);
@@ -60,6 +61,7 @@ type
 {    ImportNoDups: Boolean; }
     CurDt: string;
     FUpdate: TfnUpdate;
+    Alterid: string;
     constructor Create;
     destructor Destroy; override;
     procedure GetLedVchRgtr;
@@ -124,8 +126,6 @@ begin
       Continue;
     end;
     CurDt := rID.GetContent;
-    if Assigned(FUpdate) then
-      FUpdate(DupLed + ' ' + CurDt);
     GetVouXML;
     ReplDupLed;
     rID := rDoc.SearchForTag(rID, 'DSPVCHDATE');
@@ -183,7 +183,7 @@ begin
 
   FxReq := FXReq + '</STATICVARIABLES>';
 
-  FxReq := FXReq + '</DESC></BODY></ENVELOPE>';
+  FxReq := FXReq + '</DESC><DATA></DATA></BODY></ENVELOPE>';
 
   if IsSaveXMLFileon then
     Client.xmlResponsefile := 'Daybook.xml';
@@ -198,26 +198,23 @@ procedure TbjxMerge.PostVouXML;
 var
   VDoc: Ibjxml;
 begin
-    FxReq := '<ENVELOPE><HEADER><TALLYREQUEST>Import Data</TALLYREQUEST></' +
-    'HEADER>'+
-  '<BODY><IMPORTDATA><REQUESTDESC>' +
-  '<REPORTNAME>Vouchers</REPORTNAME>'
-  +'<STATICVARIABLES>';
+  FxReq := '<ENVELOPE><HEADER><VERSION>1</VERSION>';
+  FxReq := FxReq + '<TALLYREQUEST>IMPORT</TALLYREQUEST>';
+  FxReq := FxReq + '<TYPE>DATA</TYPE>';
+  FxReq := FxReq + '<ID>Vouchers</ID>';
+  FxReq := FxReq + '</HEADER><BODY><DESC>';
+  FxReq := FxReq + '<STATICVARIABLES>';
 
 //  FxReq := FXReq + '<SVEXPORTFORMAT>' + '$$SysName:XML' + '</SVEXPORTFORMAT>';
 { Not needed }
-  FxReq := FXReq + '<SVOverwriteImpVch>' + 'Yes' + '</SVOverwriteImpVch>';
 
   if (Length(FFirm) <> 0) then
     FxReq := FXReq + '<SVCURRENTCOMPANY>' + FFirm + '</SVCURRENTCOMPANY>';
 
-  FxReq := FXReq +
-  '</STATICVARIABLES>'+
-  '</REQUESTDESC><REQUESTDATA><TALLYMESSAGE>';
-  yDB := FXReq + yDB +
-    '</TALLYMESSAGE></REQUESTDATA></IMPORTDATA></BODY></ENVELOPE>';
-  VDoc := CreatebjXmlDocument;
-  VDoc.LoadXML(ydb);
+  FxReq := FxReq + '</STATICVARIABLES>';
+  FxReq := FxReq + '</DESC><DATA><TALLYMESSAGE>';
+
+  yDB := FXReq + yDB + '</TALLYMESSAGE></DATA></BODY></ENVELOPE>';
 {
   VDoc.SaveXmlFile('Voucher.xml');
 }
@@ -226,13 +223,14 @@ begin
   Client.post;
   Errorcheck;
   ndups := ndups + 1;
+    if Assigned(FUpdate) then
+      FUpdate(DupLed + ' ' + CurDt +' ' + Alterid);
 end;
 
 { rfReplaceAll rfIgnoreCase }
 procedure TbjxMerge.ReplDupLed;
 var
   VDoc: Ibjxml;
-  alterid: string;
 begin
   VDoc := CreatebjXmlDocument;
   VDoc.LoadXML(xDB);
