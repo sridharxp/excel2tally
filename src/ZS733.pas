@@ -49,6 +49,9 @@ type
   GSTNRec = Record
     Name: string;
     GSTN: string;
+    State: string;
+    _Name: string;
+    _State: string;
   end;
   pGSTNRec = ^GSTNRec;
 
@@ -168,6 +171,7 @@ type
     procedure NewLedger(const aLedger, aParent: string; OpBal: currency);
     function GetGSTNParty(const aGSTN: string): string;
     function GetDupPartyGSTN(const aDup: string): string;
+    function GetPartyState(const aDup: string): string;
     function NewParty(const aLedger, aParent, aGSTN: string; aState: string): string;
     procedure NewGST(const aLedger, aParent: string; const TaxRate: string);
     function GetHalfof(const TaxRate: string): string;
@@ -226,6 +230,7 @@ type
     FVchGSTN: string;
     FVchAction: string;
     FRemoteID: string;
+    FVchState: string;
   protected
     { Protected declarations }
     Lines: TList;
@@ -293,6 +298,7 @@ type
     property VchGSTN: string read FVchGSTN write FVchGSTN;
     property VchAction: string read FVchAction write FVchAction;
     property RemoteID: string read FRemoteID write FRemoteID;
+    property VchState: string read FVchState write FVchState;
   end;
 
   TLine = Record
@@ -323,6 +329,7 @@ type
   pGSTNLine = ^TGSTNline;
 
 implementation
+{$DEFINE Newformat}
 
 Constructor TbjEnv.Create;
 begin
@@ -415,6 +422,9 @@ begin
     item := GSTNList.Items[i];
     item.Name := '';
     item.GSTN := '';
+    item.State := '';
+    item._Name := '';
+    item._State := '';
     Dispose(item);
   end;
   GSTNList.Clear;
@@ -1226,10 +1236,17 @@ begin
   xvou.NewChild2('REFERENCEDATE',vchDate);
 { GuId is important to track vouchers }
   xvou.NewChild2('GUID',sid);
+  if Length(VchState) > 0 then
+    xvou.NewChild2('STATENAME', VchState);
   if Length(VChNarration) > 0 then
   begin
     xvou.NewChild2('NARRATION',VchNarration);
     VchNarration := '';
+  end;
+  if Length(VchState) > 0 then
+  begin
+    xvou.NewChild2('COUNTRYOFRESIDENCE', 'India');
+    xvou.NewChild2('PLACEOFSUPPLY', VchState);
   end;
   xvou.NewChild2('VOUCHERTYPENAME',VchType);
   if Length(VchNo) > 0 then
@@ -1271,6 +1288,8 @@ begin
   end
   else
     xvou.NewChild2('REFERENCE',VchNo);
+  if Length(VchState) > 0 then
+  xvou.NewChild2('CONSIGNEESTATENAME',VchState);
 { Effective Date is crucial; Without which dll crashes }
   if Length(VouDate) > 0 then
   xvou.NewChild2('EFFECTIVEDATE',vouDate)
@@ -2468,7 +2487,10 @@ begin
     Rpet.Free;
   end;
   end;
-  Result := '';
+  if GSTNList.Count = 0 then
+    Rpet.GETList(GSTNList);
+  if Length(agstn) = 0 then
+    Exit;
   for i := 0 to GSTNList.Count-1 do
   begin
     item := GSTNList.Items[i];
@@ -2485,6 +2507,7 @@ var
   Rpet: TRpetGSTN;
   i: integer;
   item: pGSTNRec;
+  rName: string;
 begin
 {  Result := '' }
   if not Assigned(GSTNList) then
@@ -2497,13 +2520,50 @@ begin
     Rpet.Free;
   end;
   end;
-  Result := '';
+  if GSTNList.Count = 0 then
+    Rpet.GETList(GSTNList);
+  if Length(aDup) = 0 then
+    Exit;
+  rName := PackStr(aDup);
   for i := 0 to GSTNList.Count-1 do
   begin
     item := GSTNList.Items[i];
-    if item.Name = aDup then
+    if item^._Name = rName then
     begin
-      Result := item.GSTN;
+      Result := item^.GSTN;
+      break;
+    end;
+  end;
+end;
+function TbjMstExp.GetPartyState(const aDup: string): string;
+var
+  Rpet: TRpetGSTN;
+  i: integer;
+  item: pGSTNRec;
+  rName: string;
+begin
+{  Result := '' }
+  if not Assigned(GSTNList) then
+  begin
+  Rpet := TRpetGSTN.Create;
+  try
+    Rpet.Host := Env.Host;
+    Rpet.GetList(GSTNList);
+  finally
+    Rpet.Free;
+  end;
+  end;
+  if GSTNList.Count = 0 then
+    Rpet.GETList(GSTNList);
+  if Length(aDup) = 0 then
+    Exit;
+  rName := PackStr(aDup);
+  for i := 0 to GSTNList.Count-1 do
+  begin
+    item := GSTNList.Items[i];
+    if item^._Name = rName then
+    begin
+      Result := item^.State;
       break;
     end;
   end;

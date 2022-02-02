@@ -24,9 +24,10 @@ uses
   Windows, SysUtils, Variants, Classes,
   XLSFile,
   XLSWorkbook,
-  xlstbl,
+  xlstbl3,
   bjxml3_1,
   PClientFns,
+  VchLib,
   Dialogs;
 
 type
@@ -47,7 +48,6 @@ type
     procedure OpenFile(const aFile: string);
     procedure GetList(aList: TList);
     procedure WriteXls;
-    function GetGSTNParty(const aGSTN: string): string;
     procedure Execute;
     constructor Create;
     destructor Destroy; override;
@@ -57,6 +57,9 @@ type
   GSTNRec = Record
     Name: string;
     GSTN: string;
+    State: string;
+    _Name: string;
+    _State: string;
   end;
   pGSTNRec = ^GSTNRec;
 
@@ -73,17 +76,6 @@ begin
 
   rpetdb := TbjXLSTable.Create;
   rpetdb.ToSaveFile := True;
-(*
-  rpetdb.SetXLSFile('.\Data\RpetGSTN.xls');
-  rpetdb.XL.Workbook.Sheets.DeleteByName('Sheet1');
-  rpetdb.SetSheet('REPEET');
-  flds.Clear;
-  flds.Add('GSTN');
-  flds.Add('Ledger_1');
-  flds.Add('Ledger_2');
-  flds.Add('Ledger_3');
-  rpetdb.SetFields(flds, True);
-*)
 end;
 
 destructor TRpetGSTN.Destroy;
@@ -96,6 +88,9 @@ begin
     item := GSTNList.Items[i];
     item.Name := '';
     item.GSTN := '';
+    item.State := '';
+    item._Name := '';
+    item._State := '';
     Dispose(item);
   end;
   GSTNList.Clear;
@@ -126,61 +121,71 @@ end;
 
 procedure TRpetGSTN.GetList(aList: TList);
 var
-  strx: IbjXml;
+  xSVar, xStr, xFormula: IbjXml;
   strs: string;
   lStr: string;
   OResult: IbjXml;
   //RecNode, LedNode, ParentNode, GSTNNode: IbjXml;
-  LedNode, GSTNNode: IbjXml;
   CollName: string;
-  LedPList: TStringList;
+  LedNode, GSTNNode, StateNode: IbjXml;
   item: pGSTNRec;
-//  grp: string;
+  rGrp: string;
+  rName, rGStr, rSStr: string;
 begin
-  LedPList := TStringList.Create;
-  strx := CreatebjXmlDocument;
+  xSVar := CreatebjXmlDocument;
+  xStr := CreatebjXmlDocument;
   OResult := CreatebjXmlDocument;
-  try
+  xSVar.LoadXML('<STATICVARIABLES>'+
+  '<SVEXPORTFORMAT>$$SysName:XML</SVEXPORTFORMAT>'+
+  '</STATICVARIABLES>');
+  rGrp := 'Sundry Debtors';
+  strs := '<CHILDOF>' + TextToXML(rGrp) + '</CHILDOF>';
+  strs := Strs + '<BELONGSTO>' + 'Yes' + '</BELONGSTO>';
+  strs := Strs + '<NATIVEMETHOD>PARTYGSTIN</NATIVEMETHOD>';
+  strs := Strs + '<NATIVEMETHOD>LEDSTATENAME</NATIVEMETHOD>';
+  xStr.LoadXml(strs);
   CollName := 'Ledger';
-  LedPList.Add('PARENT');
-  LedPList.Add('PARTYGSTIN');
+  lStr := ColExEval(CollName, 'Ledger', xSVar, xStr, xFormula);
+  rGrp := 'Sundry Creditors';
+  strs := '<CHILDOF>' + TextToXML(rGrp) + '</CHILDOF>';
+  strs := Strs + '<BELONGSTO>' + 'Yes' + '</BELONGSTO>';
+  strs := Strs + '<NATIVEMETHOD>PARTYGSTIN</NATIVEMETHOD>';
+  strs := Strs + '<NATIVEMETHOD>LEDSTATENAME</NATIVEMETHOD>';
+  xStr.LoadXml(strs);
+  lStr := lStr + ColExEval(CollName, 'Ledger', xSVar, xStr, xFormula);
 
-  strs := '<CHILDOF>' + TextToXML('Sundry Debtors') + '</CHILDOF>';
-  strs := Strs + '<BELONGSTO>' + 'Yes' + '</BELONGSTO>';
-  strx.LoadXml(strs);
-  lStr := Col2Eval(CollName, 'Ledger', strx, LedPList);
-  strs := '<CHILDOF>' + TextToXML('Sundry Creditors') + '</CHILDOF>';
-  strs := Strs + '<BELONGSTO>' + 'Yes' + '</BELONGSTO>';
-  strx.LoadXml(strs);
-  lStr := lStr + Col2Eval(CollName, 'Ledger', strx, LedPList);
-  finally
-    LedPList.Free;
-  end;
   OResult.LoadXml(lStr);
 //  RecNode := OResult.SearchforTag(nil, 'COLLECTION');
   LedNode := OResult.SearchforTag(nil , 'LEDGER');
   while Assigned(LedNode) do
   begin
-{
-    ParentNode := LedNode.SearchforTag(nil, 'PARENT');
-    if not Assigned(ParentNode) then
-      continue;
-    grp := ParentNode.GetContent;
-    if (grp <> 'Sundry Debtors') and
-      (grp <> 'Sundry Creditors') then
-}
     if Length(LedNode.GetContent) = 0 then
     begin
       LedNode := OResult.SearchforTag(LedNode, 'LEDGER');
       Continue;
     end;
+    rName := LedNode.GetAttrValue('NAME');
+    if Length(rName) = 0 then
+    begin
+      LedNode := OResult.SearchforTag(LedNode, 'LEDGER');
+      Continue;
+    end;
+    rGStr := '';
+    rSStr := '';
     GSTNNode := LedNode.SearchForTag(nil, 'PARTYGSTIN');
+    StateNode := LedNode.SearchForTag(nil, 'LEDSTATENAME');
     if Assigned(GSTNNode) then
-      if Length(GSTNNode.GetContent) > 0 then
+      rGStr := GSTNNode.GetContent;
+    if Assigned(StateNode) then
+      rSStr := StateNode.GetContent;
+    if (Length(rGStr) > 0) or (Length(rSStr) > 0) then
       begin
         item := new(pGSTNRec);
-        item.GSTN := GSTNNode.GetContent;
-        item.Name := LedNode.GetAttrValue('NAME');
+      item^.GSTN := rGStr;
+      item^.State := rSStr;
+      item^.Name := rName;
+      item^._Name := PackStr(rName);
+      item^._State := PackStr(rSStr);
         aList.Add(item);
       end;
     LedNode := OResult.SearchforTag(LedNode, 'LEDGER');
@@ -234,25 +239,6 @@ begin
     rpetdb.SetFieldVal('LEDGER_1', '');
     rpetdb.SetFieldVal('LEDGER_2', '');
     rpetdb.SetFieldVal('LEDGER_3', '');
-  end;
-end;
-
-function TRpetGSTN.GetGSTNParty(const aGSTN: string): string;
-var
-  i: integer;
-  item: pGSTNRec;
-begin
-  if GSTNList.Count = 0 then
-    GETList(GSTNList);
-  Result := '';
-  for i := 0 to GSTNList.Count-1 do
-  begin
-    item := GSTNList.Items[i];
-    if item.GSTN = aGSTN then
-    begin
-      Result := item.Name;
-      break;
-    end;
   end;
 end;
 

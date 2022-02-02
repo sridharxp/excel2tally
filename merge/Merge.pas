@@ -53,8 +53,10 @@ type
     procedure btnRefreshClick(Sender: TObject);
   private
     { Private declarations }
+  protected
   public
     { Public declarations }
+  Host: string;
   end;
 
 procedure UpdateMsg(const aMsg: string);
@@ -64,25 +66,22 @@ var
 
 implementation
 
-uses XlExport;
 
 {$R *.dfm}
 
 procedure TfrmMerge.btnMergeClick(Sender: TObject);
 var
   xdb: TbjxMerge;
-//  mr: integer;
+  StartTime, EndTime, Elapsed: double;
+  Hrs, Mins, Secs, Msecs: word;
   DParent, LParent: string;
   Obj:TbjMstListImp;
   sDups: Integer;
   CalcToDt, eDt: TDate;
 begin
-{
-  mr  := MessageDlg('Newer Version of Tally installed?', mtConfirmation, mbYesNoCancel, 0);
+  StartTime := Time;
+
 //  if mr = mrCancel then
-  if mr <> mrYes then
-    Exit;
-}
   if (Length(cmbParty.Text) = 0) or (Length(cmbDupLed.Text) = 0) then
   begin
     MessageDlg('Party and Duplicate can not be empty', mtError, [mbOK], 0);
@@ -96,8 +95,9 @@ begin
 
   sDups := 0;
   Obj := TbjMstListImp.Create;
-  Obj.Host := 'http://' + frmXlExport.edtHost.Text + ':'+
-    frmXlExport.edtPort.Text;
+//  Obj.Host := 'http://' + frmXlExport.edtHost.Text + ':'+
+//    frmXlExport.edtPort.Text;
+  Obj.Host := Host;
   try
     dParent := GetLedgerGroup(cmbDupLed.Text);
     lParent := GetLedgerGroup(cmbParty.Text);
@@ -125,8 +125,9 @@ begin
       xdb.IsSaveXMLFileOn := False;
       xdb.Party := cmbParty.Text;
       xdb.DupLed := cmbDupLed.Text;
-      xdb.Host := 'http://' + frmXlExport.edtHost.Text + ':'+
-      frmXlExport.edtPort.Text;
+//      xdb.Host := 'http://' + frmXlExport.edtHost.Text + ':'+
+//      frmXlExport.edtPort.Text;
+      xdb.Host := Host;
 {
       if mr = mrNo then
         xdb.ImportNoDups := True;
@@ -146,9 +147,13 @@ begin
         xdb.ToDt := FormatDateTime('yyyyMMDD',CalcToDt);
       end;
     finally
+  EndTime := Time;
+  Elapsed := EndTime - StartTime;
+  DecodeTime(Elapsed, Hrs, Mins, Secs, MSecs);
+      xDb.FUpDate(IntToStr(sDups) + ' Duplicates merged; '+ IntToStr(SecsPerMin) + ' seonds');
+      xdb.Free;
       MessageDlg(IntToStr(sDups) + ' Duplicates merged',
       mtInformation, [mbOK],0);
-      xdb.Free;
       btnMerge.Enabled := True;
       btnRefresh.Enabled := True;
     end;
@@ -168,8 +173,9 @@ begin
   try
   Obj := TbjMstListImp.Create;
   Obj.ToPack := False;
-  Obj.Host := 'http://' + frmXlExport.edtHost.Text + ':' +
-    frmXlExport.edtPort.Text;
+//  Obj.Host := 'http://' + frmXlExport.edtHost.Text + ':' +
+//    frmXlExport.edtPort.Text;
+  Obj.Host := Host;
   try
     try
       CMPList.Text := Obj.GetCMPText;

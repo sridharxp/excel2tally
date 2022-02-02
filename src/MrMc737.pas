@@ -1581,7 +1581,11 @@ begin
     AskedOnce := True;
   end
   else
+  begin
       Env.ToUpdateMasters := False;
+    AskedOnce := False;
+    AskAgainToAutoCreateMst := True;
+  end;
   kadb.First;
   IDstr := '';
   vTotal := 0;
@@ -1995,7 +1999,8 @@ begin
       Exit;
     end;
     dbGSTN := kadb.GetFieldString('GSTN');
-    wLed := RpetObj.GetGSTNParty(dbGSTN);
+//    wLed := RpetObj.GetGSTNParty(dbGSTN);
+    wLed := MstExp.GetGSTNParty(dbGSTN);
     IsThere := False;
     IsThere := MstExp.IsLedger(dbkLed);
     if not IsThere then
@@ -2278,6 +2283,9 @@ begin
   VchExp.VchChequeNo := ChequeNoColValue;
   ChequeNoColValue := '';
   RoundOffName := GetRoundOffName;
+  VchExp.VchState := '';
+  if (VchType = 'Sales') or (VchType = 'Purchase') then
+  VchExp.VchState := MstExp.GetPartyState(RoundOffName);
   notoskip := 0;
 end;
 

@@ -62,6 +62,7 @@ type
     CurDt: string;
     FUpdate: TfnUpdate;
     Alterid: string;
+    FinishedDts: TStringList;
     constructor Create;
     destructor Destroy; override;
     procedure GetLedVchRgtr;
@@ -86,6 +87,7 @@ Constructor TbjxMerge.Create;
 begin
   FHost := 'http://127.0.0.1:9000';
   Client := TbjClient.Create;
+  FinishedDts :=TStringList.Create;
 {  SaveXMLFile := True; }
 end;
 
@@ -93,6 +95,7 @@ end;
 destructor TbjxMerge.Destroy;
 begin
   Client.Free;
+  FinishedDts.Free;
   inherited;
 end;
 
@@ -113,10 +116,12 @@ procedure TbjxMerge.Process;
 var
   rDoc: Ibjxml;
   rID: Ibjxml;
+  idx: Integer;
 begin
   GetLedVchRgtr;
   rDoc := CreatebjXmlDocument;
   rDoc.LoadXML(rDB);
+{  ShowMessage(rDoc.GetXML); }
   rID := rDoc.SearchForTag(nil, 'DSPVCHDATE');
   while Assigned(rID) do
   begin
@@ -126,34 +131,41 @@ begin
       Continue;
     end;
     CurDt := rID.GetContent;
-    GetVouXML;
-    ReplDupLed;
+    if not FinishedDts.Find(CurDt, idx) then
+    begin
+      FinishedDts.Add(CurDt);
+      GetVouXML;
+      ReplDupLed;
+    end;
     rID := rDoc.SearchForTag(rID, 'DSPVCHDATE');
   end;
 end;
 
 procedure TbjxMerge.GetLedVchRgtr;
 begin
-  FxReq := '<ENVELOPE><HEADER><TALLYREQUEST>Export Data</TALLYREQUEST></' +
-    'HEADER>'+
-  '<BODY><EXPORTDATA><REQUESTDESC>' +
-  '<REPORTNAME>Ledger Vouchers</REPORTNAME>'
-  +'<STATICVARIABLES>';
+  rdb := '';
+  FxReq := '<ENVELOPE><HEADER><VERSION>1</VERSION>'+
+  '<TALLYREQUEST>Export</TALLYREQUEST>' +
+  '<TYPE>DATA</TYPE>'+
+  '<ID>Ledger Vouchers</ID>'+
+  '</HEADER><BODY><DESC>'+
+  '<STATICVARIABLES>';
 {
   FxReq := FXReq + '<SVEXPORTFORMAT>' + '$$SysName:XML' + '</SVEXPORTFORMAT>';
 }
   if (Length(FFirm) <> 0) then
     FxReq := FXReq + '<SVCURRENTCOMPANY>' + FFirm + '</SVCURRENTCOMPANY>';
-  if ( Length(FFrmDt) <> 0 ) and ( Length(FToDt) <> 0 ) then
+  if (Length(FFrmDt) <> 0 ) then
   begin
     FxReq := FXReq + '<SVFROMDATE>' + FFrmDt + '</SVFROMDATE>';
+  end;
+  if ( Length(FToDt) <> 0) then
+  begin
     FxReq := FXReq + '<SVTODATE>' + FToDt + '</SVTODATE>';
   end;
   FxReq := FXReq + '<LEDGERNAME>' +  DupLed + '</LEDGERNAME>';
-  FxReq := FXReq +
-  '</STATICVARIABLES>'+
-  '</REQUESTDESC>'+
-  '</EXPORTDATA></BODY></ENVELOPE>';
+  FxReq := FXReq + '</STATICVARIABLES>'+
+  '</DESC></BODY></ENVELOPE>';
 
   if IsSaveXMLFileOn then
       Client.xmlResponsefile := 'LedVchRgr.xml';
@@ -183,7 +195,7 @@ begin
 
   FxReq := FXReq + '</STATICVARIABLES>';
 
-  FxReq := FXReq + '</DESC><DATA></DATA></BODY></ENVELOPE>';
+  FxReq := FXReq + '</DESC></BODY></ENVELOPE>';
 
   if IsSaveXMLFileon then
     Client.xmlResponsefile := 'Daybook.xml';
@@ -211,6 +223,7 @@ begin
   if (Length(FFirm) <> 0) then
     FxReq := FXReq + '<SVCURRENTCOMPANY>' + FFirm + '</SVCURRENTCOMPANY>';
 
+  FxReq := FXReq + '<SVOverwriteImpVch>' + 'Yes' + '</SVOverwriteImpVch>';
   FxReq := FxReq + '</STATICVARIABLES>';
   FxReq := FxReq + '</DESC><DATA><TALLYMESSAGE>';
 
