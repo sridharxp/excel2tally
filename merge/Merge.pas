@@ -150,7 +150,7 @@ begin
   EndTime := Time;
   Elapsed := EndTime - StartTime;
   DecodeTime(Elapsed, Hrs, Mins, Secs, MSecs);
-      xDb.FUpDate(IntToStr(sDups) + ' Duplicates merged; '+ IntToStr(SecsPerMin) + ' seonds');
+      xDb.FUpDate(IntToStr(sDups) + ' Duplicates merged; '+ IntToStr(Secs) + ' seonds');
       xdb.Free;
       MessageDlg(IntToStr(sDups) + ' Duplicates merged',
       mtInformation, [mbOK],0);

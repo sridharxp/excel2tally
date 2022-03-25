@@ -70,8 +70,7 @@ type
     function GetItemText: string;
 
     function GetCMPText: string;
-    function GetSalesText: string;
-    function GetPurcText: string;
+    function GetVchTypeText: string;
     function GetTaxText: string;
     function GetPartyText(const Include: boolean): string;
     function GetCashBankText(const Include: boolean): string;
@@ -212,41 +211,34 @@ begin
 end;
 
 
-function TbjMstListImp.GetCMPText: string;
+function TbjMstListImp.GetCmpText: string;
 var
-  cmpNode: IbjXml;
-  CMPList: TStringList;
+  xSVar, xStr, xFormula: IbjXml;
+  OResult: IbjXml;
+  CmpNode: IbjXml;
+  CollName: string;
+  CmpList: TStringList;
 begin
-  xcmpreq := '<ENVELOPE>'+
-    '<HEADER>'+
-    '<TALLYREQUEST>Export Data</TALLYREQUEST>'+
-    '</HEADER>'+
-    '<BODY><EXPORTDATA><REQUESTDESC>'+
-    '<REPORTNAME>List of Companies</REPORTNAME>'+
-    '<STATICVARIABLES>'+
-    '<SVEXPORTFORMAT>' + '$$SysName:XML' + '</SVEXPORTFORMAT>'+
-   '</STATICVARIABLES>'+
-    '</REQUESTDESC></EXPORTDATA></BODY>'+
-    '</ENVELOPE>';
-
-  if SaveXMLFile then
-      Client.xmlResponsefile := 'CMPReg.xml';
-
-  Client.xmlRequestString := xcmpreq;
-  Client.Host := FHost;
-  Client.post;
-  CheckError;
-  xcmp.LoadXml(Client.xmlResponseString);
-
-  CMPList := TStringList.Create;
-  cmpNode := XCMP.SearchForTag(nil, 'COMPANYNAME');
-  while cmpNode <> nil do
+  CmpList := TStringList.Create;
+  xSVar := CreatebjXmlDocument;
+  CollName := 'List_of_Companies';
+  OResult := CreatebjXmlDocument;
+  xSVar.LoadXML('<STATICVARIABLES>'+
+  '<SVEXPORTFORMAT>$$SysName:XML</SVEXPORTFORMAT>'+
+  '</STATICVARIABLES>');
+  OResult.LoadXml(ColeXEval(CollName, 'Company On Disk', xSVar, xStr, xFormula));
+  CmpNode := OResult.SearchForTag(nil, 'COLLECTION');
+  CmpNode := OResult.SearchForTag(CmpNode, 'COMPANYONDISK');
+  while CmpNode <> nil do
   begin
-    CMPList.Add( CMPNode.Content );
-    cmpNode:= XCMP.SearchForTag(cmpnode, 'COMPANYNAME');
+    if ToPack then
+      CmpList.Add(PackStr(CmpNode.GetChildContent('NAME')))
+    else
+      CmpList.Add(CmpNode.GetChildContent('NAME'));
+    CmpNode:= OResult.SearchForTag( CmpNode, 'COMPANYONDISK' );
   end;
-  Result := CMPlist.Text;
-  CMPList.Free;
+  Result := CmpList.Text;
+  CmpList.Free;
 end;
 
 function TbjMstListImp.GetLedPackedList: TStringList;
@@ -257,9 +249,9 @@ var
   LedNode: IbjXml;
   NameListNode, AliasNode: IbjXml;
   AliasName: string;
-  LedPList: THashedStringList;
+  LedPList: TStringList;
 begin
-  LedPList := THashedStringList.Create;
+  LedPList := TStringList.Create;
   xSVar := CreatebjXmlDocument;
   xStr := CreatebjXmlDocument;
   CollName := 'Ledger';
@@ -486,120 +478,48 @@ begin
 
 end;
 
-function  TbjMstListImp.GetSalesText: string;
-var
-  OResult: IbjXml;
-  DNode, RecNode, LedNode, ParentNode: IbjXml;
-  CollName: string;
-  LedPList: TStringList;
-  i, Children: integer;
-  grp: string;
-  ok: boolean;
-begin
-  LedPList := TStringList.Create;
 
-  CollName := 'Ledger';
-  LedPList.Add('PARENT');
-  OResult := CreatebjXmlDocument;
-  OResult.LoadXml(ColEval(CollName, 'Ledger', LedPList));
-  LedPList.Clear;
-  LedNode := OResult.SearchforTag(nil, 'LEDGER');
-  while Assigned(LedNode) do
-  begin
-    ok := False;
-    ParentNode := OResult.SearchforTag(LedNode, 'PARENT');
-    if not Assigned(ParentNode) then
-      continue;
-    grp := ParentNode.GetContent;
-    if (grp = 'Sales Accounts') then
-      ok := True;
-    if ok then
-    begin
-      if ToPack then
-        LedPList.Add( PackStr(LedNode.GetAttrValue('NAME')))
-      else
-        LedPList.Add( LedNode.GetAttrValue('NAME'));
-    end;
-    LedNode := OResult.SearchforTag(LedNode, 'LEDGER');
-  end;
-  if LedPList.Count > 0 then
-  begin
-    LedPList.Sorted := True;
-  end;
-  Result := LedPList.Text;
-  LedPList.Free;
-  Exit;
   
-end;
 
-function TbjMstListImp.GetPurcText: string;
-var
-  OResult: IbjXml;
-  DNode, RecNode, LedNode, ParentNode: IbjXml;
-  CollName: string;
-  LedPList: TStringList;
-  i, Children: integer;
-  grp: string;
-  ok: boolean;
-begin
-  LedPList := TStringList.Create;
 
-  CollName := 'Ledger';
-  LedPList.Add('PARENT');
-  OResult := CreatebjXmlDocument;
-  OResult.LoadXml(ColEval(CollName, 'Ledger', LedPList));
-  LedPList.Clear;
-  LedNode := OResult.SearchforTag(nil, 'LEDGER');
-  while Assigned(LedNode) do
-  begin
-    ok := False;
-    ParentNode := OResult.SearchforTag(LedNode, 'PARENT');
-    if not Assigned(ParentNode) then
-      continue;
-    grp := ParentNode.GetContent;
-    if (grp = 'Purchase Accounts') then
-      ok := True;
-    if ok then
-    begin
-      if ToPack then
-        LedPList.Add( PackStr(LedNode.GetAttrValue('NAME')))
-      else
-        LedPList.Add( LedNode.GetAttrValue('NAME'));
-    end;
-    LedNode := OResult.SearchforTag(LedNode, 'LEDGER');
-  end;
-  if LedPList.Count > 0 then
-  begin
-    LedPList.Sorted := True;
-  end;
-  Result := LedPList.Text;
-  LedPList.Free;
-  Exit;
-end;
 
 //procedure TbjMstList.GetLedText(var Data:pchar; out Size:integer);
 function TbjMstListImp.GetLedText: string;
 var
-  xSVar, xStr, xFormula: IbjXml;
-  LedNode: IbjXml;
-  LedList: TStringList;
+  LedPList: TStringList;
 begin
-  LedList := TStringList.Create;
-  GetMstXML;
-  LedNode := XMst.SearchForTag(nil, 'LEDGER');
+  LedPList := GetLedPackedList;
+  Result := LedPList.Text;
+  LedPList.Free;
+end;
+function TbjMstListImp.GetVchTypeText: string;
+var
+  xSVar, xStr, xFormula: IbjXml;
+  OResult: IbjXml;
+  LedNode: IbjXml;
+  CollName: string;
+  VTypeList: TStringList;
+begin
+  VTypeList := TStringList.Create;
+  xSVar := CreatebjXmlDocument;
+  CollName := 'LedText';
+  OResult := CreatebjXmlDocument;
+  xSVar.LoadXML('<STATICVARIABLES>'+
+  '<SVEXPORTFORMAT>$$SysName:XML</SVEXPORTFORMAT>'+
+  '</STATICVARIABLES>');
+  OResult.LoadXml(ColeXEval(CollName, 'Voucher Types', xSVar, xStr, xFormula));
+  LedNode := OResult.SearchForTag(nil, 'COLLECTION');
+  LedNode := OResult.SearchForTag(LedNode, 'VOUCHERTYPE');
   while LedNode <> nil do
   begin
     if ToPack then
-      LedList.Add(PackStr(LedNode.GetAttrValue('NAME')))
+      VTypeList.Add(PackStr(LedNode.GetAttrValue('NAME')))
     else
-    LedList.Add(LedNode.GetAttrValue('NAME'));
-    LedNode:= XMst.SearchForTag( LedNode, 'LEDGER' );
+      VtypeList.Add(LedNode.GetAttrValue('NAME'));
+    LedNode:= OResult.SearchForTag( LedNode, 'VOUCHERTYPE' );
   end;
-  try
-  Result := LedList.Text;
-  finally
-    LedList.Free;
-  end;
+  Result := VTypeList.Text;
+  VTypeList.Free;
 end;
 
 

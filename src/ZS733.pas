@@ -34,7 +34,6 @@ uses
   Repet,
   Math,
   Controls,
-  CFig,
   VchLib;
 
 const
@@ -51,7 +50,6 @@ type
     GSTN: string;
     State: string;
     _Name: string;
-    _State: string;
   end;
   pGSTNRec = ^GSTNRec;
 
@@ -424,7 +422,6 @@ begin
     item.GSTN := '';
     item.State := '';
     item._Name := '';
-    item._State := '';
     Dispose(item);
   end;
   GSTNList.Clear;
@@ -515,7 +512,7 @@ begin
   if Length(FPincode) > 0 then
     xLdg.NewChild2('PINCODE', FPincode);
 }  
-if Length(FeMail) > 0 then
+  if Length(FeMail) > 0 then
     xLdg.NewChild2('EMAIL', FeMail);
   xLdg.NewChild2('PARENT', parent );
   if Length(FMobile) > 0 then
@@ -1493,7 +1490,7 @@ begin
   aLedger := Ledger;
   if (Env.GSTLedType = 'Min') or (Env.GSTLedType = 'Mean') then
   begin
-      if (Env.ip.Find(Ledger, idx)) or (Env.op.Find(Ledger, idx)) then
+    if (Env.ip.Find(Ledger, idx)) or (Env.op.Find(Ledger, idx)) then
     begin
       if (pos('SGST', Ledger) > 0) then
         aLedger := 'SGST'

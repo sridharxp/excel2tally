@@ -299,6 +299,7 @@ TbjMrMc = class(TinterfacedObject, IbjXlExp, IbjMrMc)
     AskedOnce: boolean;
     MstExp: TbjMstExp;
     VchExp: TbjVchExp;
+    lDups: integer;
     procedure OpenFile;
     procedure GenerateID;
     procedure CheckLedMst;
@@ -713,6 +714,16 @@ AutoCreateMst affects default group only
     if str = 'Yes' then
     begin
       IsReference := True;
+    end;
+  end;
+
+  xCfg := cfg.SearchForTag(nil, UVoucherDateName);
+  if Assigned(xCfg) then
+  begin
+    str := xCfg.GetChildContent(UAliasName);
+    if Length(str) > 0 then
+    begin
+      UVoucherDateName := str;
     end;
   end;
 
@@ -1551,9 +1562,9 @@ begin
       notoskip := notoskip + 1;
   end;
   if dsl.IsVListDeclared then
-  WriteStatus;
+    WriteStatus;
   if dsl.IsiListDeclared then
-  WriteStoCK;
+    WriteStoCK;
   EndTime := Time;
   Elapsed := EndTime - StartTime;
   DecodeTime(Elapsed, Hrs, Mins, Secs, MSecs);
@@ -1582,7 +1593,7 @@ begin
   end
   else
   begin
-      Env.ToUpdateMasters := False;
+    Env.ToUpdateMasters := False;
     AskedOnce := False;
     AskAgainToAutoCreateMst := True;
   end;
@@ -1607,7 +1618,7 @@ begin
     if missingledgers > 0 then
       MessageDlg(IntToStr(missingledgers)+ ' Ledgers Missing in Tally', mtInformation, [mbOK], 0)
     else
-      MessageDlg('Done', mtInformation, [mbOK], 0);
+      MessageDlg(InttoStr(lDups) + ' ledger(s) modified', mtInformation, [mbOK], 0);
     end;
     if IsExpItemMst then
       MessageDlg('Done', mtInformation, [mbOK], 0);
@@ -1796,10 +1807,13 @@ AutoCreateMst does not affect explicit group or roundoff group
       end;
     end;
   end;
+
   MstExp.Alias := '';
+
   for i := 1 to COLUMNLIMIT do
   if dsl.IsInvDefined[i] then
     CreateItem(i);
+
   if dsl.IsRoundOffAliasColDefined then
     RoundOffAliasColValue :=  kadb.GetFieldString(dsl.UAliasName);
   MstExp.Alias := RoundOffAliasColValue;
@@ -1996,6 +2010,7 @@ begin
     begin
       FUpdate('Ledger: ' + dbkLed);
       CreateGSTLedger;
+      lDups := lDups + 1;
       Exit;
     end;
     dbGSTN := kadb.GetFieldString('GSTN');
@@ -2031,6 +2046,7 @@ begin
       else
       begin
         CreateGSTLedger;
+        lDups := lDups + 1;
       end;
     end
     else
@@ -2899,9 +2915,11 @@ end;
 procedure TbjMrMc.CreateGSTLedger;
 var
   rState: string;
+  rGrp: string;
 begin
   if dsl.IsStateDefined then
     rState := kadb.GetFieldString(dsl.UStateName);
+  rGrp := kadb.GetFieldString('Group');
   if Length(rState) = 0 then
     rState := UdefStateName;
   if kadb.GetFieldString('Group') = 'Duties & Taxes' then
@@ -2909,10 +2927,10 @@ begin
     MstExp.NewGst(kadb.GetFieldString('Ledger'), 'Duties & Taxes', '12');
     Exit;
   end;
-  if (kadb.GetFieldString('Group') = 'Sundry Debtors') or
-    (kadb.GetFieldString('Group') = 'Sundry Creditors') then
+//  if (rGrp = 'Sundry Debtors') or (rGrp = 'Sundry Creditors') or
+  if (IsGrpOfGrp(rGrp, 'Sundry Debtors') or IsGrpOfGrp(rGrp, 'Sundry Creditors'))then
   begin
-    MstExp.NewParty(kadb.GetFieldString('Ledger'), kadb.GetFieldString('Group'),
+    MstExp.NewParty(kadb.GetFieldString('Ledger'), rGrp,
       kadb.GetFieldString('GSTN'), rState);
     Exit;
   end;
