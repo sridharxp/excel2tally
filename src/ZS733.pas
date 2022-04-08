@@ -804,8 +804,10 @@ begin
 }
   xLdg.NewChild2('OPENINGBALANCE', FormatCurr(TallyQtyPicture, FOBal)+' '+BaseUnit);
   if FORate > 0 then
+  begin
+    xLdg.NewChild2('OPENINGVALUE', FormatCurr(TallyQtyPicture,-FORate * FOBal));;
     xLdg.NewChild2('OPENINGRATE', FormatCurr(TallyQtyPicture,FORate)+'/'+BaseUnit);;
-
+  end;
   If Length(FGodown) > 0 then
   begin
     xLdg := xLdg.NewChild('BATCHALLOCATIONS.LIST','');
@@ -819,6 +821,8 @@ begin
     xLdg.NewChild2('BATCHNAME', 'Primary Batch');
 //    xLdg.NewChild2('BATCHNAME', 'Primary Batch');
     xLdg.NewChild2('OPENINGBALANCE', FormatCurr(TallyQtyPicture, FOBal)+' '+BaseUnit);
+    xLdg.NewChild2('OPENINGVALUE', FormatCurr(TallyQtyPicture, -FORate * FOBal));;
+    xLdg.NewChild2('OPENINGRATE', FormatCurr(TallyQtyPicture,FORate)+'/'+BaseUnit);;
   { BATCHALLOCATIONS }
     xLdg := xLdg.GetParent;
   end;
@@ -874,8 +878,10 @@ begin
 }
   xLdg.NewChild2('OPENINGBALANCE', FormatCurr(TallyAmtPicture, FOBal)+' '+BaseUnit);
   if FORate > 0 then
+  begin
+    xLdg.NewChild2('OPENINGVALUE', FormatCurr(TallyQtyPicture, -FORate * FOBal));;
     xLdg.NewChild2('OPENINGRATE', FormatCurr(TallyQtyPicture,FORate)+'/'+BaseUnit);;
-
+  end;
   If Length(FGodown) > 0 then
   begin
   xLdg := xLdg.NewChild('BATCHALLOCATIONS.LIST','');
@@ -889,8 +895,12 @@ begin
   else
   xLdg.NewChild2('BATCHNAME', 'Primary Batch');
 //  xLdg.NewChild2('BATCHNAME', 'Primary Batch');
-  if FORate > 0 then
-  xLdg.NewChild2('OPENINGBALANCE', FormatCurr(TallyQtyPicture, FORate)+' '+BaseUnit);
+    xLdg.NewChild2('OPENINGBALANCE', FormatCurr(TallyAmtPicture, FOBal)+' '+BaseUnit);
+    if FORate > 0 then
+    begin
+    xLdg.NewChild2('OPENINGVALUE', FormatCurr(TallyQtyPicture, -FORate * FOBal));;
+    xLdg.NewChild2('OPENINGRATE', FormatCurr(TallyQtyPicture, FORate)+' '+BaseUnit);
+    end;
   { BATCHALLOCATIONS }
   xLdg := xLdg.GetParent;
   end;
