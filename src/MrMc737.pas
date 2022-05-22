@@ -59,7 +59,7 @@ uses
 {$DEFINE xlstbl}
 
 Const
-  PGLEN = 20;
+  PGLEN = 22;
   COLUMNLIMIT = 64;
   TallyAmtPicture = '############.##';
 
@@ -300,6 +300,7 @@ TbjMrMc = class(TinterfacedObject, IbjXlExp, IbjMrMc)
     MstExp: TbjMstExp;
     VchExp: TbjVchExp;
     lDups: integer;
+    iDups: integer;
     procedure OpenFile;
     procedure GenerateID;
     procedure CheckLedMst;
@@ -941,6 +942,12 @@ Todo
       str := xxCfg.GetChildContent(UAliasName);
       if Length(str) > 0 then
         UGSTRateName := str;
+    xxCfg := xCfg.SearchForTag(nil, UStateName);
+    if Assigned(xxCfg) then
+    begin
+      str := xxCfg.GetChildContent(UAliasName);
+      if Length(str) > 0 then
+        UStateName := str;
     end;
   end;
   if IsMListDeclared then
@@ -994,68 +1001,68 @@ Todo
     end;
 
     xCfg := Cfg.SearchForTag(nil, UCategoryName);
-    if Assigned(xxCfg) then
+    if Assigned(xCfg) then
     begin
-      str := xxCfg.GetChildContent(UAliasName);
+      str := xCfg.GetChildContent(UAliasName);
       if Length(str) > 0 then
         UCategoryName := str;
     end;
 
     xCfg := Cfg.SearchForTag(nil, USubGroupName);
-    if Assigned(xxCfg) then
+    if Assigned(xCfg) then
     begin
-      str := xxCfg.GetChildContent(UAliasName);
+      str := xCfg.GetChildContent(UAliasName);
       if Length(str) > 0 then
         USubGroupName := str;
     end;
 
     xCfg := Cfg.SearchForTag(nil, UAddressName);
-    if Assigned(xxCfg) then
+    if Assigned(xCfg) then
     begin
-      str := xxCfg.GetChildContent(UAliasName);
+      str := xCfg.GetChildContent(UAliasName);
       if Length(str) > 0 then
         UAddressName := str;
     end;
 
     xCfg := Cfg.SearchForTag(nil, UAddress1Name);
-    if Assigned(xxCfg) then
+    if Assigned(xCfg) then
     begin
-      str := xxCfg.GetChildContent(UAliasName);
+      str := xCfg.GetChildContent(UAliasName);
       if Length(str) > 0 then
         UAddress1Name := str;
     end;
     xCfg := Cfg.SearchForTag(nil, UAddress2Name);
-    if Assigned(xxCfg) then
+    if Assigned(xCfg) then
     begin
-      str := xxCfg.GetChildContent(UAliasName);
+      str := xCfg.GetChildContent(UAliasName);
       if Length(str) > 0 then
         UAddress2Name := str;
     end;
     xCfg := Cfg.SearchForTag(nil, UAddress3Name);
-    if Assigned(xxCfg) then
+    if Assigned(xCfg) then
     begin
-      str := xxCfg.GetChildContent(UAliasName);
+      str := xCfg.GetChildContent(UAliasName);
       if Length(str) > 0 then
         UAddress3Name := str;
     end;
     xCfg := Cfg.SearchForTag(nil, UAddress4Name);
-    if Assigned(xxCfg) then
+    if Assigned(xCfg) then
     begin
-      str := xxCfg.GetChildContent(UAliasName);
+      str := xCfg.GetChildContent(UAliasName);
       if Length(str) > 0 then
         UAddress4Name := str;
     end;
     xCfg := Cfg.SearchForTag(nil, UPincodeName);
-    if Assigned(xxCfg) then
+    if Assigned(xCfg) then
     begin
-      str := xxCfg.GetChildContent(UAliasName);
+      str := xCfg.GetChildContent(UAliasName);
       if Length(str) > 0 then
         UPincodeName := str;
     end;
     xCfg := Cfg.SearchForTag(nil, UStateName);
-    if Assigned(xxCfg) then
+    if Assigned(xCfg) then
     begin
-      str := xxCfg.GetChildContent(UAliasName);
+      str := xCfg.GetChildContent(UAliasName);
       if Length(str) > 0 then
         UStateName := str;
     end;
@@ -1377,7 +1384,7 @@ begin
   notoskip := 0;
   FProcessedCount := 0;
   FToLog := True;
-  FdynPgLen := PgLen + Random(36);
+  FdynPgLen := PgLen + Random(44);
   askAgainToAutoCreateMst := True;
 end;
 
@@ -1618,10 +1625,11 @@ begin
     if missingledgers > 0 then
       MessageDlg(IntToStr(missingledgers)+ ' Ledgers Missing in Tally', mtInformation, [mbOK], 0)
     else
-      MessageDlg(InttoStr(lDups) + ' ledger(s) modified', mtInformation, [mbOK], 0);
+      MessageDlg(InttoStr(lDups) + ' Ledger(s) Created/Updated', mtInformation, [mbOK], 0);
     end;
     if IsExpItemMst then
-      MessageDlg('Done', mtInformation, [mbOK], 0);
+//      MessageDlg('Done', mtInformation, [mbOK], 0);
+      MessageDlg(InttoStr(iDups) + ' Item(s) Verified/Created/Updated', mtInformation, [mbOK], 0);
   end;
 end;
 
@@ -2162,6 +2170,7 @@ begin
   else
     MstExp.NewItem(dbItem, dbUnit, wOBal, ORate);
   FUpdate('Item: ' + dbItem);
+  iDups := iDups + 1;
 end;
 
 procedure TbjMrMc.ExpStkJrnl;
@@ -2284,8 +2293,11 @@ begin
     VchExp.VchRefDate := kadb.GetFieldSDate(dsl.UDateName);
   end;
   if dsl.IsBillRefDefined then
+  begin
     VchExp.BillRef := kadb.GetFieldString(dsl.UBillRefName);
+  end;
 { Late binding of VchExp.VchNarration }
+  VchExp.VchNarration := '';
   VchExp.VchGSTN := '';
     if dsl.IsGSTNDefined[COLUMNLIMIT + 1] then
     VchExp.VchGSTN := kadb.GetFieldString(dsl.UGSTNName[COLUMNLIMIT+1]);
@@ -2299,9 +2311,15 @@ begin
   VchExp.VchChequeNo := ChequeNoColValue;
   ChequeNoColValue := '';
   RoundOffName := GetRoundOffName;
-  VchExp.VchState := '';
+//  VchExp.VchState := '';
+  VchExp.VchState := UdefStateName;
   if (VchType = 'Sales') or (VchType = 'Purchase') then
-  VchExp.VchState := MstExp.GetPartyState(RoundOffName);
+  begin
+    VchExp.VchState := kadb.GetFieldString(dsl.UStateName);
+    VchExp.PartyState := MstExp.GetPartyState(RoundOffName);
+    if Length(VchExp.VchState) = 0 then
+      VchExp.VchState := VchExp.PartyState;
+  end;
   notoskip := 0;
 end;
 

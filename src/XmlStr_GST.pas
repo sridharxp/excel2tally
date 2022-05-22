@@ -652,6 +652,9 @@ MYSALE = '<Voucher>'+
 '<GSTRate>'+
 '<Alias>Tax_rate</Alias>'+
 '</GSTRate>'+
+'<STATE>'+
+'<Alias>State</Alias>'+
+'</STATE>'+
 '</INVENTORY>'+
 '</Voucher>';
 
@@ -1013,6 +1016,9 @@ MYPURC = '<Voucher>'+
 '<GSTRate>'+
 '<Alias>Tax_rate</Alias>'+
 '</GSTRate>'+
+'<STATE>'+
+'<Alias>State</Alias>'+
+'</STATE>'+
 '</INVENTORY>'+
 '</Voucher>';
 
@@ -1148,6 +1154,9 @@ SBILL = '<Voucher>'+
 '<Value>'+
 '<Alias>Bill_Value</Alias>'+
 '</Value>'+
+'<STATE>'+
+'<Alias>State</Alias>'+
+'</STATE>'+
 '</INVENTORY>'+
 '</Voucher>';
 
@@ -1282,6 +1291,9 @@ PBILL = '<Voucher>'+
 '<Value>'+
 '<Alias>Bill_Value</Alias>'+
 '</Value>'+
+'<STATE>'+
+'<Alias>State</Alias>'+
+'</STATE>'+
 '</INVENTORY>'+
 '</Voucher>';
 
@@ -1634,6 +1646,9 @@ GSTSALE = '<Voucher>'+
 '<GSTRate>'+
 '<Alias>Tax_rate</Alias>'+
 '</GSTRate>'+
+'<STATE>'+
+'<Alias>State</Alias>'+
+'</STATE>'+
 '</INVENTORY>'+
 '</Voucher>';
 
@@ -1950,6 +1965,9 @@ GSTPURC = '<Voucher>'+
 '<GSTRate>'+
 '<Alias>Tax_rate</Alias>'+
 '</GSTRate>'+
+'<STATE>'+
+'<Alias>State</Alias>'+
+'</STATE>'+
 '</INVENTORY>'+
 '</Voucher>';
 
@@ -2361,6 +2379,9 @@ CNOTE = '<Voucher>'+
 '<GSTRate>'+
 '<Alias>Tax_rate</Alias>'+
 '</GSTRate>'+
+'<STATE>'+
+'<Alias>State</Alias>'+
+'</STATE>'+
 '</INVENTORY>'+
 '</Voucher>';
 
@@ -2652,6 +2673,9 @@ DNOTE = '<Voucher>'+
 '<GSTRate>'+
 '<Alias>Tax_rate</Alias>'+
 '</GSTRate>'+
+'<STATE>'+
+'<Alias>State</Alias>'+
+'</STATE>'+
 '</INVENTORY>'+
 '</Voucher>';
 
@@ -3057,6 +3081,9 @@ MYCNOTE = '<Voucher>'+
 '<Value>'+
 '<Alias>Bill_Value</Alias>'+
 '</Value>'+
+'<STATE>'+
+'<Alias>State</Alias>'+
+'</STATE>'+
 '</INVENTORY>'+
 '</Voucher>';
 

@@ -229,6 +229,7 @@ type
     FVchAction: string;
     FRemoteID: string;
     FVchState: string;
+    FPartyState: string;
   protected
     { Protected declarations }
     Lines: TList;
@@ -297,6 +298,7 @@ type
     property VchAction: string read FVchAction write FVchAction;
     property RemoteID: string read FRemoteID write FRemoteID;
     property VchState: string read FVchState write FVchState;
+    property PartyState: string read FPartyState write FPartyState;
   end;
 
   TLine = Record
@@ -1243,16 +1245,18 @@ begin
   xvou.NewChild2('REFERENCEDATE',vchDate);
 { GuId is important to track vouchers }
   xvou.NewChild2('GUID',sid);
-  if Length(VchState) > 0 then
-    xvou.NewChild2('STATENAME', VchState);
+  if Length(PartyState) > 0 then
+    xvou.NewChild2('STATENAME', PartyState);
   if Length(VChNarration) > 0 then
   begin
     xvou.NewChild2('NARRATION',VchNarration);
-    VchNarration := '';
   end;
+  if Length(PartyState) > 0 then
+    xvou.NewChild2('COUNTRYOFRESIDENCE', 'India');
+  if Length(VchGSTN) > 0 then
+  xvou.NewChild2('PARTYGSTIN', VchGSTN);
   if Length(VchState) > 0 then
   begin
-    xvou.NewChild2('COUNTRYOFRESIDENCE', 'India');
     xvou.NewChild2('PLACEOFSUPPLY', VchState);
   end;
   xvou.NewChild2('VOUCHERTYPENAME',VchType);
@@ -1295,8 +1299,10 @@ begin
   end
   else
     xvou.NewChild2('REFERENCE',VchNo);
+{
   if Length(VchState) > 0 then
   xvou.NewChild2('CONSIGNEESTATENAME',VchState);
+}
 { Effective Date is crucial; Without which dll crashes }
   if Length(VouDate) > 0 then
   xvou.NewChild2('EFFECTIVEDATE',vouDate)
@@ -2391,6 +2397,8 @@ It does not use GetDupPartyGSTN
 { Same Name Different GSTN}
   if (not dupName) and (aGSTN <> SystemGSTN) then
   begin
+      if aLedger = 'Cash' then
+       Exit;
     if not IsLedger(aLedger+'_'+aGSTN) then
       CreateParty(aLedger+'_'+aGSTN, aParent, aGSTN, aState);
     if Length(aGSTN) > 0 then
