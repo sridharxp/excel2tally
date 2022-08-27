@@ -59,7 +59,7 @@ uses
 {$DEFINE xlstbl}
 
 Const
-  PGLEN = 22;
+  PGLEN = 29;
   COLUMNLIMIT = 64;
   TallyAmtPicture = '############.##';
 
@@ -77,7 +77,8 @@ TbjDSLParser = class(TinterfacedObject, IbjDSLParser)
   private
     FIsMListDeclared: Boolean;
     FIsVListDeclared: Boolean;
-    FIsIListDeclared: Boolean;
+    FIsIVListDeclared: Boolean;
+    FIsInOutListDeclared: Boolean;
   protected
 { Xml related }
     cfgn: IbjXml;
@@ -248,7 +249,8 @@ TbjDSLParser = class(TinterfacedObject, IbjDSLParser)
     destructor Destroy; override;
     property IsMListDeclared: Boolean read FIsMListDeclared write FIsMListDeclared;
     property IsVListDeclared: Boolean read FIsVListDeclared write FIsVListDeclared;
-    property IsIListDeclared: Boolean read FIsIListDeclared write FIsIListDeclared;
+    property IsIVListDeclared: Boolean read FIsIVListDeclared write FIsIVListDeclared;
+    property IsInOutListDeclared: Boolean read FIsInOutListDeclared write FIsInOutListDeclared;
 end;
 
 TbjMrMc = class(TinterfacedObject, IbjXlExp, IbjMrMc)
@@ -537,7 +539,7 @@ begin
   begin
     if Length(TableName) = 0 then
       TableName := IList;
-    IsIListDeclared := True;
+    IsIVListDeclared := True;
   end;
 {
 AutoCreateMst affects default group only
@@ -1091,7 +1093,7 @@ Todo
     end;
 
   end;
-  if IsIListDeclared then
+  if IsIVListDeclared then
   begin
     xCfg := Cfg.SearchForTag(nil, UInItemName);
     if Assigned(xCfg) then
@@ -1288,7 +1290,7 @@ begin
     if kadb.FindField(UMRPRateName) <> nil then
       IsMRPRateDefined := True;
   end;
-  if IsIListDeclared then
+  if IsIVListDeclared then
   begin
     if kadb.FindField(UInItemName) <> nil then
       IsInItemDefined := True;
@@ -1347,7 +1349,7 @@ begin
     begin
       IsGSTNDefined[i] := True;
       if not IsLedgerDefined[i] then
-        raise Exception.Create('Check CreateColLedger');
+        raise Exception.Create('Required (Ledger) column not found');
     end;
   end;
 end;
@@ -1384,7 +1386,7 @@ begin
   notoskip := 0;
   FProcessedCount := 0;
   FToLog := True;
-  FdynPgLen := PgLen + Random(44);
+  FdynPgLen := PgLen + Random(47);
   askAgainToAutoCreateMst := True;
 end;
 
@@ -1461,7 +1463,7 @@ begin
   for i := 0 to kadb.FieldList.Count-1 do
   begin
     str := kadb.FieldList[i];
-    if copy(str, 1,3) = 'Cr_' then
+    if copy(str, 1,3) = 'cr_' then
     begin
       DeclaredLedgers := DeclaredLedgers + 1;
       dsl.IsLedgerDeclared[DeclaredLedgers] := True;
@@ -1471,7 +1473,7 @@ begin
       dsl.AmountType[DeclaredLedgers] := 'Cr';
       MstExp.NewLedger(dsl.DiLedgerValue[DeclaredLedgers], 'Indirect Incomes', 0);
     end;
-    if copy(str, 1,3) = 'Dr_' then
+    if copy(str, 1,3) = 'dr_' then
     begin
       DeclaredLedgers := DeclaredLedgers + 1;
       dsl.IsLedgerDeclared[DeclaredLedgers] := True;
@@ -1568,10 +1570,7 @@ begin
     if not kadb.Eof then
       notoskip := notoskip + 1;
   end;
-  if dsl.IsVListDeclared then
     WriteStatus;
-  if dsl.IsiListDeclared then
-    WriteStoCK;
   EndTime := Time;
   Elapsed := EndTime - StartTime;
   DecodeTime(Elapsed, Hrs, Mins, Secs, MSecs);
@@ -1642,10 +1641,8 @@ begin
   begin
     if dsl.IsVListDeclared then
     ProcessRow;
-    if dsl.IsIListDeclared then
-    begin
+    if dsl.IsIVListDeclared then
       ExpStkJrnl;
-    end;
     IsIdOnlyChecked := False;
   end;
   if FoundNewId then
@@ -2526,6 +2523,11 @@ var
   RoundOffAmount: currency;
   Thisalso: boolean;
 begin
+  if dsl.IsiVListDeclared then
+  begin
+    WriteStoCK;
+    Exit;
+  end;
   Thisalso := False;
   IsMinus := False;
 
@@ -2634,11 +2636,11 @@ procedure TbjMrMc.WriteStock;
 var
   i: integer;
   statmsg: string;
-  Thisalso: boolean;
 begin
 //  vchAction := 'Create';
   if dsl.IsNarrationDefined then
     VchExp.VchNarration := NarrationColValue;
+  if dsl.IsiVListDeclared then
   StatMsg := VchExp.SPost(VchAction, True);
   FUpdate('Voucher: ' + Statmsg);
   FProcessedCount := FProcessedCount + 1;
