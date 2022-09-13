@@ -277,7 +277,7 @@ type
     function AddLinewithRef(const Ledger: string; const Amount: currency; const Ref, RefType: string): currency;
     function SetAssessable(const aAmount: currency): currency;
 //    function SetInvLine(const Item: string; const Qty, Rate, Amount: currency; const Godown, Batch, UserDesc:string): currency;
-    function SetInvLine(const Item: string; const Qty, Rate, Amount: currency; const Godown, Batch: string; UserDesc:TStringDynArray): currency;
+    function SetInvLine(const Item: string; const Qty, Rate, Amount: currency; const aDiscRate, Godown, Batch: string; UserDesc:TStringDynArray): currency;
     function Post(const Action: string; wem: boolean): string;
     function SPost(const Action: string; wem: boolean): string;
 
@@ -319,6 +319,7 @@ type
     Item: string;
     Qty: currency;
     Rate: currency;
+    DiscRate: string;
     Amount: currency;
     Godown: string;
     Batch: string;
@@ -1446,7 +1447,7 @@ begin
   Result := Amount;
 end;
 }
-function TbjVchExp.SetInvLine(const Item: string; const Qty, Rate, Amount: currency; const Godown, Batch: string; UserDesc: TStringDynArray): currency;
+function TbjVchExp.SetInvLine(const Item: string; const Qty, Rate, Amount: currency; const aDiscRate, Godown, Batch: string; UserDesc: TStringDynArray): currency;
 var
   pline: pInvLine;
   k: Integer;
@@ -1462,6 +1463,7 @@ begin
 
   pline^.Qty :=  Qty;
   pline^.Rate :=  Rate;
+  pLine^.DiscRate := aDiscRate;
   pline^.Amount :=  Amount;
   pline^.Godown :=  Godown;
   pline^.Batch :=  Batch;
@@ -1783,6 +1785,7 @@ begin
     iItem.UserDesc[k] := '';
     iItem.Godown := '';
     iItem.Batch := '';
+    iItem.DiscRate := '';
     Dispose(iItem);
   end;
   ILines.Clear;
@@ -1892,6 +1895,7 @@ begin
     xvou := xvou.NewChild('INVENTORYALLOCATIONS.LIST', '');
     xvou := xvou.NewChild('BASICUSERDESCRIPTION.LIST', '');
     for k :=Low(pInvLine(iLines.Items[idx])^.UserDesc) to High(pInvLine(iLines.Items[idx])^.UserDesc) do
+    if Length(pInvLine(iLines.Items[idx])^.UserDesc[k]) > 0 then
     xvou.NewChild2('BASICUSERDESCRIPTION', pInvLine(iLines.Items[idx])^.UserDesc[k]);
     { BASICUSERDESCRIPTION.LIST }
       xvou := xvou.GetParent;

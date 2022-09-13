@@ -173,6 +173,7 @@ TbjDSLParser = class(TinterfacedObject, IbjDSLParser)
     UUnitName: string;
     UQtyName: string;
     URateName: string;
+    UDiscRateName: string;
     ToCheckInvCols: boolean;
     IsAddressDefined: boolean;
     IsAddress1Defined: boolean;
@@ -227,6 +228,7 @@ TbjDSLParser = class(TinterfacedObject, IbjDSLParser)
     IsSubGroupDefined: Boolean;
     IsInItemDefined: boolean;
     IsOutItemDefined: boolean;
+    IsDiscRateDefined: Boolean;
     IsLedgerDefined: array [1..COLUMNLIMIT] of boolean;
     IsRoundOffColDefined: boolean;
     IsRoundOffAmountColDefined: boolean;
@@ -471,6 +473,7 @@ begin
   UInGodownName := 'DrGODOWN';
   UOutGodownName := 'CrGODOWN';
   URoundOffAmountColName := 'Invoice_Amt';
+  UDiscRateName := 'DiscRate';
   UserDescColumns := 1;
 end;
 
@@ -954,6 +957,13 @@ Todo
       if Length(str) > 0 then
         UStateName := str;
     end;
+    xxCfg := xCfg.SearchForTag(nil, UDiscRateName);
+    if Assigned(xxCfg) then
+    begin
+      str := xxCfg.GetChildContent(UAliasName);
+      if Length(str) > 0 then
+        UDiscRateName := str;
+    end;
   end;
   if IsMListDeclared then
   begin
@@ -1245,6 +1255,8 @@ begin
     IsHSNDefined := True;
   if kadb.FindField(UBatchName) <> nil then
     IsBatchDefined := True;
+  if kadb.FindField(UDiscRateName) <> nil then
+    IsDiscRateDefined := True;
   if kadb.FindField(UUserDescName) <> nil then
     IsUserDescDefined := True;
     for rlevel := 1 to 9 do
@@ -1738,6 +1750,7 @@ var
   UserDescColValue: TStringDynArray;
   GodownColValue: string;
   k: Integer;
+  DiscRatecolValue: string;
 begin
   if not  dsl.IsInvDefined[level] then
     Exit;
@@ -1749,6 +1762,10 @@ begin
     Exit;
   if kadb.IsEmptyField(dsl.UQtyName) then
     Exit;
+  if dsl.UserDescColumns > 1 then
+  SetLength(UserDescColValue, dsl.UserDescColumns)
+  else
+  SetLength(UserDescColValue, 1);
 { InvAmt for Purchase }
   ItemColValue := kadb.GetFieldString(dsl.UItemName);
 //  GodownColValue := '';
@@ -1763,13 +1780,15 @@ begin
   for k := 1 to dsl.UserDescColumns-1 do
     UserDescColValue[k] :=  kadb.GetFieldString(dsl.UUserDescName+InttoStr(k))
   end;
+  if dsl.IsDiscRateDefined then
+    DiscRateColValue := kadb.GetFieldString(dsl.UDiscRateName);
   if (Length(ItemColValue) > 0)
 //    and (not kadb.IsEmptyField(dsl.UQtyName))
     then
     VchExp.SetInvLine(ItemColValue,
     kadb.GetFieldCurr(dsl.UQtyName),
     kadb.GetFieldCurr(dsl.URateName),
-    invamt, GodownColValue, BatchColValue, UserDescColValue);
+    invamt, DiscRateColValue, GodownColValue, BatchColValue, UserDescColValue);
   IsInventoryAssigned := True;
   VchExp.InvVch := True;
 end;
@@ -2198,6 +2217,7 @@ var
   BatchColValue: string;
   GodownColValue: string;
   UserDescColValue: TStringDynArray;
+  DiscRateColValue: string;
 begin
   if dsl.IsNarrationDefined then
   begin
@@ -2230,7 +2250,7 @@ begin
     kadb.GetFieldCurr(dsl.UOutQtyName),
     kadb.GetFieldCurr(dsl.UOutRateName),
     kadb.GetFieldCurr(dsl.UOutAmtName),
-    GodownColValue, BatchColValue, UserDescColValue);
+    DiscRateColValue, GodownColValue, BatchColValue, UserDescColValue);
   end;
   if dsl.IsInItemDefined then
   begin
@@ -2242,7 +2262,7 @@ begin
     kadb.GetFieldCurr(dsl.UInQtyName),
     kadb.GetFieldCurr(dsl.UInRateName),
     -kadb.GetFieldCurr(dsl.UInAmtName),
-    GodownColValue, BatchColValue, UserDescColValue);
+    DiscRateColValue, GodownColValue, BatchColValue, UserDescColValue);
   end;
 end;
 
@@ -2545,6 +2565,11 @@ var
   Thisalso: boolean;
 begin
   if dsl.IsiVListDeclared then
+  begin
+    WriteStoCK;
+    Exit;
+  end;
+  if dsl.IsInOutListDeclared then
   begin
     WriteStoCK;
     Exit;
@@ -2900,6 +2925,7 @@ begin
   kadb.SetFieldFormat('Category', 35);
   kadb.SetFieldFormat('TALLYID', 35);
   kadb.SetFieldFormat('REMOTEID', 35);
+  kadb.SetFieldFormat('Disc_Rate', 35);
 end;
 
 procedure TbjMrMc.UnFilter;
