@@ -1904,6 +1904,8 @@ begin
       xvou.NewChild2('ISDEEMEDPOSITIVE', 'Yes')
     else
       xvou.NewChild2('ISDEEMEDPOSITIVE', 'No');
+      if Length(pInvLine(iLines.Items[idx])^.DiscRate) > 0 then
+      xvou.NewChild2('DISCOUNT', pInvLine(iLines.Items[idx])^.DiscRate);
       xvou.NewChild2('AMOUNT', FormatCurr(TallyAmtPicture, pInvLine(iLines.Items[idx])^.Amount));
       xvou.NewChild2('ACTUALQTY', FormatCurr(TallyQtyPicture, pInvLine(iLines.Items[idx])^.Qty));
       xvou.NewChild2('BILLEDQTY', FormatCurr(TallyQtyPicture, pInvLine(iLines.Items[idx])^.Qty));
