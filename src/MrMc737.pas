@@ -54,6 +54,7 @@ uses
   bjXml3_1,
   Repet,
   VchLib,
+  Types,
   Dialogs;
 
 {$DEFINE xlstbl}
@@ -240,6 +241,7 @@ TbjDSLParser = class(TinterfacedObject, IbjDSLParser)
     DefGroup: string;
     dbName: string;
     TableName: string;
+    UserDescColumns: Integer;
     kadb: TbjXLSTable;
     FUpdate: TfnUpdate;
     procedure DeclareColName;
@@ -469,6 +471,7 @@ begin
   UInGodownName := 'DrGODOWN';
   UOutGodownName := 'CrGODOWN';
   URoundOffAmountColName := 'Invoice_Amt';
+  UserDescColumns := 1;
 end;
 
 destructor TbjDSLParser.Destroy;
@@ -1204,6 +1207,8 @@ end;
 procedure TbjDSLParser.CheckColName;
 var
   i, j: integer;
+  rlevel: Integer;
+  rStr: string;
 begin
   FUPdate('Checking worksheet columns');
   if kadb.FindField(UIdName) <> nil then
@@ -1242,6 +1247,14 @@ begin
     IsBatchDefined := True;
   if kadb.FindField(UUserDescName) <> nil then
     IsUserDescDefined := True;
+    for rlevel := 1 to 9 do
+    begin
+      rStr := UUserDescName + InttoStr(rlevel);
+      if kadb.FindField(rStr) <> nil then
+        UserDescColumns := UserDescColumns + 1
+      else
+        Break;
+      end;
   if kadb.FindField(UUnitName) <> nil then
     IsUnitDefined := True;
   if kadb.FindField(UMailingName) <> nil then
@@ -1535,6 +1548,8 @@ begin
   dsl.DeclareColName;
   OpenFile;
   dsl.CheckColName;
+  if dsl.UserDescColumns > 1 then
+    VchExp.UserDescSize := dsl.UserDescColumns;
   CreateDefLedger;
   ProcessMaster;
   if dsl.IsMListDeclared then
@@ -1720,8 +1735,9 @@ procedure TbjMrMc.ProcessItem(const level: integer; InvAmt: currency);
 var
   ItemColValue: string;
   BatchColValue: string;
-  UserDescColValue: string;
+  UserDescColValue: TStringDynArray;
   GodownColValue: string;
+  k: Integer;
 begin
   if not  dsl.IsInvDefined[level] then
     Exit;
@@ -1741,7 +1757,12 @@ begin
   if dsl.IsBatchDefined then
   BatchColValue :=  kadb.GetFieldString(dsl.UBatchName);
   if dsl.IsUserDescDefined then
-  UserDescColValue :=  kadb.GetFieldString(dsl.UUserDescName);
+  begin
+  UserDescColValue[0] :=  kadb.GetFieldString(dsl.UUserDescName);
+  if dsl.UserDescColumns > 1 then
+  for k := 1 to dsl.UserDescColumns-1 do
+    UserDescColValue[k] :=  kadb.GetFieldString(dsl.UUserDescName+InttoStr(k))
+  end;
   if (Length(ItemColValue) > 0)
 //    and (not kadb.IsEmptyField(dsl.UQtyName))
     then
@@ -2176,7 +2197,7 @@ var
   dbUnit: string;
   BatchColValue: string;
   GodownColValue: string;
-  UserDescColValue: string;
+  UserDescColValue: TStringDynArray;
 begin
   if dsl.IsNarrationDefined then
   begin

@@ -34,6 +34,7 @@ uses
   Repet,
   Math,
   Controls,
+  Types,
   VchLib;
 
 const
@@ -230,6 +231,7 @@ type
     FRemoteID: string;
     FVchState: string;
     FPartyState: string;
+    FUserDescSize: Integer;
   protected
     { Protected declarations }
     Lines: TList;
@@ -274,7 +276,8 @@ type
     function AddLine(const Ledger: string; const Amount: currency; const aTType: boolean): currency;
     function AddLinewithRef(const Ledger: string; const Amount: currency; const Ref, RefType: string): currency;
     function SetAssessable(const aAmount: currency): currency;
-    function SetInvLine(const Item: string; const Qty, Rate, Amount: currency; const Godown, Batch, UserDesc:string): currency;
+//    function SetInvLine(const Item: string; const Qty, Rate, Amount: currency; const Godown, Batch, UserDesc:string): currency;
+    function SetInvLine(const Item: string; const Qty, Rate, Amount: currency; const Godown, Batch: string; UserDesc:TStringDynArray): currency;
     function Post(const Action: string; wem: boolean): string;
     function SPost(const Action: string; wem: boolean): string;
 
@@ -299,6 +302,7 @@ type
     property RemoteID: string read FRemoteID write FRemoteID;
     property VchState: string read FVchState write FVchState;
     property PartyState: string read FPartyState write FPartyState;
+    property UserDescSize: Integer read FuserDescSize write FUserDescSize;
   end;
 
   TLine = Record
@@ -318,7 +322,7 @@ type
     Amount: currency;
     Godown: string;
     Batch: string;
-    UserDesc: string;
+    UserDesc: array of string;
   end;
   PInvLine = ^TInvline;
 
@@ -452,6 +456,7 @@ begin
   For simple usage, that is}
   FInvVch := False;
   IsVchMode4Vch := True;
+  UserDescSize := 1;
 end;
 
 destructor TbjVchExp.Destroy;
@@ -1400,8 +1405,9 @@ begin
     if Amount <= 0 then
       IsVchTypeMatched := False;
   if  (WSType = 'Journal') then
-    if Amount >= 0 then
-      IsVchTypeMatched := False;
+//    if Amount >= 0 then
+//      IsVchTypeMatched := False;
+      IsVchTypeMatched := tRUe;
   if  (WSType = 'Contra') then
     if Amount <= 0 then
       IsVchTypeMatched := False;
@@ -1440,9 +1446,10 @@ begin
   Result := Amount;
 end;
 }
-function TbjVchExp.SetInvLine(const Item: string; const Qty, Rate, Amount: currency; const Godown, Batch, UserDesc: string): currency;
+function TbjVchExp.SetInvLine(const Item: string; const Qty, Rate, Amount: currency; const Godown, Batch: string; UserDesc: TStringDynArray): currency;
 var
   pline: pInvLine;
+  k: Integer;
 begin
   Result := 0;
   if VchType <> 'Stock Journal' then
@@ -1450,6 +1457,7 @@ begin
      Exit;
   pline := new(pInvLine);
   pline^.Ledger :=  RefLedger;
+  SetLength(pLine^.UserDesc, UserDescSize);
   pline^.Item :=  Item;
 
   pline^.Qty :=  Qty;
@@ -1457,7 +1465,8 @@ begin
   pline^.Amount :=  Amount;
   pline^.Godown :=  Godown;
   pline^.Batch :=  Batch;
-  pLine^.UserDesc := UserDesc;
+  for k := Low(pLine.UserDesc) to High(pline.UserDesc) do
+  pLine^.UserDesc[k] := UserDesc[k];
   ILines.Add(pline);
   Result := Amount;
 end;
@@ -1754,6 +1763,7 @@ var
   lItem: PLine;
   iItem: PInvLine;
   gItem: pGSTNLine;
+  k: Integer;
 begin
   for i:= 0 to Lines.Count-1 do
   begin
@@ -1769,10 +1779,10 @@ begin
     iitem := iLines.Items[i];
     iItem.Ledger := '';
     iItem.Item := '';
-    iItem.UserDesc := '';
+    for k := Low(iItem.UserDesc) to High(iItem.UserDesc) do
+    iItem.UserDesc[k] := '';
     iItem.Godown := '';
     iItem.Batch := '';
-    iItem.UserDesc := '';
     Dispose(iItem);
   end;
   ILines.Clear;
@@ -1872,6 +1882,7 @@ end;
 procedure TbjVchExp.AttachInv(const rled: string);
 var
   idx: integer;
+  k: Integer;
 begin
   if ILines.Count > 0 then
   for idx := 0 to ilines.Count-1 do
@@ -1880,7 +1891,8 @@ begin
       Continue;
     xvou := xvou.NewChild('INVENTORYALLOCATIONS.LIST', '');
     xvou := xvou.NewChild('BASICUSERDESCRIPTION.LIST', '');
-    xvou.NewChild2('BASICUSERDESCRIPTION', pInvLine(iLines.Items[idx])^.UserDesc);
+    for k :=Low(pInvLine(iLines.Items[idx])^.UserDesc) to High(pInvLine(iLines.Items[idx])^.UserDesc) do
+    xvou.NewChild2('BASICUSERDESCRIPTION', pInvLine(iLines.Items[idx])^.UserDesc[k]);
     { BASICUSERDESCRIPTION.LIST }
       xvou := xvou.GetParent;
     xvou.NewChild2('STOCKITEMNAME', pInvLine(iLines.Items[idx])^.Item);
@@ -2016,7 +2028,6 @@ var
   Tallyid: IbjXml;
   LErr: string;
   Tid: string;
-  item: pInvLine;
   i: Integer;
 begin
   if (vchAction <> 'Create') and
