@@ -123,11 +123,6 @@ type
     FOBatch: string;
     FORate: currency;
     FMRPRate: currency;
-    FAddress: string;
-    FAddress1: string;
-    FAddress2: string;
-    FAddress3: string;
-    FAddress4: string;
     FPincode: string;
     FMobile: string;
     FeMail: string;
@@ -164,6 +159,7 @@ type
     procedure SetEnv(aEnv: TbjEnv);
   public
     { Public declarations }
+    Address: TStringDynArray;
     constructor Create;
     destructor Destroy; override;
     function IsLedger(Const Ledger: string): boolean;
@@ -195,15 +191,10 @@ type
     property OBatch: string write FOBatch;
     property ORate: currency write FORate;
     property MRPRate: currency write FMRPRate;
-    property Address: string write FAddress;
     property Mobile: string write FMobile;
     property eMail: string write FeMail;
     property IsBatchwiseOn: boolean write FIsBatchwiseOn;
     property UserDesc: string read FUserDesc write FUserDesc;
-    property Address1: string write FAddress1;
-    property Address2: string write FAddress2;
-    property Address3: string write FAddress3;
-    property Address4: string write FAddress4;
     property Pincode: string write FPincode;
   end;
 
@@ -491,6 +482,8 @@ Create, Update logic is in VchUpdate.dpr
 Low level funcntion should be Minimalist
 }
 function TbjMstExp.CreateLedger(const Ledger, Parent: string; const OpBal: currency): boolean;
+var
+  k: Integer;
 begin
 {  Result := False; }
 {
@@ -504,10 +497,8 @@ begin
   xLdg.AddAttribute('NAME', ledger);
   xLdg.AddAttribute('ACTION','Create');
   xLdg := xLdg.NewChild('ADDRESS.LIST','');
-  If Length(FAddress) > 0 then
-  begin
-  xLdg.NewChild2('ADDRESS', FAddress);
-  end;
+  if Length(Address[k]) > 0 then
+    xLdg.NewChild2('ADDRESS', Address[k]);
   { ADDRESS.LIST }
   xLdg := xLdg.GetParent;
   xLdg := xLdg.NewChild('NAME.LIST','');
@@ -710,6 +701,8 @@ begin
 end;
 
 function TbjMstExp.CreateParty(const Ledger, Parent, GSTN, State: string ): boolean;
+var
+  k: Integer;
 begin
 {  Result := False; }
   xmlHeader('L');
@@ -719,20 +712,10 @@ begin
   xLdg.AddAttribute('NAME', ledger);
   xLdg.AddAttribute('ACTION','Create');
   xLdg := xLdg.NewChild('ADDRESS.LIST','');
-  If Length(FAddress) > 0 then
-  begin
-  xLdg.NewChild2('ADDRESS', FAddress );
-  end
-  else
-  begin
-  If Length(FAddress1) > 0 then
-  xLdg.NewChild2('ADDRESS', FAddress1);
-  If Length(FAddress2) > 0 then
-  xLdg.NewChild2('ADDRESS', FAddress2);
-  If Length(FAddress3) > 0 then
-  xLdg.NewChild2('ADDRESS', FAddress3);
-  If Length(FAddress4) > 0 then
-  xLdg.NewChild2('ADDRESS', FAddress4);
+  for k :=Low(Address) to High(Address) do
+    if Length(Address[k]) > 0 then
+    begin
+      xLdg.NewChild2('ADDRESS', Address[k]);
   end;
   { ADDRESS.LIST }
   xLdg := xLdg.GetParent;

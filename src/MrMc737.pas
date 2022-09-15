@@ -137,10 +137,6 @@ TbjDSLParser = class(TinterfacedObject, IbjDSLParser)
     UMRPRateName: string;
     UGSTRateName: string;
     UAddressName: string;
-    UAddress1Name: string;
-    UAddress2Name: string;
-    UAddress3Name: string;
-    UAddress4Name: string;
     UPincodeName: string;
     UStateName: string;
     UMobileName: string;
@@ -176,10 +172,6 @@ TbjDSLParser = class(TinterfacedObject, IbjDSLParser)
     UDiscRateName: string;
     ToCheckInvCols: boolean;
     IsAddressDefined: boolean;
-    IsAddress1Defined: boolean;
-    IsAddress2Defined: boolean;
-    IsAddress3Defined: boolean;
-    IsAddress4Defined: boolean;
     IsPincodeDefined: boolean;
     IsStateDefined: boolean;
     IsLedgerPhoneDefined: boolean;
@@ -449,10 +441,6 @@ begin
   UMRPRateName := 'MRPRATE';
   UGSTRateName := 'GSTRate';
   UAddressName := 'ADDRESS';
-  UAddress1Name := 'ADDRESS1';
-  UAddress2Name := 'ADDRESS2';
-  UAddress3Name := 'ADDRESS3';
-  UAddress4Name := 'ADDRESS4';
   UPincodeName := 'PINCODE';
   UStateName := 'STATE';
   UMobileName := 'Mobile';
@@ -475,6 +463,7 @@ begin
   URoundOffAmountColName := 'Invoice_Amt';
   UDiscRateName := 'DiscRate';
   UserDescColumns := 1;
+  AddressColumns := 1;
 end;
 
 destructor TbjDSLParser.Destroy;
@@ -1039,34 +1028,6 @@ Todo
         UAddressName := str;
     end;
 
-    xCfg := Cfg.SearchForTag(nil, UAddress1Name);
-    if Assigned(xCfg) then
-    begin
-      str := xCfg.GetChildContent(UAliasName);
-      if Length(str) > 0 then
-        UAddress1Name := str;
-    end;
-    xCfg := Cfg.SearchForTag(nil, UAddress2Name);
-    if Assigned(xCfg) then
-    begin
-      str := xCfg.GetChildContent(UAliasName);
-      if Length(str) > 0 then
-        UAddress2Name := str;
-    end;
-    xCfg := Cfg.SearchForTag(nil, UAddress3Name);
-    if Assigned(xCfg) then
-    begin
-      str := xCfg.GetChildContent(UAliasName);
-      if Length(str) > 0 then
-        UAddress3Name := str;
-    end;
-    xCfg := Cfg.SearchForTag(nil, UAddress4Name);
-    if Assigned(xCfg) then
-    begin
-      str := xCfg.GetChildContent(UAliasName);
-      if Length(str) > 0 then
-        UAddress4Name := str;
-    end;
     xCfg := Cfg.SearchForTag(nil, UPincodeName);
     if Assigned(xCfg) then
     begin
@@ -1258,6 +1219,7 @@ begin
   if kadb.FindField(UDiscRateName) <> nil then
     IsDiscRateDefined := True;
   if kadb.FindField(UUserDescName) <> nil then
+  begin
     IsUserDescDefined := True;
     for rlevel := 1 to 9 do
     begin
@@ -1266,6 +1228,7 @@ begin
         UserDescColumns := UserDescColumns + 1
       else
         Break;
+    end;
       end;
   if kadb.FindField(UUnitName) <> nil then
     IsUnitDefined := True;
@@ -1287,15 +1250,17 @@ begin
     if kadb.FindField(UoBatchName) <> nil then
       IsoBatchDefined := True;
     if kadb.FindField(UAddressName) <> nil then
+    begin
       IsAddressDefined := True;
-    if kadb.FindField(UAddress1Name) <> nil then
-      IsAddress1Defined := True;
-    if kadb.FindField(UAddress2Name) <> nil then
-      IsAddress2Defined := True;
-    if kadb.FindField(UAddress3Name) <> nil then
-      IsAddress3Defined := True;
-    if kadb.FindField(UAddress4Name) <> nil then
-      IsAddress4Defined := True;
+      for rlevel := 1 to 9 do
+      begin
+        rStr := UAddressName + InttoStr(rlevel);
+        if kadb.FindField(rStr) <> nil then
+          AddressColumns := AddressColumns + 1
+        else
+          Break;
+      end;
+    end;
     if kadb.FindField(UPincodeName) <> nil then
       IsPincodeDefined := True;
     if kadb.FindField(UStateName) <> nil then
@@ -2001,8 +1966,10 @@ var
   IsThere: boolean;
   dbAlias: string;
   wOBal: currency;
-  wAddress, wMobile, weMail: string;
-  rAddress1, rAddress2, rAddress3, rAddress4, rPincode, rState: string;
+  wMobile, weMail: string;
+//  rAddress1, rAddress2, rAddress3, rAddress4,
+  k: Integer;
+  rPincode, rState: string;
 begin
   if not dsl.IsMListDeclared then
     Exit;
@@ -2017,26 +1984,19 @@ begin
   if dsl.IsOBalDefined then
   wOBal := kadb.GetFieldCurr(dsl.UOBalName);
   MstExp.OBal := wOBal;
-  if dsl.IsAddressDefined then
-    wAddress := kadb.GetFieldString(dsl.UAddressName)
+  if dsl.AddressColumns > 1 then
+  SetLength(MstExp.Address, dsl.AddressColumns)
   else
+  SetLength(MstExp.Address, 1);
+  if dsl.IsAddressDefined then
   begin
-    if dsl.IsAddress1Defined then
-      rAddress1 := kadb.GetFieldString(dsl.UAddress1Name);
-    if dsl.IsAddress2Defined then
-      rAddress2 := kadb.GetFieldString(dsl.UAddress2Name);
-    if dsl.IsAddress3Defined then
-      rAddress3 := kadb.GetFieldString(dsl.UAddress3Name);
-    if dsl.IsAddress4Defined then
-      rAddress4 := kadb.GetFieldString(dsl.UAddress4Name);
+  MstExp.Address[0] :=  kadb.GetFieldString(dsl.UAddressName);
+  if dsl.AddressColumns > 1 then
+  for k := 1 to dsl.AddressColumns-1 do
+    MstExp.Address[k] :=  kadb.GetFieldString(dsl.UAddressName+InttoStr(k))
   end;
   if dsl.IsPincodeDefined then
     rPincode := kadb.GetFieldString(dsl.UPincodeName);
-  MstExp.Address := wAddress;
-  MstExp.Address1 := rAddress1;
-  MstExp.Address2 := rAddress2;
-  MstExp.Address3 := rAddress3;
-  MstExp.Address4 := rAddress4;
   MstExp.Pincode := rPincode;
   if dsl.IsMobileDefined then
     wMobile := kadb.GetFieldString(dsl.UMobileName);
