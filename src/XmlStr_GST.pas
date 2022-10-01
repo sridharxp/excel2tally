@@ -646,6 +646,9 @@ MYSALE = '<Voucher>'+
 '<RATE>'+
 '<Alias>Rate</Alias>'+
 '</RATE>'+
+'<DiscRate>'+
+'<Alias>Disc_Rate</Alias>'+
+'</DiscRate>'+
 '<Value>'+
 '<Alias>Bill_Value</Alias>'+
 '</Value>'+
@@ -1643,6 +1646,9 @@ GSTSALE = '<Voucher>'+
 '<RATE>'+
 '<Alias>Rate</Alias>'+
 '</RATE>'+
+'<DiscRate>'+
+'<Alias>Disc_Rate</Alias>'+
+'</DiscRate>'+
 '<GSTRate>'+
 '<Alias>Tax_rate</Alias>'+
 '</GSTRate>'+
@@ -1976,6 +1982,7 @@ ACCMASTER = '<Voucher>'+
 '<MasterList>LMaster</MasterList>'+
 '<DefaultGroup>Sundry Debtors</DefaultGroup>'+
 '<IsMultiRow>No</IsMultiRow>'+
+'<KeyCol>LEDGER</KeyCol>'+
 '</Data>'+
 
 '<LEDGER>'+
@@ -2085,6 +2092,9 @@ CNOTE = '<Voucher>'+
 '<DefaultGroup>Sundry Debtors</DefaultGroup>'+
 '<IsMultiRow>Yes</IsMultiRow>'+
 '<IsMultiColumn>Yes</IsMultiColumn>'+
+'<KeyCol>VoucherRef</KeyCol>'+
+'<KeyCol>Sales_Value</KeyCol>'+
+'<KeyCol>Invoice_Date</KeyCol>'+
 '</Data>'+
 
 '<ID>'+
@@ -3087,6 +3097,162 @@ MYCNOTE = '<Voucher>'+
 '</INVENTORY>'+
 '</Voucher>';
 
+StkIn = '<Voucher>'+
+'<Data>'+
+'<InOutVchList>InOut</InOutVchList>'+
+'<IsMultiRow>Yes</IsMultiRow>'+
+'<IsMultiColumn>Yes</IsMultiColumn>'+
+'</Data>'+
+'<ID>'+
+'<Alias>ID</Alias>'+
+'</ID>'+
+'<DATE>'+
+'<Alias>DATE</Alias>'+
+'</DATE>'+
+'<REFNO>'+
+'<Alias>Ref_No</Alias>'+
+'</REFNO>'+
+'<REFDATE>'+
+'<Alias>Ref_Date</Alias>'+
+'</REFDATE>'+
+'<ITEM>'+
+'<Alias>Item</Alias>'+
+'</ITEM>'+
+'<GODOWN>'+
+'<Alias>Godown</Alias>'+
+'</GODOWN>'+
+'<UNIT>'+
+'<Alias>Unit</Alias>'+
+'</UNIT>'+
+'<QTY>'+
+'<Alias>Qty</Alias>'+
+'</QTY>'+
+'<RATE>'+
+'<Alias>Rate</Alias>'+
+'</RATE>'+
+'+<LEDGER>'+
+'<Alias>Party_Ledger</Alias>'+
+'<Group>'+
+'<Default>SunCry Debtors</Default>'+
+'</Group>'+
+'<GSTN>'+
+'<Alias>GSTN</Alias>'+
+'</GSTN>'+
+'<IsInvCol>Yes</IsInvCol>'+
+'<AmtCol>'+
+'<Alias>Amount</Alias>'+
+'<Type>Cr</Type>'+
+'</AmtCol>'+
+'</LEDGER>'+
+'<LEDGER>'+
+'<Default>SGST</Default>'+
+'<Group>Duties &amp; Taxes</Group>'+
+'<AmtCol>'+
+'<Alias>SGST</Alias>'+
+'<Type>Dr</Type>'+
+'</AmtCol>'+
+'</LEDGER>'+
+'<LEDGER>'+
+'<Default>CGST</Default>'+
+'<Group>Duties &amp; Taxes</Group>'+
+'<AmtCol>'+
+'<Alias>CGST</Alias>'+
+'<Type>Dr</Type>'+
+'</AmtCol>'+
+'</LEDGER>'+
+'<LEDGER>'+
+'<Default>IGST</Default>'+
+'<Group>Duties &amp; Taxes</Group>'+
+'<AmtCol>'+
+'<Alias>IGST</Alias>'+
+'<Type>Dr</Type>'+
+'</AmtCol>'+
+'</LEDGER>'+
+'<VTYPE>'+
+'<Default>Journal</Default>'+
+'</VTYPE>'+
+'<NARRATION>'+
+'<Alias>NARRATION</Alias>'+
+'</NARRATION>'+
+'</Voucher>';
+StkOut = '<Voucher>'+
+'<Data>'+
+'<InOutVchList>InOut</InOutVchList>'+
+'<IsMultiRow>Yes</IsMultiRow>'+
+'<IsMultiColumn>Yes</IsMultiColumn>'+
+'</Data>'+
+'<ID>'+
+'<Alias>ID</Alias>'+
+'</ID>'+
+'<DATE>'+
+'<Alias>DATE</Alias>'+
+'</DATE>'+
+'<REFNO>'+
+'<Alias>Ref_No</Alias>'+
+'</REFNO>'+
+'<REFDATE>'+
+'<Alias>Ref_Date</Alias>'+
+'</REFDATE>'+
+'<ITEM>'+
+'<Alias>Item</Alias>'+
+'</ITEM>'+
+'<GODOWN>'+
+'<Alias>Godown</Alias>'+
+'</GODOWN>'+
+'<UNIT>'+
+'<Alias>Unit</Alias>'+
+'</UNIT>'+
+'<QTY>'+
+'<Alias>Qty</Alias>'+
+'</QTY>'+
+'<RATE>'+
+'<Alias>Rate</Alias>'+
+'</RATE>'+
+'+<LEDGER>'+
+'<Alias>Party_Ledger</Alias>'+
+'<Group>'+
+'<Default>SunCry Debtors</Default>'+
+'</Group>'+
+'<GSTN>'+
+'<Alias>GSTN</Alias>'+
+'</GSTN>'+
+'<IsInvCol>Yes</IsInvCol>'+
+'<AmtCol>'+
+'<Alias>Amount</Alias>'+
+'<Type>Dr</Type>'+
+'</AmtCol>'+
+'</LEDGER>'+
+'<LEDGER>'+
+'<Default>SGST</Default>'+
+'<Group>Duties &amp; Taxes</Group>'+
+'<AmtCol>'+
+'<Alias>SGST</Alias>'+
+'<Type>Cr</Type>'+
+'</AmtCol>'+
+'</LEDGER>'+
+'<LEDGER>'+
+'<Default>CGST</Default>'+
+'<Group>Duties &amp; Taxes</Group>'+
+'<AmtCol>'+
+'<Alias>CGST</Alias>'+
+'<Type>Cr</Type>'+
+'</AmtCol>'+
+'</LEDGER>'+
+'<LEDGER>'+
+'<Default>IGST</Default>'+
+'<Group>Duties &amp; Taxes</Group>'+
+'<AmtCol>'+
+'<Alias>IGST</Alias>'+
+'<Type>Cr</Type>'+
+'</AmtCol>'+
+'</LEDGER>'+
+'<VTYPE>'+
+'<Default>Journal</Default>'+
+'</VTYPE>'+
+'<NARRATION>'+
+'<Alias>NARRATION</Alias>'+
+'</NARRATION>'+
+'</Voucher>';
 implementation
 
 end.

@@ -1462,7 +1462,8 @@ begin
       dsl.UAmountName[DeclaredLedgers] := str;
       dsl.AmountType[DeclaredLedgers] := 'Cr';
 //      MstExp.NewLedger(dsl.DiLedgerValue[DeclaredLedgers], 'Indirect Incomes', 0);
-      MstExp.NewLedger(Copy(kadb.GetFieldName(str),  4, Length(str)), 'Indirect Incomes', 0);
+      Str := Copy(kadb.GetFieldName(str),  4, Length(str)+11);
+      MstExp.NewLedger(Str, 'Indirect Incomes', 0);
     end;
     if copy(str, 1,3) = 'dr_' then
     begin
@@ -1473,7 +1474,8 @@ begin
       dsl.UAmountName[DeclaredLedgers] := str;
       dsl.AmountType[DeclaredLedgers] := 'Dr';
 //      MstExp.NewLedger(dsl.DiLedgerValue[DeclaredLedgers], 'Indirect Expenses', 0);
-      MstExp.NewLedger(Copy(kadb.GetFieldName(str),  4, Length(str)), 'Indirect Expenses', 0);
+      Str := Copy(kadb.GetFieldName(str),  4, Length(str)+11);
+      MstExp.NewLedger(Str, 'Indirect Expenses', 0);
     end;
   end;
 { Create Default Ledgers }

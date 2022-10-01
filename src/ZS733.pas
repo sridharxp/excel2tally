@@ -395,6 +395,7 @@ begin
   Inherited;
   xLed := CreatebjXmlDocument;
   xLedid := CreatebjXmlDocument;
+  SetLength(Address, 1);
 end;
 
 destructor TbjMstExp.Destroy;
@@ -497,8 +498,8 @@ begin
   xLdg.AddAttribute('NAME', ledger);
   xLdg.AddAttribute('ACTION','Create');
   xLdg := xLdg.NewChild('ADDRESS.LIST','');
-  if Length(Address[k]) > 0 then
-    xLdg.NewChild2('ADDRESS', Address[k]);
+  if Length(Address[0]) > 0 then
+    xLdg.NewChild2('ADDRESS', Address[0]);
   { ADDRESS.LIST }
   xLdg := xLdg.GetParent;
   xLdg := xLdg.NewChild('NAME.LIST','');
@@ -2026,47 +2027,6 @@ begin
   SetVchHeader;
   for i := 0 to ILines.Count-1 do
   begin
-    Item := ILines.Items[i];
-    AddInOut(i);
-  end;
-  ClearLines;
-  xmlFooter('V');
-  Env.Client.Host :=  Env.Host;
-  Env.Client.xmlRequestString :=  xvch.GetXml;
-{ For debugging }
-  if Env.IsSaveXmlFileOn then
-    xvch.SaveXmlFile('Voucher.xml');
-{ For debugging }
-//  MessageDlg(xvch.GetXML, mtInformation, [mbOK], 0);
-  Env.Client.post;
-
-  xvchid.Clear;
-  xvchid.LoadXml(Env.Client.GetxmlResponseString);
-  if Env.IsSaveXmlFileOn then
-    xvchid.SaveXmlFile('Tally.xml');
-
-  Tallyid := xvchid.SearchForTag(nil, 'LASTVCHID');
-  if Assigned(Tallyid) then
-  begin
-    tid := TallyId.GetContent;
-{ If this Visual feedback is not required then set ToUpdate to false }
-    Result := TId;
-    if Env.NotifyVchID then
-      MessageDlg(Tid, mtInformation, [mbOK], 0);
-  end;
-
-  if wem then
-  begin
-  Tallyid := xvchid.SearchForTag(nil, 'LINEERROR');
-  if Assigned(Tallyid) then
-      LErr := TallyId.GetContent;
-  if Length(LErr) > 0 then
-     Result := Lerr;
-  end;
-
-  CheckError;
-  xvch.Clear;
-end;
 
 procedure TbjVchExp.CheckDefGroup;
 var
