@@ -236,6 +236,7 @@ TbjDSLParser = class(TinterfacedObject, IbjDSLParser)
     dbName: string;
     TableName: string;
     UserDescColumns: Integer;
+    AddressColumns: Integer;
     kadb: TbjXLSTable;
     FUpdate: TfnUpdate;
     procedure DeclareColName;
@@ -783,12 +784,14 @@ Todo
         if Length(LedgerGroup[i]) = 0 then
           LedgerGroup[i] := xxCfg.GetChildContent('Default');
 
+        str := '';
         str := xxCfg.GetChildContent(UAliasName);
         UGroupName[i] := str;
         if Length(str) > 0 then
           IsGroupDeclared[i] := True;
       end;
 
+      str := '';
       xxCfg := xcfg.SearchForTag(nil, 'GSTN');
       if Assigned(xxCfg) then
       begin
@@ -939,6 +942,7 @@ Todo
       str := xxCfg.GetChildContent(UAliasName);
       if Length(str) > 0 then
         UGSTRateName := str;
+    end;
     xxCfg := xCfg.SearchForTag(nil, UStateName);
     if Assigned(xxCfg) then
     begin
@@ -1695,6 +1699,10 @@ begin
   amt[level] := GetAmt(level);
   if abs(Amt[level]) >= 0.01 then
   begin
+    if (level = 2) and (WSType = 'Journal') then
+    VchExp.AddLinewithRef(LedgerColValue, RoundCurr(Amt[level]),
+      kadb.GetFieldString(dsl.UBillRefName), 'Agst Ref', IsMinus)
+    else
     VchExp.AddLine(LedgerColValue, RoundCurr(Amt[level]), IsMinus);
     if dsl.IsAssessableDefined[level] then
       VchExp.SetAssessable(kadb.GetFieldCurr(dsl.UAssessableName[level]));
@@ -2947,7 +2955,12 @@ procedure TbjMrMc.CreateGSTLedger;
 var
   rState: string;
   rGrp: string;
+  rGSTN: string;
 begin
+  rState := '';
+  rGrp := '';
+  rGSTN := '';
+  rGSTN := kadb.GetFieldString('GSTN');
   if dsl.IsStateDefined then
     rState := kadb.GetFieldString(dsl.UStateName);
   rGrp := kadb.GetFieldString('Group');
@@ -2962,7 +2975,7 @@ begin
   if (IsGrpOfGrp(rGrp, 'Sundry Debtors') or IsGrpOfGrp(rGrp, 'Sundry Creditors'))then
   begin
     MstExp.NewParty(kadb.GetFieldString('Ledger'), rGrp,
-      kadb.GetFieldString('GSTN'), rState);
+      rGSTN, rState);
     Exit;
   end;
   if (kadb.GetFieldString('Group') = 'Sales Accounts') or
@@ -2980,6 +2993,7 @@ begin
   if VchType = 'Sales' then
   begin
     MstExp.NewGst('GST Sales Exempted', 'Sales Accounts', '0');
+{
     MstExp.NewGst('GST 3% Sales', 'Sales Accounts', '3');
     MstExp.NewGst('GST 5% Sales', 'Sales Accounts', '5');
 //    MstExp.NewLedger('GST 5% Sales', 'Sales Accounts', 0);
@@ -2992,7 +3006,7 @@ begin
     MstExp.NewGst('IGST 12% Sales', 'Sales Accounts', '12');
     MstExp.NewGst('IGST 18% Sales', 'Sales Accounts', '18');
     MstExp.NewGst('IGST 28% Sales', 'Sales Accounts', '28');
-
+}
     if GSTLedType = 'Max' then
     begin
     MstExp.NewGst('Output SGST 1.5%', 'Duties & Taxes', '3');
@@ -3015,6 +3029,7 @@ begin
   if VchType = 'Purchase' then
   begin
     MstExp.NewGst('GST Purchase Exempted', 'Purchase Accounts', '0');
+{
     MstExp.NewGst('GST 3% Purchase', 'Purchase Accounts', '3');
     MstExp.NewGst('GST 5% Purchase', 'Purchase Accounts', '5');
     MstExp.NewGst('GST 12% Purchase', 'Purchase Accounts', '12');
@@ -3026,7 +3041,7 @@ begin
     MstExp.NewGst('IGST 12% Purchase', 'Purchase Accounts', '12');
     MstExp.NewGst('IGST 18% Purchase', 'Purchase Accounts', '18');
     MstExp.NewGst('IGST 28% ', 'Purchase Accounts', '28');
-
+}
     if GSTLedType = 'Max' then
     begin
     MstExp.NewGst('Input SGST 1.5%', 'Duties & Taxes', '3');
