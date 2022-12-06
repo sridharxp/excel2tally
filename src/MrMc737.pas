@@ -1676,6 +1676,10 @@ begin
   Amt[1] := GetAmt(1);
   if Abs(Amt[1]) >= 0.01 then
   begin
+    IF dsl.IsBillRefDefined THEN
+    VchExp.AddLinewithRef(LedgerColValue, RoundCurr(Amt[1]),
+      kadb.GetFieldString(dsl.UBillRefName), 'Agst Ref', IsMinus)
+    else
     VchExp.AddLine(LedgerColValue, RoundCurr(Amt[1]), IsMinus);
     if dsl.IsAssessableDefined[1] then
       VchExp.SetAssessable(kadb.GetFieldCurr(dsl.UAssessableName[1]));
@@ -1699,7 +1703,7 @@ begin
   amt[level] := GetAmt(level);
   if abs(Amt[level]) >= 0.01 then
   begin
-    if (level = 2) and (WSType = 'Journal') then
+    if (level = 2) and (WSType = 'Journal') and dsl.IsBillRefDefined then
     VchExp.AddLinewithRef(LedgerColValue, RoundCurr(Amt[level]),
       kadb.GetFieldString(dsl.UBillRefName), 'Agst Ref', IsMinus)
     else
