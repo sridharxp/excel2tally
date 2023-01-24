@@ -2327,7 +2327,8 @@ begin
   RoundOffName := GetRoundOffName;
 //  VchExp.VchState := '';
   VchExp.VchState := UdefStateName;
-  if (VchType = 'Sales') or (VchType = 'Purchase') then
+//  if (VchType = 'Sales') or (VchType = 'Purchase') then
+  if (WSType = 'Sales') or (WSType = 'Purchase') then
   begin
     VchExp.VchState := kadb.GetFieldString(dsl.UStateName);
     VchExp.PartyState := MstExp.GetPartyState(RoundOffName);
@@ -2343,6 +2344,7 @@ begin
   RemoteID := '';
   DateColValue := '';
   TypeColValue := '';
+  WSType := '';
   if dsl.IsDateDefined then
     if not kadb.IsEmptyField(dsl.UDateName) then
     DateColValue := kadb.GetFieldSDate(dsl.UDateName);
@@ -2356,6 +2358,15 @@ begin
 }
   if dsl.IsCrDrAmtColsDefined then
   begin
+  if Length(WSType) = 0 then
+  begin
+    if kadb.GetFieldCurr(dsl.CrAmtCol) > 0 then
+      if Length(dsl.CrAmtColType) > 0 then
+        WSType := dsl.CrAmtColType;
+    if kadb.GetFieldCurr(dsl.DrAmtCol) > 0 then
+      if Length(dsl.DrAmtColType) > 0 then
+        WSType := dsl.DrAmtColType;
+  end;
   if Length(TypeColValue) = 0 then
   begin
     if kadb.GetFieldCurr(dsl.CrAmtCol) > 0 then
@@ -2364,14 +2375,20 @@ begin
     if kadb.GetFieldCurr(dsl.DrAmtCol) > 0 then
       if Length(dsl.DrAmtColType) > 0 then
         TypeColValue := dsl.DrAmtColType;
+    if TypeColValue = 'BReceipt' then
+      TypeColValue := 'Receipt';
+    if TypeColValue = 'BPayment' then
+      TypeColValue := 'Payment';
   end;
   end;
 { For reusing Templates }
-  if Length(TypeColValue) = 0 then
-    TypeColValue := FVchType;
+//  if Length(TypeColValue) = 0 then
+//    TypeColValue := FVchType;
 { With VchType this should not be needed }
   if Length(TypeColValue) = 0 then
     TypeColValue := dsl.DiTypeValue;
+  if Length(WSType) = 0 then
+    WSType := dsl.DiTypeValue;
 
   if not dsl.IsIDGenerated then
   if dsl.IsNarrationDefined then
@@ -2994,7 +3011,7 @@ end;
 procedure TbjMrMc.SetGSTSetting;
 begin
   FUpdate('Creating default GST ledgers...');
-  if VchType = 'Sales' then
+  if WSType = 'Sales' then
   begin
     MstExp.NewGst('GST Sales Exempted', 'Sales Accounts', '0');
 {
@@ -3030,7 +3047,7 @@ begin
     MstExp.NewGst('Output IGST 28%', 'Duties & Taxes', '28');
     end;
   end;
-  if VchType = 'Purchase' then
+  if WSType = 'Purchase' then
   begin
     MstExp.NewGst('GST Purchase Exempted', 'Purchase Accounts', '0');
 {
@@ -3065,7 +3082,8 @@ begin
     MstExp.NewGst('input IGST 28%', 'Duties & Taxes', '28');
     end;
   end;
-  if (VchType = 'Sales') or (VchType = 'Purchase') then
+//  if (VchType = 'Sales') or (VchType = 'Purchase') then
+  if (WSType = 'Sales') or (WSType = 'Purchase') then
   begin
     MstExp.NewGst('SGST', 'Duties & Taxes', '12');
     MstExp.NewGst('CGST', 'Duties & Taxes', '12');
@@ -3073,13 +3091,13 @@ begin
   end;
   if GSTLedType = 'Mean' then
   begin
-  if (VchType = 'Sales') then
+  if (WSType = 'Sales') then
   begin
     MstExp.NewGst('Output SGST', 'Duties & Taxes', '12');
     MstExp.NewGst('Output CGST', 'Duties & Taxes', '12');
     MstExp.NewGst('Output IGST', 'Duties & Taxes', '12');
   end;
-  if (VchType = 'Purchase') then
+  if (WSType = 'Purchase') then
   begin
     MstExp.NewGst('Input SGST', 'Duties & Taxes', '12');
     MstExp.NewGst('Input CGST', 'Duties & Taxes', '12');

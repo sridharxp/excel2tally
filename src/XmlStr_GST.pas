@@ -41,7 +41,9 @@ CONTRA = '<Voucher>'+
 '<Alias>AMOUNT</Alias>'+
 '<Type>Cr</Type>'+
 '</AmtCol>'+
-'<Group>Bank Accounts</Group>'+
+'<Group>'+
+'<Default>Bank Accounts</Default>'+
+'</Group>'+
 '</LEDGER>'+
 '<LEDGER>'+
 '<Default>Cash</Default>'+
@@ -50,7 +52,9 @@ CONTRA = '<Voucher>'+
 '<Alias>AMOUNT</Alias>'+
 '<Type>Dr</Type>'+
 '</AmtCol>'+
-'<Group>Bank Accounts</Group>'+
+'<Group>'+
+'<Default>Bank Accounts</Default>'+
+'</Group>'+
 '</LEDGER>'+
 '<VTYPE>'+
 '<Default>Contra</Default>'+
@@ -76,7 +80,17 @@ RCPT ='<Voucher>'+
 '<Alias>Bill_Ref</Alias>'+
 '</BillRef>'+
 '<RoundOff>'+
+'<Alias>Receipt_Ledger</Alias>'+
+'<Group>'+
+'<Default>Bank Accounts</Default>'+
+'</Group>'+
+'</RoundOff>'+
+'+<LEDGER>'+
 '<Alias>Party_Ledger</Alias>'+
+'<AmtCol>'+
+'<Alias>Receipt_Amount</Alias>'+
+'<Type>Cr</Type>'+
+'</AmtCol>'+
 '<Group>'+
 '<Alias>Party_Group</Alias>'+
 '<Default>Suspense A/c</Default>'+
@@ -84,14 +98,6 @@ RCPT ='<Voucher>'+
 '<GSTN>'+
 '<Alias>GSTN</Alias>'+
 '</GSTN>'+
-'</RoundOff>'+
-'+<LEDGER>'+
-'<Alias>Receipt_Ledger</Alias>'+
-'<Group>Bank Accounts</Group>'+
-'<AmtCol>'+
-'<Alias>Receipt_Amount</Alias>'+
-'<Type>Dr</Type>'+
-'</AmtCol>'+
 '</LEDGER>'+
 '<ChequeNo>'+
 '<Alias>ChequeNo</Alias>'+
@@ -120,19 +126,20 @@ PYMT = '<Voucher>'+
 '<BillRef>'+
 '<Alias>Bill_Ref</Alias>'+
 '</BillRef>'+
-'<LEDGER>'+
+'<RoundOff>'+
 '<Alias>Payment_Ledger</Alias>'+
-'<Group>Bank Accounts</Group>'+
+'<Group>'+
+'<Default>Bank Accounts</Default>'+
+'</Group>'+
+'</RoundOff>'+
+'<LEDGER>'+
+'<Alias>Party_Ledger</Alias>'+
 '<AmtCol>'+
 '<Alias>Payment_Amount</Alias>'+
-'<Type>Cr</Type>'+
+'<Type>Dr</Type>'+
 '</AmtCol>'+
-'</LEDGER>'+
-'<ChequeNo>'+
-'<Alias>ChequeNo</Alias>'+
-'</ChequeNo>'+
-'<RoundOff>'+
-'<Alias>Party_Ledger</Alias>'+
+
+
 '<Group>'+
 '<Alias>Party_Group</Alias>'+
 '<Default>Suspense A/c</Default>'+
@@ -140,7 +147,10 @@ PYMT = '<Voucher>'+
 '<GSTN>'+
 '<Alias>GSTN</Alias>'+
 '</GSTN>'+
-'</RoundOff>'+
+'</LEDGER>'+
+'<ChequeNo>'+
+'<Alias>ChequeNo</Alias>'+
+'</ChequeNo>'+
 '<VTYPE>'+
 '<Alias>VTYPE</Alias>'+
 '<Default>Payment</Default>'+
@@ -213,6 +223,7 @@ BANK = '<Voucher>'+
 '<KeyCol>NARRATION</KeyCol>'+
 '<KeyCol>ID</KeyCol>'+
 '<KeyCol>DATE</KeyCol>'+
+'<ListCol>NARRATION</ListCol>'+
 '</Data>'+
 
 '<ID>'+
@@ -224,6 +235,9 @@ BANK = '<Voucher>'+
 '<DATE>'+
 '<Alias>DATE</Alias>'+
 '</DATE>'+
+'<VoucherNo>'+
+'<Alias>Voucher_No</Alias>'+
+'</VoucherNo>'+
 '<BillRef>'+
 '<Alias>Bill_Ref</Alias>'+
 '</BillRef>'+
@@ -234,11 +248,11 @@ BANK = '<Voucher>'+
 '</LEDGER>'+
 '<CrAmtCol>'+
 '<Alias>DEPOSITS</Alias>'+
-'<Type>Receipt</Type>'+
+'<Type>BReceipt</Type>'+
 '</CrAmtCol>'+
 '<DrAmtCol>'+
 '<Alias>WITHDRAWALS</Alias>'+
-'<Type>Payment</Type>'+
+'<Type>BPayment</Type>'+
 '</DrAmtCol>'+
 '<ChequeNo>'+
 '<Alias>ChequeNo</Alias>'+
@@ -357,7 +371,9 @@ MYSALE = '<Voucher>'+
 '</LEDGER>'+
 '+<LEDGER>'+
 '<Default>Output SGST 1.5%</Default>'+
-'<Group>Duties &amp; Taxes</Group>'+
+'<Group>'+
+'<Default>Duties &amp; Taxes</Default>'+
+'</Group>'+
 '<AmtCol>'+
 '<Alias>SGST Tax 1_5</Alias>'+
 '<Type>Cr</Type>'+
@@ -365,7 +381,9 @@ MYSALE = '<Voucher>'+
 '</LEDGER>'+
 '+<LEDGER>'+
 '<Default>Output CGST 1.5%</Default>'+
-'<Group>Duties &amp; Taxes</Group>'+
+'<Group>'+
+'<Default>Duties &amp; Taxes</Default>'+
+'</Group>'+
 '<AmtCol>'+
 '<Alias>CGST Tax 1_5</Alias>'+
 '<Type>Cr</Type>'+
@@ -374,7 +392,7 @@ MYSALE = '<Voucher>'+
 
 '+<LEDGER>'+
 '<Default>IGST 3% Sales</Default>'+
-'<Group>Sales Accounts</Group>'+
+'<Group><Default>Sales Accounts</Default></Group>'+
 '<AmtCol>'+
 '<Alias>IGST Sales 3</Alias>'+
 '<Type>Cr</Type>'+
@@ -383,7 +401,9 @@ MYSALE = '<Voucher>'+
 '</LEDGER>'+
 '+<LEDGER>'+
 '<Default>Output IGST 3%</Default>'+
-'<Group>Duties &amp; Taxes</Group>'+
+'<Group>'+
+'<Default>Duties &amp; Taxes</Default>'+
+'</Group>'+
 '<AmtCol>'+
 '<Alias>IGST Tax 3</Alias>'+
 '<Type>Cr</Type>'+
@@ -392,7 +412,7 @@ MYSALE = '<Voucher>'+
 
 '+<LEDGER>'+
 '<Default>GST 5% Sales</Default>'+
-'<Group>Sales Accounts</Group>'+
+'<Group><Default>Sales Accounts</Default></Group>'+
 '<AmtCol>'+
 '<Alias>GST Sales 5</Alias>'+
 '<Type>Cr</Type>'+
@@ -401,7 +421,9 @@ MYSALE = '<Voucher>'+
 '</LEDGER>'+
 '+<LEDGER>'+
 '<Default>Output SGST 2.5%</Default>'+
-'<Group>Duties &amp; Taxes</Group>'+
+'<Group>'+
+'<Default>Duties &amp; Taxes</Default>'+
+'</Group>'+
 '<AmtCol>'+
 '<Alias>SGST Tax 2_5</Alias>'+
 '<Type>Cr</Type>'+
@@ -409,7 +431,9 @@ MYSALE = '<Voucher>'+
 '</LEDGER>'+
 '+<LEDGER>'+
 '<Default>Output CGST 2.5%</Default>'+
-'<Group>Duties &amp; Taxes</Group>'+
+'<Group>'+
+'<Default>Duties &amp; Taxes</Default>'+
+'</Group>'+
 '<AmtCol>'+
 '<Alias>CGST Tax 2_5</Alias>'+
 '<Type>Cr</Type>'+
@@ -417,7 +441,7 @@ MYSALE = '<Voucher>'+
 '</LEDGER>'+
 '+<LEDGER>'+
 '<Default>IGST 5% Sales</Default>'+
-'<Group>Sales Accounts</Group>'+
+'<Group><Default>Sales Accounts</Default></Group>'+
 '<AmtCol>'+
 '<Alias>IGST Sales 5</Alias>'+
 '<Type>Cr</Type>'+
@@ -426,7 +450,9 @@ MYSALE = '<Voucher>'+
 '</LEDGER>'+
 '+<LEDGER>'+
 '<Default>Output IGST 5%</Default>'+
-'<Group>Duties &amp; Taxes</Group>'+
+'<Group>'+
+'<Default>Duties &amp; Taxes</Default>'+
+'</Group>'+
 '<AmtCol>'+
 '<Alias>IGST Tax 5</Alias>'+
 '<Type>Cr</Type>'+
@@ -435,7 +461,7 @@ MYSALE = '<Voucher>'+
 
 '+<LEDGER>'+
 '<Default>GST 12% Sales</Default>'+
-'<Group>Sales Accounts</Group>'+
+'<Group><Default>Sales Accounts</Default></Group>'+
 '<AmtCol>'+
 '<Alias>GST Sales 12</Alias>'+
 '<Type>Cr</Type>'+
@@ -444,7 +470,9 @@ MYSALE = '<Voucher>'+
 '</LEDGER>'+
 '+<LEDGER>'+
 '<Default>Output SGST 6%</Default>'+
-'<Group>Duties &amp; Taxes</Group>'+
+'<Group>'+
+'<Default>Duties &amp; Taxes</Default>'+
+'</Group>'+
 '<AmtCol>'+
 '<Alias>SGST Tax 6</Alias>'+
 '<Type>Cr</Type>'+
@@ -452,7 +480,9 @@ MYSALE = '<Voucher>'+
 '</LEDGER>'+
 '+<LEDGER>'+
 '<Default>Output CGST 6%</Default>'+
-'<Group>Duties &amp; Taxes</Group>'+
+'<Group>'+
+'<Default>Duties &amp; Taxes</Default>'+
+'</Group>'+
 '<AmtCol>'+
 '<Alias>CGST Tax 6</Alias>'+
 '<Type>Cr</Type>'+
@@ -461,7 +491,7 @@ MYSALE = '<Voucher>'+
 
 '+<LEDGER>'+
 '<Default>IGST 12% Sales</Default>'+
-'<Group>Sales Accounts</Group>'+
+'<Group><Default>Sales Accounts</Default></Group>'+
 '<AmtCol>'+
 '<Alias>IGST Sales 12</Alias>'+
 '<Type>Cr</Type>'+
@@ -470,7 +500,9 @@ MYSALE = '<Voucher>'+
 '</LEDGER>'+
 '+<LEDGER>'+
 '<Default>Output IGST 12%</Default>'+
-'<Group>Duties &amp; Taxes</Group>'+
+'<Group>'+
+'<Default>Duties &amp; Taxes</Default>'+
+'</Group>'+
 '<AmtCol>'+
 '<Alias>IGST Tax 12</Alias>'+
 '<Type>Cr</Type>'+
@@ -479,7 +511,7 @@ MYSALE = '<Voucher>'+
 
 '+<LEDGER>'+
 '<Default>GST 18% Sales</Default>'+
-'<Group>Sales Accounts</Group>'+
+'<Group><Default>Sales Accounts</Default></Group>'+
 '<AmtCol>'+
 '<Alias>GST Sales 18</Alias>'+
 '<Type>Cr</Type>'+
@@ -488,7 +520,9 @@ MYSALE = '<Voucher>'+
 '</LEDGER>'+
 '+<LEDGER>'+
 '<Default>Output SGST 9%</Default>'+
-'<Group>Duties &amp; Taxes</Group>'+
+'<Group>'+
+'<Default>Duties &amp; Taxes</Default>'+
+'</Group>'+
 '<AmtCol>'+
 '<Alias>SGST Tax 9</Alias>'+
 '<Type>Cr</Type>'+
@@ -496,7 +530,9 @@ MYSALE = '<Voucher>'+
 '</LEDGER>'+
 '+<LEDGER>'+
 '<Default>Output CGST 9%</Default>'+
-'<Group>Duties &amp; Taxes</Group>'+
+'<Group>'+
+'<Default>Duties &amp; Taxes</Default>'+
+'</Group>'+
 '<AmtCol>'+
 '<Alias>CGST Tax 9</Alias>'+
 '<Type>Cr</Type>'+
@@ -504,7 +540,7 @@ MYSALE = '<Voucher>'+
 '</LEDGER>'+
 '+<LEDGER>'+
 '<Default>IGST 18% Sales</Default>'+
-'<Group>Sales Accounts</Group>'+
+'<Group><Default>Sales Accounts</Default></Group>'+
 '<AmtCol>'+
 '<Alias>IGST Sales 18</Alias>'+
 '<Type>Cr</Type>'+
@@ -513,7 +549,9 @@ MYSALE = '<Voucher>'+
 '</LEDGER>'+
 '+<LEDGER>'+
 '<Default>Output IGST 18%</Default>'+
-'<Group>Duties &amp; Taxes</Group>'+
+'<Group>'+
+'<Default>Duties &amp; Taxes</Default>'+
+'</Group>'+
 '<AmtCol>'+
 '<Alias>IGST Tax 18</Alias>'+
 '<Type>Cr</Type>'+
@@ -522,7 +560,7 @@ MYSALE = '<Voucher>'+
 
 '+<LEDGER>'+
 '<Default>GST 28% Sales</Default>'+
-'<Group>Sales Accounts</Group>'+
+'<Group><Default>Sales Accounts</Default></Group>'+
 '<AmtCol>'+
 '<Alias>GST Sales 28</Alias>'+
 '<Type>Cr</Type>'+
@@ -531,7 +569,9 @@ MYSALE = '<Voucher>'+
 '</LEDGER>'+
 '+<LEDGER>'+
 '<Default>Output SGST 14%</Default>'+
-'<Group>Duties &amp; Taxes</Group>'+
+'<Group>'+
+'<Default>Duties &amp; Taxes</Default>'+
+'</Group>'+
 '<AmtCol>'+
 '<Alias>SGST Tax 14</Alias>'+
 '<Type>Cr</Type>'+
@@ -539,7 +579,9 @@ MYSALE = '<Voucher>'+
 '</LEDGER>'+
 '+<LEDGER>'+
 '<Default>Output CGST 14%</Default>'+
-'<Group>Duties &amp; Taxes</Group>'+
+'<Group>'+
+'<Default>Duties &amp; Taxes</Default>'+
+'</Group>'+
 '<AmtCol>'+
 '<Alias>CGST Tax 14</Alias>'+
 '<Type>Cr</Type>'+
@@ -547,7 +589,7 @@ MYSALE = '<Voucher>'+
 '</LEDGER>'+
 '+<LEDGER>'+
 '<Default>IGST 28% Sales</Default>'+
-'<Group>Sales Accounts</Group>'+
+'<Group><Default>Sales Accounts</Default></Group>'+
 '<AmtCol>'+
 '<Alias>IGST Sales 28</Alias>'+
 '<Type>Cr</Type>'+
@@ -556,7 +598,9 @@ MYSALE = '<Voucher>'+
 '</LEDGER>'+
 '+<LEDGER>'+
 '<Default>Output IGST 28%</Default>'+
-'<Group>Duties &amp; Taxes</Group>'+
+'<Group>'+
+'<Default>Duties &amp; Taxes</Default>'+
+'</Group>'+
 '<AmtCol>'+
 '<Alias>IGST Tax 28</Alias>'+
 '<Type>Cr</Type>'+
@@ -609,7 +653,9 @@ MYSALE = '<Voucher>'+
 '</LEDGER>'+
 '+<LEDGER>'+
 '<Default>TCS on Sales</Default>'+
-'<Group>Duties &amp; Taxes</Group>'+
+'<Group>'+
+'<Default>Duties &amp; Taxes</Default>'+
+'</Group>'+
 '<AmtCol>'+
 '<Alias>TCS</Alias>'+
 '<Type>Dr</Type>'+
@@ -712,7 +758,7 @@ MYPURC = '<Voucher>'+
 
 '+<LEDGER>'+
 '<Default>GST 3% Purchase</Default>'+
-'<Group>Purchase Accounts</Group>'+
+'<Group><Default>Purchase Accounts</Default></Group>'+
 '<AmtCol>'+
 '<Alias>GST Purchase 3</Alias>'+
 '<Type>Dr</Type>'+
@@ -721,7 +767,9 @@ MYPURC = '<Voucher>'+
 '</LEDGER>'+
 '+<LEDGER>'+
 '<Default>Input SGST 1.5%</Default>'+
-'<Group>Duties &amp; Taxes</Group>'+
+'<Group>'+
+'<Default>Duties &amp; Taxes</Default>'+
+'</Group>'+
 '<AmtCol>'+
 '<Alias>SGST Tax 1_5</Alias>'+
 '<Type>Dr</Type>'+
@@ -729,7 +777,9 @@ MYPURC = '<Voucher>'+
 '</LEDGER>'+
 '+<LEDGER>'+
 '<Default>Input CGST 1.5%</Default>'+
-'<Group>Duties &amp; Taxes</Group>'+
+'<Group>'+
+'<Default>Duties &amp; Taxes</Default>'+
+'</Group>'+
 '<AmtCol>'+
 '<Alias>CGST Tax 1_5</Alias>'+
 '<Type>Dr</Type>'+
@@ -738,7 +788,7 @@ MYPURC = '<Voucher>'+
 
 '+<LEDGER>'+
 '<Default>IGST 3% Purchase</Default>'+
-'<Group>Purchase Accounts</Group>'+
+'<Group><Default>Purchase Accounts</Default></Group>'+
 '<AmtCol>'+
 '<Alias>IGST Purchase 3</Alias>'+
 '<Type>Dr</Type>'+
@@ -747,7 +797,9 @@ MYPURC = '<Voucher>'+
 '</LEDGER>'+
 '+<LEDGER>'+
 '<Default>Input IGST 3%</Default>'+
-'<Group>Duties &amp; Taxes</Group>'+
+'<Group>'+
+'<Default>Duties &amp; Taxes</Default>'+
+'</Group>'+
 '<AmtCol>'+
 '<Alias>IGST Tax 3</Alias>'+
 '<Type>Dr</Type>'+
@@ -756,7 +808,7 @@ MYPURC = '<Voucher>'+
 
 '+<LEDGER>'+
 '<Default>GST 5% Purchase</Default>'+
-'<Group>Purchase Accounts</Group>'+
+'<Group><Default>Purchase Accounts</Default></Group>'+
 '<AmtCol>'+
 '<Alias>GST Purchase 5</Alias>'+
 '<Type>Dr</Type>'+
@@ -765,7 +817,9 @@ MYPURC = '<Voucher>'+
 '</LEDGER>'+
 '+<LEDGER>'+
 '<Default>Input SGST 2.5%</Default>'+
-'<Group>Duties &amp; Taxes</Group>'+
+'<Group>'+
+'<Default>Duties &amp; Taxes</Default>'+
+'</Group>'+
 '<AmtCol>'+
 '<Alias>SGST Tax 2_5</Alias>'+
 '<Type>Dr</Type>'+
@@ -773,7 +827,9 @@ MYPURC = '<Voucher>'+
 '</LEDGER>'+
 '+<LEDGER>'+
 '<Default>Input CGST 2.5%</Default>'+
-'<Group>Duties &amp; Taxes</Group>'+
+'<Group>'+
+'<Default>Duties &amp; Taxes</Default>'+
+'</Group>'+
 '<AmtCol>'+
 '<Alias>CGST Tax 2_5</Alias>'+
 '<Type>Dr</Type>'+
@@ -782,7 +838,7 @@ MYPURC = '<Voucher>'+
 
 '+<LEDGER>'+
 '<Default>IGST 5% Purchase</Default>'+
-'<Group>Purchase Accounts</Group>'+
+'<Group><Default>Purchase Accounts</Default></Group>'+
 '<AmtCol>'+
 '<Alias>IGST Purchase 5</Alias>'+
 '<Type>Dr</Type>'+
@@ -791,7 +847,9 @@ MYPURC = '<Voucher>'+
 '</LEDGER>'+
 '+<LEDGER>'+
 '<Default>Input IGST 5%</Default>'+
-'<Group>Duties &amp; Taxes</Group>'+
+'<Group>'+
+'<Default>Duties &amp; Taxes</Default>'+
+'</Group>'+
 '<AmtCol>'+
 '<Alias>IGST Tax 5</Alias>'+
 '<Type>Dr</Type>'+
@@ -800,7 +858,7 @@ MYPURC = '<Voucher>'+
 
 '+<LEDGER>'+
 '<Default>GST 12% Purchase</Default>'+
-'<Group>Purchase Accounts</Group>'+
+'<Group><Default>Purchase Accounts</Default></Group>'+
 '<AmtCol>'+
 '<Alias>GST Purchase 12</Alias>'+
 '<Type>Dr</Type>'+
@@ -809,7 +867,9 @@ MYPURC = '<Voucher>'+
 '</LEDGER>'+
 '+<LEDGER>'+
 '<Default>Input SGST 6%</Default>'+
-'<Group>Duties &amp; Taxes</Group>'+
+'<Group>'+
+'<Default>Duties &amp; Taxes</Default>'+
+'</Group>'+
 '<AmtCol>'+
 '<Alias>SGST Tax 6</Alias>'+
 '<Type>Dr</Type>'+
@@ -817,7 +877,9 @@ MYPURC = '<Voucher>'+
 '</LEDGER>'+
 '+<LEDGER>'+
 '<Default>Input CGST 6%</Default>'+
-'<Group>Duties &amp; Taxes</Group>'+
+'<Group>'+
+'<Default>Duties &amp; Taxes</Default>'+
+'</Group>'+
 '<AmtCol>'+
 '<Alias>CGST Tax 6</Alias>'+
 '<Type>Dr</Type>'+
@@ -826,7 +888,7 @@ MYPURC = '<Voucher>'+
 
 '+<LEDGER>'+
 '<Default>IGST 12% Purchase</Default>'+
-'<Group>Purchase Accounts</Group>'+
+'<Group><Default>Purchase Accounts</Default></Group>'+
 '<AmtCol>'+
 '<Alias>IGST Purchase 12</Alias>'+
 '<Type>Dr</Type>'+
@@ -835,7 +897,9 @@ MYPURC = '<Voucher>'+
 '</LEDGER>'+
 '+<LEDGER>'+
 '<Default>Input IGST 12%</Default>'+
-'<Group>Duties &amp; Taxes</Group>'+
+'<Group>'+
+'<Default>Duties &amp; Taxes</Default>'+
+'</Group>'+
 '<AmtCol>'+
 '<Alias>IGST Tax 12</Alias>'+
 '<Type>Dr</Type>'+
@@ -844,7 +908,7 @@ MYPURC = '<Voucher>'+
 
 '+<LEDGER>'+
 '<Default>GST 18% Purchase</Default>'+
-'<Group>Purchase Accounts</Group>'+
+'<Group><Default>Purchase Accounts</Default></Group>'+
 '<AmtCol>'+
 '<Alias>GST Purchase 18</Alias>'+
 '<Type>Dr</Type>'+
@@ -853,7 +917,9 @@ MYPURC = '<Voucher>'+
 '</LEDGER>'+
 '+<LEDGER>'+
 '<Default>Input SGST 9%</Default>'+
-'<Group>Duties &amp; Taxes</Group>'+
+'<Group>'+
+'<Default>Duties &amp; Taxes</Default>'+
+'</Group>'+
 '<AmtCol>'+
 '<Alias>SGST Tax 9</Alias>'+
 '<Type>Dr</Type>'+
@@ -861,7 +927,9 @@ MYPURC = '<Voucher>'+
 '</LEDGER>'+
 '+<LEDGER>'+
 '<Default>Input CGST 9%</Default>'+
-'<Group>Duties &amp; Taxes</Group>'+
+'<Group>'+
+'<Default>Duties &amp; Taxes</Default>'+
+'</Group>'+
 '<AmtCol>'+
 '<Alias>CGST Tax 9</Alias>'+
 '<Type>Dr</Type>'+
@@ -870,7 +938,7 @@ MYPURC = '<Voucher>'+
 
 '+<LEDGER>'+
 '<Default>IGST 18% Purchase</Default>'+
-'<Group>Purchase Accounts</Group>'+
+'<Group><Default>Purchase Accounts</Default></Group>'+
 '<AmtCol>'+
 '<Alias>IGST Purchase 18</Alias>'+
 '<Type>Dr</Type>'+
@@ -879,7 +947,9 @@ MYPURC = '<Voucher>'+
 '</LEDGER>'+
 '+<LEDGER>'+
 '<Default>Input IGST 18%</Default>'+
-'<Group>Duties &amp; Taxes</Group>'+
+'<Group>'+
+'<Default>Duties &amp; Taxes</Default>'+
+'</Group>'+
 '<AmtCol>'+
 '<Alias>IGST Tax 18</Alias>'+
 '<Type>Dr</Type>'+
@@ -888,7 +958,7 @@ MYPURC = '<Voucher>'+
 
 '+<LEDGER>'+
 '<Default>GST 28% Purchase</Default>'+
-'<Group>Purchase Accounts</Group>'+
+'<Group><Default>Purchase Accounts</Default></Group>'+
 '<AmtCol>'+
 '<Alias>GST Purchase 28</Alias>'+
 '<Type>Dr</Type>'+
@@ -897,7 +967,9 @@ MYPURC = '<Voucher>'+
 '</LEDGER>'+
 '+<LEDGER>'+
 '<Default>Input SGST 14%</Default>'+
-'<Group>Duties &amp; Taxes</Group>'+
+'<Group>'+
+'<Default>Duties &amp; Taxes</Default>'+
+'</Group>'+
 '<AmtCol>'+
 '<Alias>SGST Tax 14</Alias>'+
 '<Type>Dr</Type>'+
@@ -905,7 +977,9 @@ MYPURC = '<Voucher>'+
 '</LEDGER>'+
 '+<LEDGER>'+
 '<Default>Input CGST 14%</Default>'+
-'<Group>Duties &amp; Taxes</Group>'+
+'<Group>'+
+'<Default>Duties &amp; Taxes</Default>'+
+'</Group>'+
 '<AmtCol>'+
 '<Alias>CGST Tax 14</Alias>'+
 '<Type>Dr</Type>'+
@@ -914,7 +988,7 @@ MYPURC = '<Voucher>'+
 
 '+<LEDGER>'+
 '<Default>IGST 28% Purchase</Default>'+
-'<Group>Purchase Accounts</Group>'+
+'<Group><Default>Purchase Accounts</Default></Group>'+
 '<AmtCol>'+
 '<Alias>IGST Purchase 28</Alias>'+
 '<Type>Dr</Type>'+
@@ -923,7 +997,9 @@ MYPURC = '<Voucher>'+
 '</LEDGER>'+
 '+<LEDGER>'+
 '<Default>Input IGST 28%</Default>'+
-'<Group>Duties &amp; Taxes</Group>'+
+'<Group>'+
+'<Default>Duties &amp; Taxes</Default>'+
+'</Group>'+
 '<AmtCol>'+
 '<Alias>IGST Tax 28</Alias>'+
 '<Type>Dr</Type>'+
@@ -976,7 +1052,9 @@ MYPURC = '<Voucher>'+
 '</LEDGER>'+
 '+<LEDGER>'+
 '<Default>TCS on Purchase</Default>'+
-'<Group>Duties &amp; Taxes</Group>'+
+'<Group>'+
+'<Default>Duties &amp; Taxes</Default>'+
+'</Group>'+
 '<AmtCol>'+
 '<Alias>TCS</Alias>'+
 '<Type>Cr</Type>'+
@@ -1070,7 +1148,7 @@ SBILL = '<Voucher>'+
 '<IsInvCol>Yes</IsInvCol>'+
 '<AmtCol>'+
 '<Alias>Bill_Value</Alias>'+
-'<Group>Sales Accounts</Group>'+
+'<Group><Default>Sales Accounts</Default></Group>'+
 '<Type>Cr</Type>'+
 '</AmtCol>'+
 '</LEDGER>'+
@@ -1129,7 +1207,9 @@ SBILL = '<Voucher>'+
 '</LEDGER>'+
 '+<LEDGER>'+
 '<Default>TCS on Sales</Default>'+
-'<Group>Duties &amp; Taxes</Group>'+
+'<Group>'+
+'<Default>Duties &amp; Taxes</Default>'+
+'</Group>'+
 '<AmtCol>'+
 '<Alias>TCS</Alias>'+
 '<Type>Dr</Type>'+
@@ -1208,7 +1288,7 @@ PBILL = '<Voucher>'+
 '<IsInvCol>Yes</IsInvCol>'+
 '<AmtCol>'+
 '<Alias>Bill_Value</Alias>'+
-'<Group>Purchase Accounts</Group>'+
+'<Group><Default>Purchase Accounts</Default></Group>'+
 '<Type>Dr</Type>'+
 '</AmtCol>'+
 '</LEDGER>'+
@@ -1266,7 +1346,9 @@ PBILL = '<Voucher>'+
 '</LEDGER>'+
 '+<LEDGER>'+
 '<Default>TCS on Purchase</Default>'+
-'<Group>Duties &amp; Taxes</Group>'+
+'<Group>'+
+'<Default>Duties &amp; Taxes</Default>'+
+'</Group>'+
 '<AmtCol>'+
 '<Alias>TCS</Alias>'+
 '<Type>Cr</Type>'+
@@ -1384,7 +1466,7 @@ GSTSALE = '<Voucher>'+
 
 '<LEDGER>'+
 '<Alias>Sales_Ledger</Alias>'+
-'<Group>Sales Accounts</Group>'+
+'<Group><Default>Sales Accounts</Default></Group>'+
 '<Default>Sales Account</Default>'+
 '<IsInvCol>Yes</IsInvCol>'+
 '<Dict>'+
@@ -1426,7 +1508,9 @@ GSTSALE = '<Voucher>'+
 
 '<LEDGER>'+
 '<Default>SGST</Default>'+
-'<Group>Duties &amp; Taxes</Group>'+
+'<Group>'+
+'<Default>Duties &amp; Taxes</Default>'+
+'</Group>'+
 '<Dict>'+
 '<TokenCol>Tax_rate</TokenCol>'+
 '<Token>3</Token>'+
@@ -1461,7 +1545,9 @@ GSTSALE = '<Voucher>'+
 
 '<LEDGER>'+
 '<Default>CGST</Default>'+
-'<Group>Duties &amp; Taxes</Group>'+
+'<Group>'+
+'<Default>Duties &amp; Taxes</Default>'+
+'</Group>'+
 '<Dict>'+
 '<TokenCol>Tax_rate</TokenCol>'+
 '<Token>3</Token>'+
@@ -1496,7 +1582,7 @@ GSTSALE = '<Voucher>'+
 
 '<LEDGER>'+
 '<Alias>Sales_Ledger</Alias>'+
-'<Group>Sales Accounts</Group>'+
+'<Group><Default>Sales Accounts</Default></Group>'+
 '<Default>Sales Account</Default>'+
 '<IsInvCol>Yes</IsInvCol>'+
 '<Dict>'+
@@ -1538,7 +1624,9 @@ GSTSALE = '<Voucher>'+
 
 '<LEDGER>'+
 '<Default>IGST</Default>'+
-'<Group>Duties &amp; Taxes</Group>'+
+'<Group>'+
+'<Default>Duties &amp; Taxes</Default>'+
+'</Group>'+
 '<Dict>'+
 '<TokenCol>Tax_rate</TokenCol>'+
 '<Token>3</Token>'+
@@ -1609,7 +1697,9 @@ GSTSALE = '<Voucher>'+
 '</LEDGER>'+
 '+<LEDGER>'+
 '<Default>TCS on Sales</Default>'+
-'<Group>Duties &amp; Taxes</Group>'+
+'<Group>'+
+'<Default>Duties &amp; Taxes</Default>'+
+'</Group>'+
 '<AmtCol>'+
 '<Alias>TCS</Alias>'+
 '<Type>Dr</Type>'+
@@ -1712,7 +1802,7 @@ GSTPURC = '<Voucher>'+
 
 '<LEDGER>'+
 '<Alias>Purchase_Ledger</Alias>'+
-'<Group>Purchase Accounts</Group>'+
+'<Group><Default>Purchase Accounts</Default></Group>'+
 '<Default>Purchase Account</Default>'+
 '<IsInvCol>Yes</IsInvCol>'+
 '<Dict>'+
@@ -1753,7 +1843,9 @@ GSTPURC = '<Voucher>'+
 
 '<LEDGER>'+
 '<Default>SGST</Default>'+
-'<Group>Duties &amp; Taxes</Group>'+
+'<Group>'+
+'<Default>Duties &amp; Taxes</Default>'+
+'</Group>'+
 '<Dict>'+
 '<TokenCol>Tax_rate</TokenCol>'+
 '<Token>3</Token>'+
@@ -1788,7 +1880,9 @@ GSTPURC = '<Voucher>'+
 
 '<LEDGER>'+
 '<Default>CGST</Default>'+
-'<Group>Duties &amp; Taxes</Group>'+
+'<Group>'+
+'<Default>Duties &amp; Taxes</Default>'+
+'</Group>'+
 '<Dict>'+
 '<TokenCol>Tax_rate</TokenCol>'+
 '<Token>3</Token>'+
@@ -1823,7 +1917,7 @@ GSTPURC = '<Voucher>'+
 
 '<LEDGER>'+
 '<Alias>Purchase_Ledger</Alias>'+
-'<Group>Purchase Accounts</Group>'+
+'<Group><Default>Purchase Accounts</Default></Group>'+
 '<Default>Purchase Account</Default>'+
 '<IsInvCol>Yes</IsInvCol>'+
 '<Dict>'+
@@ -1864,7 +1958,9 @@ GSTPURC = '<Voucher>'+
 
 '<LEDGER>'+
 '<Default>IGST</Default>'+
-'<Group>Duties &amp; Taxes</Group>'+
+'<Group>'+
+'<Default>Duties &amp; Taxes</Default>'+
+'</Group>'+
 '<Dict>'+
 '<TokenCol>Tax_rate</TokenCol>'+
 '<Token>3</Token>'+
@@ -1926,7 +2022,9 @@ GSTPURC = '<Voucher>'+
 '</LEDGER>'+
 '+<LEDGER>'+
 '<Default>TCS on Purchase</Default>'+
-'<Group>Duties &amp; Taxes</Group>'+
+'<Group>'+
+'<Default>Duties &amp; Taxes</Default>'+
+'</Group>'+
 '<AmtCol>'+
 '<Alias>TCS</Alias>'+
 '<Type>Cr</Type>'+
@@ -2133,7 +2231,7 @@ CNOTE = '<Voucher>'+
 
 '<LEDGER>'+
 '<Alias>Sales_Ledger</Alias>'+
-'<Group>Sales Accounts</Group>'+
+'<Group><Default>Sales Accounts</Default></Group>'+
 '<Default>Sales Account</Default>'+
 '<Dict>'+
 '<TokenCol>Tax_rate</TokenCol>'+
@@ -2174,7 +2272,9 @@ CNOTE = '<Voucher>'+
 
 '<LEDGER>'+
 '<Default>SGST</Default>'+
-'<Group>Duties &amp; Taxes</Group>'+
+'<Group>'+
+'<Default>Duties &amp; Taxes</Default>'+
+'</Group>'+
 '<Dict>'+
 '<TokenCol>Tax_rate</TokenCol>'+
 '<Token>3</Token>'+
@@ -2209,7 +2309,9 @@ CNOTE = '<Voucher>'+
 
 '<LEDGER>'+
 '<Default>CGST</Default>'+
-'<Group>Duties &amp; Taxes</Group>'+
+'<Group>'+
+'<Default>Duties &amp; Taxes</Default>'+
+'</Group>'+
 '<Dict>'+
 '<TokenCol>Tax_rate</TokenCol>'+
 '<Token>3</Token>'+
@@ -2244,7 +2346,7 @@ CNOTE = '<Voucher>'+
 
 '<LEDGER>'+
 '<Alias>Sales_Ledger</Alias>'+
-'<Group>Sales Accounts</Group>'+
+'<Group><Default>Sales Accounts</Default></Group>'+
 '<Default>Sales Account</Default>'+
 '<IsInvCol>Yes</IsInvCol>'+
 '<Dict>'+
@@ -2287,7 +2389,9 @@ CNOTE = '<Voucher>'+
 
 '<LEDGER>'+
 '<Default>IGST</Default>'+
-'<Group>Duties &amp; Taxes</Group>'+
+'<Group>'+
+'<Default>Duties &amp; Taxes</Default>'+
+'</Group>'+
 '<Dict>'+
 '<TokenCol>Tax_rate</TokenCol>'+
 '<Token>3</Token>'+
@@ -2439,7 +2543,7 @@ DNOTE = '<Voucher>'+
 
 '<LEDGER>'+
 '<Alias>Purchase_Ledger</Alias>'+
-'<Group>Purchase Accounts</Group>'+
+'<Group><Default>Purchase Accounts</Default></Group>'+
 '<Default>Purchase Account</Default>'+
 '<Dict>'+
 '<TokenCol>Tax_rate</TokenCol>'+
@@ -2479,7 +2583,9 @@ DNOTE = '<Voucher>'+
 
 '<LEDGER>'+
 '<Default>SGST</Default>'+
-'<Group>Duties &amp; Taxes</Group>'+
+'<Group>'+
+'<Default>Duties &amp; Taxes</Default>'+
+'</Group>'+
 '<Dict>'+
 '<TokenCol>Tax_rate</TokenCol>'+
 '<Token>3</Token>'+
@@ -2514,7 +2620,9 @@ DNOTE = '<Voucher>'+
 
 '<LEDGER>'+
 '<Default>cGST</Default>'+
-'<Group>Duties &amp; Taxes</Group>'+
+'<Group>'+
+'<Default>Duties &amp; Taxes</Default>'+
+'</Group>'+
 '<Dict>'+
 '<TokenCol>Tax_rate</TokenCol>'+
 '<Token>3</Token>'+
@@ -2549,7 +2657,7 @@ DNOTE = '<Voucher>'+
 
 '<LEDGER>'+
 '<Alias>Purchase_Ledger</Alias>'+
-'<Group>Purchase Accounts</Group>'+
+'<Group><Default>Purchase Accounts</Default></Group>'+
 '<Default>Purchase Account</Default>'+
 '<IsInvCol>Yes</IsInvCol>'+
 '<Dict>'+
@@ -2590,7 +2698,9 @@ DNOTE = '<Voucher>'+
 
 '<LEDGER>'+
 '<Default>IGST</Default>'+
-'<Group>Duties &amp; Taxes</Group>'+
+'<Group>'+
+'<Default>Duties &amp; Taxes</Default>'+
+'</Group>'+
 '<Dict>'+
 '<TokenCol>Tax_rate</TokenCol>'+
 '<Token>3</Token>'+
@@ -2798,7 +2908,7 @@ MYCNOTE = '<Voucher>'+
 '</RoundOff>'+
 '+<LEDGER>'+
 '<Default>GST 3% Sales</Default>'+
-'<Group>Sales Accounts</Group>'+
+'<Group><Default>Sales Accounts</Default></Group>'+
 '<AmtCol>'+
 '<Alias>GST Sales 3</Alias>'+
 '<Type>Dr</Type>'+
@@ -2807,7 +2917,9 @@ MYCNOTE = '<Voucher>'+
 '</LEDGER>'+
 '+<LEDGER>'+
 '<Default>Output SGST 1.5%</Default>'+
-'<Group>Duties &amp; Taxes</Group>'+
+'<Group>'+
+'<Default>Duties &amp; Taxes</Default>'+
+'</Group>'+
 '<AmtCol>'+
 '<Alias>SGST Tax 1_5</Alias>'+
 '<Type>Dr</Type>'+
@@ -2815,7 +2927,9 @@ MYCNOTE = '<Voucher>'+
 '</LEDGER>'+
 '+<LEDGER>'+
 '<Default>Output CGST 1.5%</Default>'+
-'<Group>Duties &amp; Taxes</Group>'+
+'<Group>'+
+'<Default>Duties &amp; Taxes</Default>'+
+'</Group>'+
 '<AmtCol>'+
 '<Alias>CGST Tax 1_5</Alias>'+
 '<Type>Dr</Type>'+
@@ -2824,7 +2938,7 @@ MYCNOTE = '<Voucher>'+
 
 '+<LEDGER>'+
 '<Default>IGST 3% Sales</Default>'+
-'<Group>Sales Accounts</Group>'+
+'<Group><Default>Sales Accounts</Default></Group>'+
 '<AmtCol>'+
 '<Alias>IGST Sales 3</Alias>'+
 '<Type>Dr</Type>'+
@@ -2833,7 +2947,9 @@ MYCNOTE = '<Voucher>'+
 '</LEDGER>'+
 '+<LEDGER>'+
 '<Default>Output IGST 3%</Default>'+
-'<Group>Duties &amp; Taxes</Group>'+
+'<Group>'+
+'<Default>Duties &amp; Taxes</Default>'+
+'</Group>'+
 '<AmtCol>'+
 '<Alias>IGST Tax 3</Alias>'+
 '<Type>Dr</Type>'+
@@ -2842,7 +2958,7 @@ MYCNOTE = '<Voucher>'+
 
 '+<LEDGER>'+
 '<Default>GST 5% Sales</Default>'+
-'<Group>Sales Accounts</Group>'+
+'<Group><Default>Sales Accounts</Default></Group>'+
 '<AmtCol>'+
 '<Alias>GST Sales 5</Alias>'+
 '<Type>Dr</Type>'+
@@ -2851,7 +2967,9 @@ MYCNOTE = '<Voucher>'+
 '</LEDGER>'+
 '+<LEDGER>'+
 '<Default>Output SGST 2.5%</Default>'+
-'<Group>Duties &amp; Taxes</Group>'+
+'<Group>'+
+'<Default>Duties &amp; Taxes</Default>'+
+'</Group>'+
 '<AmtCol>'+
 '<Alias>SGST Tax 2_5</Alias>'+
 '<Type>Dr</Type>'+
@@ -2859,7 +2977,9 @@ MYCNOTE = '<Voucher>'+
 '</LEDGER>'+
 '+<LEDGER>'+
 '<Default>Output CGST 2.5%</Default>'+
-'<Group>Duties &amp; Taxes</Group>'+
+'<Group>'+
+'<Default>Duties &amp; Taxes</Default>'+
+'</Group>'+
 '<AmtCol>'+
 '<Alias>CGST Tax 2_5</Alias>'+
 '<Type>Dr</Type>'+
@@ -2867,7 +2987,7 @@ MYCNOTE = '<Voucher>'+
 '</LEDGER>'+
 '+<LEDGER>'+
 '<Default>IGST 5% Sales</Default>'+
-'<Group>Sales Accounts</Group>'+
+'<Group><Default>Sales Accounts</Default></Group>'+
 '<AmtCol>'+
 '<Alias>IGST Sales 5</Alias>'+
 '<Type>Dr</Type>'+
@@ -2876,7 +2996,9 @@ MYCNOTE = '<Voucher>'+
 '</LEDGER>'+
 '+<LEDGER>'+
 '<Default>Output IGST 5%</Default>'+
-'<Group>Duties &amp; Taxes</Group>'+
+'<Group>'+
+'<Default>Duties &amp; Taxes</Default>'+
+'</Group>'+
 '<AmtCol>'+
 '<Alias>IGST Tax 5</Alias>'+
 '<Type>Dr</Type>'+
@@ -2885,7 +3007,7 @@ MYCNOTE = '<Voucher>'+
 
 '+<LEDGER>'+
 '<Default>GST 12% Sales</Default>'+
-'<Group>Sales Accounts</Group>'+
+'<Group><Default>Sales Accounts</Default></Group>'+
 '<AmtCol>'+
 '<Alias>GST Sales 12</Alias>'+
 '<Type>Dr</Type>'+
@@ -2894,7 +3016,9 @@ MYCNOTE = '<Voucher>'+
 '</LEDGER>'+
 '+<LEDGER>'+
 '<Default>Output SGST 6%</Default>'+
-'<Group>Duties &amp; Taxes</Group>'+
+'<Group>'+
+'<Default>Duties &amp; Taxes</Default>'+
+'</Group>'+
 '<AmtCol>'+
 '<Alias>SGST Tax 6</Alias>'+
 '<Type>Dr</Type>'+
@@ -2902,7 +3026,9 @@ MYCNOTE = '<Voucher>'+
 '</LEDGER>'+
 '+<LEDGER>'+
 '<Default>Output CGST 6%</Default>'+
-'<Group>Duties &amp; Taxes</Group>'+
+'<Group>'+
+'<Default>Duties &amp; Taxes</Default>'+
+'</Group>'+
 '<AmtCol>'+
 '<Alias>CGST Tax 6</Alias>'+
 '<Type>Dr</Type>'+
@@ -2911,7 +3037,7 @@ MYCNOTE = '<Voucher>'+
 
 '+<LEDGER>'+
 '<Default>IGST 12% Sales</Default>'+
-'<Group>Sales Accounts</Group>'+
+'<Group><Default>Sales Accounts</Default></Group>'+
 '<AmtCol>'+
 '<Alias>IGST Sales 12</Alias>'+
 '<Type>Dr</Type>'+
@@ -2920,7 +3046,9 @@ MYCNOTE = '<Voucher>'+
 '</LEDGER>'+
 '+<LEDGER>'+
 '<Default>Output IGST 12%</Default>'+
-'<Group>Duties &amp; Taxes</Group>'+
+'<Group>'+
+'<Default>Duties &amp; Taxes</Default>'+
+'</Group>'+
 '<AmtCol>'+
 '<Alias>IGST Tax 12</Alias>'+
 '<Type>Dr</Type>'+
@@ -2929,7 +3057,7 @@ MYCNOTE = '<Voucher>'+
 
 '+<LEDGER>'+
 '<Default>GST 18% Sales</Default>'+
-'<Group>Sales Accounts</Group>'+
+'<Group><Default>Sales Accounts</Default></Group>'+
 '<AmtCol>'+
 '<Alias>GST Sales 18</Alias>'+
 '<Type>Dr</Type>'+
@@ -2938,7 +3066,9 @@ MYCNOTE = '<Voucher>'+
 '</LEDGER>'+
 '+<LEDGER>'+
 '<Default>Output SGST 9%</Default>'+
-'<Group>Duties &amp; Taxes</Group>'+
+'<Group>'+
+'<Default>Duties &amp; Taxes</Default>'+
+'</Group>'+
 '<AmtCol>'+
 '<Alias>SGST Tax 9</Alias>'+
 '<Type>Dr</Type>'+
@@ -2946,7 +3076,9 @@ MYCNOTE = '<Voucher>'+
 '</LEDGER>'+
 '+<LEDGER>'+
 '<Default>Output CGST 9%</Default>'+
-'<Group>Duties &amp; Taxes</Group>'+
+'<Group>'+
+'<Default>Duties &amp; Taxes</Default>'+
+'</Group>'+
 '<AmtCol>'+
 '<Alias>CGST Tax 9</Alias>'+
 '<Type>Dr</Type>'+
@@ -2954,7 +3086,7 @@ MYCNOTE = '<Voucher>'+
 '</LEDGER>'+
 '+<LEDGER>'+
 '<Default>IGST 18% Sales</Default>'+
-'<Group>Sales Accounts</Group>'+
+'<Group><Default>Sales Accounts</Default></Group>'+
 '<AmtCol>'+
 '<Alias>IGST Sales 18</Alias>'+
 '<Type>Dr</Type>'+
@@ -2963,7 +3095,9 @@ MYCNOTE = '<Voucher>'+
 '</LEDGER>'+
 '+<LEDGER>'+
 '<Default>Output IGST 18%</Default>'+
-'<Group>Duties &amp; Taxes</Group>'+
+'<Group>'+
+'<Default>Duties &amp; Taxes</Default>'+
+'</Group>'+
 '<AmtCol>'+
 '<Alias>IGST Tax 18</Alias>'+
 '<Type>Dr</Type>'+
@@ -2972,7 +3106,7 @@ MYCNOTE = '<Voucher>'+
 
 '+<LEDGER>'+
 '<Default>GST 28% Sales</Default>'+
-'<Group>Sales Accounts</Group>'+
+'<Group><Default>Sales Accounts</Default></Group>'+
 '<AmtCol>'+
 '<Alias>GST Sales 28</Alias>'+
 '<Type>Dr</Type>'+
@@ -2981,7 +3115,9 @@ MYCNOTE = '<Voucher>'+
 '</LEDGER>'+
 '+<LEDGER>'+
 '<Default>Output SGST 14%</Default>'+
-'<Group>Duties &amp; Taxes</Group>'+
+'<Group>'+
+'<Default>Duties &amp; Taxes</Default>'+
+'</Group>'+
 '<AmtCol>'+
 '<Alias>SGST Tax 14</Alias>'+
 '<Type>Dr</Type>'+
@@ -2989,7 +3125,9 @@ MYCNOTE = '<Voucher>'+
 '</LEDGER>'+
 '+<LEDGER>'+
 '<Default>Output CGST 14%</Default>'+
-'<Group>Duties &amp; Taxes</Group>'+
+'<Group>'+
+'<Default>Duties &amp; Taxes</Default>'+
+'</Group>'+
 '<AmtCol>'+
 '<Alias>CGST Tax 14</Alias>'+
 '<Type>Dr</Type>'+
@@ -2997,7 +3135,7 @@ MYCNOTE = '<Voucher>'+
 '</LEDGER>'+
 '+<LEDGER>'+
 '<Default>IGST 28% Sales</Default>'+
-'<Group>Sales Accounts</Group>'+
+'<Group><Default>Sales Accounts</Default></Group>'+
 '<AmtCol>'+
 '<Alias>IGST Sales 28</Alias>'+
 '<Type>Dr</Type>'+
@@ -3006,7 +3144,9 @@ MYCNOTE = '<Voucher>'+
 '</LEDGER>'+
 '+<LEDGER>'+
 '<Default>Output IGST 28%</Default>'+
-'<Group>Duties &amp; Taxes</Group>'+
+'<Group>'+
+'<Default>Duties &amp; Taxes</Default>'+
+'</Group>'+
 '<AmtCol>'+
 '<Alias>IGST Tax 28</Alias>'+
 '<Type>Dr</Type>'+
@@ -3146,7 +3286,9 @@ StkIn = '<Voucher>'+
 '</LEDGER>'+
 '<LEDGER>'+
 '<Default>SGST</Default>'+
-'<Group>Duties &amp; Taxes</Group>'+
+'<Group>'+
+'<Default>Duties &amp; Taxes</Default>'+
+'</Group>'+
 '<AmtCol>'+
 '<Alias>SGST</Alias>'+
 '<Type>Dr</Type>'+
@@ -3154,7 +3296,9 @@ StkIn = '<Voucher>'+
 '</LEDGER>'+
 '<LEDGER>'+
 '<Default>CGST</Default>'+
-'<Group>Duties &amp; Taxes</Group>'+
+'<Group>'+
+'<Default>Duties &amp; Taxes</Default>'+
+'</Group>'+
 '<AmtCol>'+
 '<Alias>CGST</Alias>'+
 '<Type>Dr</Type>'+
@@ -3162,7 +3306,9 @@ StkIn = '<Voucher>'+
 '</LEDGER>'+
 '<LEDGER>'+
 '<Default>IGST</Default>'+
-'<Group>Duties &amp; Taxes</Group>'+
+'<Group>'+
+'<Default>Duties &amp; Taxes</Default>'+
+'</Group>'+
 '<AmtCol>'+
 '<Alias>IGST</Alias>'+
 '<Type>Dr</Type>'+
@@ -3224,7 +3370,9 @@ StkOut = '<Voucher>'+
 '</LEDGER>'+
 '<LEDGER>'+
 '<Default>SGST</Default>'+
-'<Group>Duties &amp; Taxes</Group>'+
+'<Group>'+
+'<Default>Duties &amp; Taxes</Default>'+
+'</Group>'+
 '<AmtCol>'+
 '<Alias>SGST</Alias>'+
 '<Type>Cr</Type>'+
@@ -3232,7 +3380,9 @@ StkOut = '<Voucher>'+
 '</LEDGER>'+
 '<LEDGER>'+
 '<Default>CGST</Default>'+
-'<Group>Duties &amp; Taxes</Group>'+
+'<Group>'+
+'<Default>Duties &amp; Taxes</Default>'+
+'</Group>'+
 '<AmtCol>'+
 '<Alias>CGST</Alias>'+
 '<Type>Cr</Type>'+
@@ -3240,7 +3390,9 @@ StkOut = '<Voucher>'+
 '</LEDGER>'+
 '<LEDGER>'+
 '<Default>IGST</Default>'+
-'<Group>Duties &amp; Taxes</Group>'+
+'<Group>'+
+'<Default>Duties &amp; Taxes</Default>'+
+'</Group>'+
 '<AmtCol>'+
 '<Alias>IGST</Alias>'+
 '<Type>Cr</Type>'+

@@ -53,6 +53,7 @@ type
     GSTN: string;
     State: string;
     _Name: string;
+    GUID: string;
   end;
   pGSTNRec = ^GSTNRec;
   IGSTNObj = interface
@@ -271,6 +272,7 @@ type
     IsVchTypeMatched: Boolean;
     DrCrTotal: currency;
     RefLedger: string;
+    RLedgerRef: string;
     CrLine, DrLine: integer;
     IsVchMode4Vch: boolean;
 
@@ -282,7 +284,7 @@ type
     function Pack(const Ledger: string; const Amount: currency; const Ref, RefType: string; const aTType: boolean): currency;
     procedure Unpack;
 //    procedure SetGSTLedType;
-    procedure AttachInv(const rled: string);
+    procedure AttachInv(const rLed, rRef: string);
     procedure AttachAssessable(const rled: string);
     procedure AddInDirect(const idx: integer);
     procedure AddInOut(const idx: integer);
@@ -339,6 +341,7 @@ type
 
   TInvLine = Record
     Ledger: string;
+    Ref: string;
     Item: string;
     Qty: currency;
     Rate: currency;
@@ -520,9 +523,11 @@ begin
   xLdg.AddAttribute('NAME', ledger);
   xLdg.AddAttribute('ACTION','Create');
   xLdg := xLdg.NewChild('ADDRESS.LIST','');
-  for k :=Low(Address) to High(Address) do
-    if Length(Address[k]) > 0 then
-      xLdg.NewChild2('ADDRESS', Address[k]);
+  if Length(Address[0]) > 0 then
+    xLdg.NewChild2('ADDRESS', Address[0]);
+//  for k :=Low(Address) to High(Address) do
+//    if Length(Address[k]) > 0 then
+//      xLdg.NewChild2('ADDRESS', Address[k]);
   { ADDRESS.LIST }
   xLdg := xLdg.GetParent;
   xLdg := xLdg.NewChild('NAME.LIST','');
@@ -1340,6 +1345,12 @@ end;
 procedure TbjVchExp.CheckVchType(const Ledger; const Amount: currency);
 begin
   IsVchTypeMatched := True;
+  if  (WSType = 'BReceipt') then
+    if Amount <= 0 then
+      IsVchTypeMatched := False;
+  if  (WSType = 'BPayment') then
+  if Amount >= 0 then
+      IsVchTypeMatched := False;
   if  (WSType = 'Receipt') then
     if Amount >= 0 then
       IsVchTypeMatched := False;
@@ -1372,6 +1383,7 @@ begin
   Pack(Ledger, Amount,'','', aTType);
   DrCrTotal := DrCrTotal + amount;
   RefLedger := Ledger;
+  RLedgerRef := '';
   Result := DrCrTotal;
 end;
 function TbjVchExp.SetInvLine(const Item: string; const Qty, Rate, Amount: currency; const aDiscRate, Godown, Batch: string; UserDesc: TStringDynArray): currency;
@@ -1385,6 +1397,7 @@ begin
      Exit;
   pline := new(pInvLine);
   pline^.Ledger :=  RefLedger;
+  pline^.Ref :=  RLedgerRef;
   SetLength(pLine^.UserDesc, UserDescSize);
   pline^.Item :=  Item;
 
@@ -1466,6 +1479,7 @@ begin
   begin
     Item := Lines.Items[Step - 1];
     if (Item^.Ledger = aLedger) and
+      ((Length(Ref) = 0) or (Item^.Ref = Ref))  and
 //      ((Item^.Ref = Ref) or (Length(Ref) = 0)) and
 //      ((Item^.RefType = RefType) or (Length(RefType) = 0)) and
       (Item^.IsNegative = aTType) then
@@ -1614,6 +1628,7 @@ begin
   begin
     iitem := iLines.Items[i];
     iItem.Ledger := '';
+    iItem.Ref := '';
     iItem.Item := '';
     for k := Low(iItem.UserDesc) to High(iItem.UserDesc) do
     iItem.UserDesc[k] := '';
@@ -1680,7 +1695,20 @@ begin
   end;
     { ALLLEDGERENTRIES.LIST }
   AttachAssessable(pLine(Lines.Items[idx])^.Ledger);
+  AttachInv(pLine(Lines.Items[idx])^.Ledger, pLine(Lines.Items[idx])^.Ref);
+  xVou := xVou.GetParent;
+end;
   AttachInv(pLine(Lines.Items[idx])^.Ledger);
+  IF (wsType = 'Receipt') or (wsType = 'Payment') then
+  begin
+    xvou := xvou.NewChild('BANKALLOCATIONS.LIST','');
+    xvou.NewChild2('INSTRUMENTDATE', VchDate);
+    xvou.NewChild2('TRANSACTIONTYPE', 'Cheque');
+    if Length(vchChequeNo) > 0 then
+      xvou.NewChild2('INSTRUMENTNUMBER', vchChequeNo)
+    else
+      xvou.NewChild2('INSTRUMENTNUMBER', '');
+    xvou.NewChild2('AMOUNT', FormatCurr(TallyAmtPicture, pLine(Lines.Items[idx])^.Amount));
   xVou := xVou.GetParent;
 end;
   xVou := xVou.GetParent;
@@ -1721,7 +1749,7 @@ begin
   xVou := xVou.GetParent;
 end;
 
-procedure TbjVchExp.AttachInv(const rled: string);
+procedure TbjVchExp.AttachInv(const rLed, rRef: string);
 var
   idx: integer;
   k: Integer;
@@ -1730,6 +1758,9 @@ begin
   for idx := 0 to ilines.Count-1 do
   begin
     if pInvLine(iLines.Items[idx])^.Ledger <> rled then
+      Continue;
+    if (Length(pInvLine(iLines.Items[idx])^.Ref) > 0) and
+      (pInvLine(iLines.Items[idx])^.Ref <> rRef)then
       Continue;
     xvou := xvou.NewChild('INVENTORYALLOCATIONS.LIST', '');
     xvou := xvou.NewChild('BASICUSERDESCRIPTION.LIST', '');
@@ -1791,6 +1822,7 @@ begin
   Pack(Ledger, Amount, Ref, RefType, aTType);
   DrCrTotal := DrCrTotal + amount;
   RefLedger := Ledger;
+  RLedgerRef := Ref;
   Result := DrCrTotal;
 end;
 
