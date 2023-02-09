@@ -53,6 +53,9 @@ type
     vID: Ibjxml;
     LID: Ibjxml;
     PLID: Ibjxml;
+    StartTime, EndTime, Elapsed: double;
+    Hrs, Mins, Secs, Msecs: word;
+    sDups: Integer;
   public
     { Public declarations }
     ndups: Integer;
@@ -63,14 +66,15 @@ type
     FUpdate: TfnUpdate;
     Alterid: string;
     FinishedDts: TStringList;
+    AlterIDStr: string;
     constructor Create;
     destructor Destroy; override;
-    procedure GetLedVchRgtr;
-    procedure GetVouXML;
-    procedure PostVouXML;
-    procedure Process;
-    procedure ReplDupLed;
-    procedure ErrorCheck;
+    procedure GetLedVchRgtr; virtual;
+    procedure GetVouXML; virtual;
+    procedure PostVouXML; virtual;
+    procedure Process; virtual;
+    procedure ReplDupLed; virtual;
+    procedure ErrorCheck; virtual;
     procedure SetHost(const aHost: string);
   published
     property Firm: String read FFirm write FFirm;
@@ -81,14 +85,23 @@ type
     property DupLed: string Read FDupLed write FDupLed;
   end;
 
+  TbjFillBillRef = class(TbjxMerge)
+  public
+    procedure Process; override;
+    procedure ReplDupLed; override;
+    constructor Create;
+    destructor Destroy; override;
+  end;
 implementation
 
 Constructor TbjxMerge.Create;
 begin
+  inherited;
   FHost := 'http://127.0.0.1:9000';
   Client := TbjClient.Create;
   FinishedDts :=TStringList.Create;
 {  SaveXMLFile := True; }
+  AlteriDStr := 'ALTERID';
 end;
 
 
@@ -177,33 +190,30 @@ begin
 end;
 
 procedure TbjxMerge.GetVouXML;
+var
+  xSVar, xStr, xFormula: IbjXml;
+  CollName: string;
+  OResult: IbjXml;
 begin
-  FxReq := '<ENVELOPE><HEADER><VERSION>1</VERSION>';
-  FxReq := FxReq + '<TALLYREQUEST>EXPORT</TALLYREQUEST>';
-  FxReq := FxReq + '<TYPE>DATA</TYPE>';
-  FxReq := FxReq + '<ID>Daybook</ID>';
-  FxReq := FxReq + '</HEADER><BODY><DESC>';
+  xSVar := CreatebjXmlDocument;
+  xStr := CreatebjXmlDocument;
+  xFormula := CreatebjXmlDocument;
 
-  FxReq := FxReq + '<STATICVARIABLES>';
+  CollName := 'Ledger Vouchers Coll';
+  xSVar.LoadXML('<STATICVARIABLES>'+
+  '<SVEXPORTFORMAT>$$SysName:XML</SVEXPORTFORMAT>'+
+  '</STATICVARIABLES>');
+  xStr.LoadXML('<FILTER>VDate</FILTER>'
+  +'<NATIVEMETHOD>LEDGERNAME</NATIVEMETHOD>'
+  +'<NATIVEMETHOD>PARTYLEDGERNAME</NATIVEMETHOD>'
+  );
+  xFormula.LoadXML(
+  '<SYSTEM TYPE="FORMULAE" NAME="VDate">'+
+  '$DATE=$$DATE:"' + CurDt + '"</SYSTEM>');
+  xdb := ColExEval(CollName, 'Voucher', xSVar, xStr, xFormula);
 {
 
 }
-  if (Length(FFirm) <> 0) then
-    FxReq := FXReq + '<SVCURRENTCOMPANY>' + FFirm + '</SVCURRENTCOMPANY>';
-
-  FxReq := FXReq + '<SVCURRENTDATE>' + CurDt + '</SVCURRENTDATE>';
-
-  FxReq := FXReq + '</STATICVARIABLES>';
-
-  FxReq := FXReq + '</DESC></BODY></ENVELOPE>';
-
-  if IsSaveXMLFileon then
-    Client.xmlResponsefile := 'Daybook.xml';
-  Client.Host := FHost;
-  Client.xmlRequestString := Fxreq;
-  Client.post;
-  Errorcheck;
-  xdb := Client.xmlResponseString;
 end;
 
 procedure TbjxMerge.PostVouXML;
@@ -255,8 +265,14 @@ begin
     Exit;
   LID := vID.SearchForTag(nil, 'LEDGERNAME');
   PLID := vID.SearchForTag(nil, 'PARTYLEDGERNAME');
-  aID := vID.SearchForTag(nil, 'ALTERID');
-//  aID := vID.SearchForTag(nil, 'MASTERID');
+//  aID := vID.SearchForTag(nil, 'ALTERID');
+  aID := vID.SearchForTag(nil, AlterIDStr);
+    if not Assigned(aID) then
+  if AlterIDStr = 'ALTERID' then
+  begin
+      AlterIDStr := 'MASTERID';
+      aID := vID.SearchForTag(nil, AlterIDStr);
+  end;
   while Assigned(LID) do
   begin
     if LID.GetContent = DupLed then
@@ -276,7 +292,7 @@ begin
     begin
       alterid := aID.GetContent;
       vID.RemoveAttr('ACTION');
-      vID.AddAttribute('TAGNAME', 'ALTERID');
+      vID.AddAttribute('TAGNAME', AlterIDStr);
       vID.AddAttribute('TAGVALUE', alterid);
       vID.AddAttribute('ACTION', 'Alter');
       while Assigned(lID) do
@@ -299,8 +315,7 @@ begin
       Exit;
     lID := vID.SearchForTag(nil, 'LEDGERNAME');
     PLID := vID.SearchForTag(nil, 'PARTYLEDGERNAME');
-    aID := vID.SearchForTag(nil, 'ALTERID');
-//    aID := vID.SearchForTag(nil, 'MASTERID');
+    aID := vID.SearchForTag(nil, AlterIDStr);
     while Assigned(LID) do
     begin
       if LID.GetContent = DupLed then
@@ -316,4 +331,148 @@ begin
   end;
 end;
 
+Constructor TbjFillBillRef.Create;
+begin
+  inherited;
+end;
+destructor TbjFillBillRef.Destroy;
+begin
+  inherited;
+end;
+procedure TbjFillBillRef.Process;
+var
+  rDoc: Ibjxml;
+  rID: Ibjxml;
+  idx: Integer;
+  rVTNode: Ibjxml;
+begin
+  StartTime := Time;
+  GetLedVchRgtr;
+  rDoc := CreatebjXmlDocument;
+  rDoc.LoadXML(rDB);
+  rID := rDoc.SearchForTag(nil, 'DSPVCHDATE');
+  while Assigned(rID) do
+  begin
+    if CurDt = rID.GetContent then
+    begin
+      rID := rDoc.SearchForTag(rID, 'DSPVCHDATE');
+      Continue;
+    end;                                                               
+    rVTNode := rDoc.SearchForTag(rID, 'DSPVCHTYPE');
+    CurDt := rID.GetContent;
+    if not FinishedDts.Find(CurDt, idx) then
+    begin
+      FinishedDts.Add(CurDt);
+    GetVouXML;
+    ReplDupLed;
+    end;
+    rID := rDoc.SearchForTag(rID, 'DSPVCHDATE');
+  end;
+  EndTime := Time;
+  Elapsed := EndTime - StartTime;
+  DecodeTime(Elapsed, Hrs, Mins, Secs, MSecs);
+  FUpdate(IntToStr(SDups)+ ' Transformed; ' +IntToStr(Secs) + ' seconds');
+end;
+procedure TbjFillBillRef.ReplDupLed;
+var
+  VDoc: Ibjxml;
+  rBDoc: Ibjxml;
+  rBType: Ibjxml;
+  rRefNode: Ibjxml;
+  rRef: string;
+  rVNoNode: Ibjxml;
+  rBNode: Ibjxml;
+  rAmtNode: Ibjxml;
+  rAmt: string;
+  rVno: string;
+  rSomeRef: string;
+  rIsModified: Boolean;
+begin
+  VDoc := CreatebjXmlDocument;
+  VDoc.LoadXML(xDB);
+  vid := vDoc.SearchForTag(nil, 'COLLECTION');
+  vid := vDoc.SearchForTag(VID, 'VOUCHER');
+  if not Assigned(vID) then
+    Exit;
+  LID := vID.SearchForTag(nil, 'LEDGERNAME');
+  while Assigned(LID) do
+  begin
+    if LID.GetContent = DupLed then
+      Break;
+    LID := vID.SearchForTag(LID, 'LEDGERNAME');
+  end;
+  aID := vID.SearchForTag(nil, AlterIDStr);
+  if not Assigned(aID) then
+  if AlterIDStr = 'ALTERID' then
+  begin
+      AlterIDStr := 'MASTERID';
+      aID := vID.SearchForTag(nil, AlterIDStr);
+  end;
+  while Assigned(vID) do
+  begin
+    rIsModified := False;
+    aID := vID.SearchForTag(nil, AlterIDStr);
+    rRefNode := vID.SearchForTag(nil, 'REFERENCE');
+    if rRefNode <> nil then
+      rRef := rRefNode.GetContent;
+    rSomeRef := rRef;
+    rVNoNode := vID.SearchForTag(nil, 'VOUCHERNUMBER');
+    if rVNoNode <> nil then
+      rVno := rVNoNode.GetContent;
+    if Length(rSomeRef) = 0 then
+      rSomeRef := rVno;
+    rAmtNode := VID.SearchForTag(LID, 'AMOUNT');
+    if rAmtNode <> nil then
+      rAmt := rAmtNode.GetContent;
+    if Length(rSomeRef) = 0 then
+    begin
+      vID := vDoc.SearchForTag(vID, 'VOUCHER');
+      if not Assigned(vID) then
+        Exit;
+      lID := vID.SearchForTag(nil, 'LEDGERNAME');
+      while Assigned(LID) do
+      begin
+        if LID.GetContent = DupLed then
+          Break;
+        LID := vID.SearchForTag(LID, 'LEDGERNAME');
+      end;
+      Continue;
+    end;
+    if Assigned(LID) then
+    if LID.GetContent = DupLed then
+    begin
+      Alterid := aID.GetContent;
+      vID.RemoveAttr('ACTION');
+      vID.RemoveAttr('ACTION');
+      vID.AddAttribute('TAGNAME', AlterIDStr);
+      vID.AddAttribute('TAGVALUE', Alterid);
+      vID.AddAttribute('ACTION', 'Alter');
+      rBNode := LID.SearchForTag(nil, 'BILLALLOCATIONS.LIST');
+      if Assigned(rBNode) then
+      begin
+        if Length(rBNode.GetChildContent('NAME')) = 0 then
+        begin
+          rBNode.NewChild2('NAME', rSomeRef);
+          rBNode.NewChild2('BILLTYPE', 'NewRef');
+          rBNode.NewChild2('AMOUNT', rAmt);
+          rIsModified := True;
+        end;
+      end;
+      yDB := vID.GetXML;
+      if rIsModified then
+        PostVouXML;
+      sDups := sDups + 1;
+    end;
+    vID := vDoc.SearchForTag(vID, 'VOUCHER');
+    if not Assigned(vID) then
+    Exit;
+    lID := vID.SearchForTag(nil, 'LEDGERNAME');
+    while Assigned(LID) do
+    begin
+      if LID.GetContent = DupLed then
+        Break;
+      LID := vID.SearchForTag(LID, 'LEDGERNAME');
+    end;
+  end;
+end;
 end.

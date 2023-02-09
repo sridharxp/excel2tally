@@ -171,6 +171,9 @@ type
     ItemGroupPList: TStringList;
     CategoryPList: TStringList;
     GodownPList: TStringList;
+    CashBankPList: TStringList;
+    IncomeExpensePList: TStringList;
+    CurrentAssetsLiabilitiesList: TStringList;
 {    GSTNList: TList; }
     GSTColl: IStrIntfMap;
     LedColl: IStrIntfMap;
@@ -179,8 +182,9 @@ type
     function CreateLedger(const Ledger, Parent: string; const OpBal: currency ): boolean;
     function CreateParty(const Ledger, Parent, GSTN, State: string ): boolean;
     function CreateGST(const Ledger, Parent: string; Const TaxRate: string ): boolean;
-    function CreateItem(const Item, BaseUnit: string; const OpBal, OpRate: currency): boolean;
+//    function CreateItem(const Item, BaseUnit: string; const OpBal, OpRate: currency; const GRate: string): boolean;
     function CreateHSN(const Item, BaseUnit, aHSN: string; const GRate: string): boolean;
+    function CreateItem(const Item, BaseUnit: string; const OpBal, OpRate: currency): boolean;
     function CreateUnit(const ItemUnit: string): boolean;
     function CreateItemGroup(const Grp, Parent: string): boolean;
     function CreateCategory(const aCategory, Parent: string): boolean;
@@ -276,14 +280,12 @@ type
     CrLine, DrLine: integer;
     IsVchMode4Vch: boolean;
 
-    CashBankPList: TStringList;
     procedure CheckVchType(const ledger; const Amount: currency);
     procedure XmlHeader(const tgt:string);
     procedure XmlFooter(const tgt:string);
     procedure SetVchHeader;
     function Pack(const Ledger: string; const Amount: currency; const Ref, RefType: string; const aTType: boolean): currency;
     procedure Unpack;
-//    procedure SetGSTLedType;
     procedure AttachInv(const rLed, rRef: string);
     procedure AttachAssessable(const rled: string);
     procedure AddInDirect(const idx: integer);
@@ -449,6 +451,9 @@ begin
   CategoryPList.Free;
   LedPList.Free;
   LedGroupPList.Free;
+  CashBankPList.Free;
+  IncomeExpensePList.Free;
+  CurrentAssetsLiabilitiesList.Free;
   GSTColl.Clear;
   LedColl.Clear;
   inherited;
@@ -485,7 +490,6 @@ begin
   ILines.Free;
   Lines.Free;
   GSTNLines.Free;
-  CashBankPList.Free;
   inherited;
 end;
 
@@ -713,6 +717,8 @@ begin
 //  xLdg.NewChild2('SERVICECATEGORY', '&#4; Not Applicable');
 
   xLdg.NewChild2('LEDSTATENAME', State);
+  if Length(GSTN) > 0 then
+  xLdg.NewChild2('ISBILLWISEON', 'Yes');
   { LEDGER }
   xLdg := xLdg.GetParent;
 
@@ -819,7 +825,7 @@ begin
   If Length(Fcategory) > 0 then
     xLdg.NewChild2('CATEGORY', FCategory );
 // GST
-  If Length(aHSN) > 0 then
+  If (Length(aHSN) > 0) or (Length(GRate) > 0) then
     xLdg.NewChild2('GSTAPPLICABLE', #4 +' Applicable' );
   If Length(FUserDesc) > 0 then
     xLdg.NewChild2('DESCRIPTION', FUserDesc );
@@ -1437,21 +1443,50 @@ var
   Obj: TbjMstListImp;
   aLedger: string;
 begin
-  if not Assigned(CashBankPList) then
+  if not Assigned(MstExp.CashBankPList) then
   begin
     Obj := TbjMstListImp.Create;
-    CashBankPList := TStringList.Create;
+    MstExp.CashBankPList := TStringList.Create;
     try
       Obj.ToPack := False;
       Obj.Host := Env.Host;
-      CashBankPList.Text := Obj.GetCashBankText(True);
-      CashBankPList.Sorted := True;
+      MstExp.CashBankPList.Text := Obj.GetCashBankText(True);
+      MstExp.CashBankPList.Sorted := True;
     Finally
       Obj.Free;
     end;
   end;
+  if Length(Ref) > 0 then
+  begin
+  if not Assigned(MstExp.IncomeExpensePList) then
+  begin
+      Obj := TbjMstListImp.Create;
+    MstExp.IncomeExpensePList := TStringList.Create;
+    try
+      Obj.ToPack := False;
+      Obj.Host := Env.Host;
+      MstExp.IncomeExpensePList.Text := Obj.GetIncomeExpenseText;
+      MstExp.IncomeExpensePList.Sorted := True;
+    Finally
+      Obj.Free;
+    end;
+  end;
+  if not Assigned(MstExp.CurrentAssetsLiabilitiesList) then
+  begin
+      Obj := TbjMstListImp.Create;
+    MstExp.CurrentAssetsLiabilitiesList := TStringList.Create;
+    try
+      Obj.ToPack := False;
+      Obj.Host := Env.Host;
+      MstExp.CurrentAssetsLiabilitiesList.Text := Obj.GetCurrentAssetsLiabilitiesText;
+      MstExp.CurrentAssetsLiabilitiesList.Sorted := True;
+    Finally
+      Obj.Free;
+    end;
+  end;
+  end;
    if IsContra then
-   if not CashBankPList.Find(ledger, idx) then
+   if not MstExp.CashBankPList.Find(ledger, idx) then
      IsContra := False;
 
   aLedger := Ledger;
@@ -1648,6 +1683,8 @@ begin
 end;
 
 procedure TbjVchExp.AddInDirect(const idx: integer);
+var
+  rIdx: Integer;
 begin
   xvou := xvou.NewChild('ALLLEDGERENTRIES.LIST','');
   if InvVch and (pLine(Lines.Items[idx])^.IsNegative) then
@@ -1681,9 +1718,13 @@ begin
   { BANKALLOCATIONS.LIST }
     xVou := xVou.GetParent;
   end;
-  if MstExp.LedColl.ContainsKey(PackStr(pLine(Lines.Items[idx])^.Ledger)) then
-  begin
   if Length(pLine(Lines.Items[idx])^.Ref) > 0 then
+  begin
+  if (MstExp.LedColl.ContainsKey(PackStr(pLine(Lines.Items[idx])^.Ledger)))
+     or (MstExp.IncomeExpensePList.Find(pLine(Lines.Items[idx])^.Ledger, rIdx))
+     or (MstExp.CurrentAssetsLiabilitiesList.Find(pLine(Lines.Items[idx])^.Ledger, rIdx))
+{$endif}
+     then
   begin
     xvou := xvou.NewChild('BILLALLOCATIONS.LIST','');
     xvou.NewChild2('NAME', pLine(Lines.Items[idx])^.Ref);
@@ -2235,7 +2276,7 @@ It does not use GetDupPartyGSTN
       ItemObj.SetName(aLedger);
       ItemObj.SetGSTN(aGSTN);
       GSTColl.PutValue(aGSTN, ItemObj);
-      LedColl.PutValue(aLedger, ItemObj);
+      LedColl.PutValue(PackStr(aLedger), ItemObj);
       Result := aLedger;
     end;
     Exit;
@@ -2262,7 +2303,7 @@ It does not use GetDupPartyGSTN
       ItemObj.SetName(aLedger+'_'+aGSTN);
       ItemObj.SetGSTN(aGSTN);
       GSTColl.PutValue(aGSTN, ItemObj);
-      LedColl.PutValue(aLedger, ItemObj);
+      LedColl.PutValue(PackStr(aLedger), ItemObj);
       Result := aLedger+'_'+aGSTN;
     end;
       Exit;

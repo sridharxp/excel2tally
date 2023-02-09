@@ -795,7 +795,7 @@ Todo
       xxCfg := xcfg.SearchForTag(nil, 'GSTN');
       if Assigned(xxCfg) then
       begin
-        str := xxCfg.GetContent;
+        str := xxCfg.GetChildContent(UAliasName);
         UGSTNName[i] := str;
         if Length(str) > 0 then
           IsGSTNDeclared[i] := True;
@@ -1913,11 +1913,11 @@ begin
     if dsl.IsUserDescDefined then
     MstExp.UserDesc := kadb.GetFieldString(dsl.UUserDescName);
 }
+	if dsl.IsGSTRateDefined then
+    GRate := kadb.GetFieldToken(dsl.UGSTRateName);
   if dsl.IsHSNDefined then
   begin
     HSNColValue := kadb.GetFieldString(dsl.UHSNName);
-	if dsl.IsGSTRateDefined then
-      GRate := kadb.GetFieldToken(dsl.UGSTRateName);
     MstExp.NewHSN(ItemColValue, UnitColValue, HSNColValue, GRate);
   end
   else
@@ -1933,17 +1933,6 @@ begin
 
   if dsl.IsDaybook then
   begin
-{
-    if (vTotal = 0) and (kadb.GetFieldCurr(dsl.CrAmtCol) +
-      kadb.GetFieldCurr(dsl.DrAmtCol) > 0) then
-    begin
-      IDstr :=  IntToStr(kadb.CurrentRow);
-      if kadb.IsEmptyField(dsl.UIdName) then
-        kadb.SetFieldVal(dsl.UIdName, IDstr)
-      else
-        IDstr :=  kadb.GetFieldString(dsl.UIdName);
-    end;
-}
     if (vTotal = 0) then
       IDstr := '';
     if (kadb.GetFieldCurr(dsl.CrAmtCol) +
@@ -2176,8 +2165,6 @@ begin
   if dsl.IsHSNDefined then
   begin
     dbHSN := kadb.GetFieldString(dsl.UHSNName);
-//    MstExp.OBal := wOBal;
-//    MstExp.ORate := ORate;
     MstExp.NewHSN(dbItem, dbUnit, dbHSN, GRate);
   end
   else
@@ -2193,6 +2180,7 @@ var
   BatchColValue: string;
   GodownColValue: string;
   UserDescColValue: TStringDynArray;
+  k: Integer;
   DiscRateColValue: string;
 begin
   if dsl.IsNarrationDefined then
@@ -2201,6 +2189,17 @@ begin
     NarrationColValue := NarrationColValue + ' ' + kadb.GetFieldString(dsl.UNarrationName)
     else
     NarrationColValue := (kadb.GetFieldString(dsl.UNarrationName));
+  end;
+  if dsl.UserDescColumns > 1 then
+  SetLength(UserDescColValue, dsl.UserDescColumns)
+  else
+  SetLength(UserDescColValue, 1);
+  if dsl.IsUserDescDefined then
+  begin
+  UserDescColValue[0] :=  kadb.GetFieldString(dsl.UUserDescName);
+  if dsl.UserDescColumns > 1 then
+  for k := 1 to dsl.UserDescColumns-1 do
+    UserDescColValue[k] :=  kadb.GetFieldString(dsl.UUserDescName+InttoStr(k))
   end;
   if dsl.IsOutItemDefined then
   begin
@@ -2325,7 +2324,6 @@ begin
   VchExp.VchChequeNo := ChequeNoColValue;
   ChequeNoColValue := '';
   RoundOffName := GetRoundOffName;
-//  VchExp.VchState := '';
   VchExp.VchState := UdefStateName;
 //  if (VchType = 'Sales') or (VchType = 'Purchase') then
   if (WSType = 'Sales') or (WSType = 'Purchase') then
@@ -2382,8 +2380,6 @@ begin
   end;
   end;
 { For reusing Templates }
-//  if Length(TypeColValue) = 0 then
-//    TypeColValue := FVchType;
 { With VchType this should not be needed }
   if Length(TypeColValue) = 0 then
     TypeColValue := dsl.DiTypeValue;
@@ -2818,7 +2814,6 @@ begin
     Item := dsl.LedgerDict[ctr].Items[i];
     if Length(rpetToken) = 0 then
       rpetToken := kadb.GetFieldToken(pDict(Item)^.TokenCol);
-//    if pDict(Item)^.Token = Trim(kadb.GetFieldString(pDict(Item)^.TokenCol)) then
     if rpetToken = pDict(Item)^.Token then
     begin
       Result := pDict(Item)^.Token;
@@ -2842,7 +2837,6 @@ begin
     Item := dsl.LedgerDict[ctr].Items[i];
     if Length(rpetToken) = 0 then
       rpetToken := kadb.GetFieldToken(pDict(Item)^.TokenCol);
-//    if (pDict(Item)^.Token = Trim(kadb.GetFieldString(pDict(Item)^.TokenCol))) then
     if rpetToken = pDict(Item)^.Token then
     begin
       Result := pDict(Item)^.Value;
@@ -3014,20 +3008,6 @@ begin
   if WSType = 'Sales' then
   begin
     MstExp.NewGst('GST Sales Exempted', 'Sales Accounts', '0');
-{
-    MstExp.NewGst('GST 3% Sales', 'Sales Accounts', '3');
-    MstExp.NewGst('GST 5% Sales', 'Sales Accounts', '5');
-//    MstExp.NewLedger('GST 5% Sales', 'Sales Accounts', 0);
-    MstExp.NewGst('GST 12% Sales', 'Sales Accounts', '12');
-    MstExp.NewGst('GST 18% Sales', 'Sales Accounts', '18');
-    MstExp.NewGst('GST 28% Sales', 'Sales Accounts', '28');
-    MstExp.NewGst('IGST Sales Exempted', 'Sales Accounts', '0');
-    MstExp.NewGst('IGST 3% Sales', 'Sales Accounts', '3');
-    MstExp.NewGst('IGST 5% Sales', 'Sales Accounts', '5');
-    MstExp.NewGst('IGST 12% Sales', 'Sales Accounts', '12');
-    MstExp.NewGst('IGST 18% Sales', 'Sales Accounts', '18');
-    MstExp.NewGst('IGST 28% Sales', 'Sales Accounts', '28');
-}
     if GSTLedType = 'Max' then
     begin
     MstExp.NewGst('Output SGST 1.5%', 'Duties & Taxes', '3');
@@ -3050,19 +3030,6 @@ begin
   if WSType = 'Purchase' then
   begin
     MstExp.NewGst('GST Purchase Exempted', 'Purchase Accounts', '0');
-{
-    MstExp.NewGst('GST 3% Purchase', 'Purchase Accounts', '3');
-    MstExp.NewGst('GST 5% Purchase', 'Purchase Accounts', '5');
-    MstExp.NewGst('GST 12% Purchase', 'Purchase Accounts', '12');
-    MstExp.NewGst('GST 18% Purchase', 'Purchase Accounts', '18');
-    MstExp.NewGst('GST 28% ', 'Purchase Accounts', '28');
-    MstExp.NewGst('GST Purchase Exempted', 'Purchase Accounts', '0');
-    MstExp.NewGst('IGST 3% Purchase', 'Purchase Accounts', '3');
-    MstExp.NewGst('IGST 5% Purchase', 'Purchase Accounts', '5');
-    MstExp.NewGst('IGST 12% Purchase', 'Purchase Accounts', '12');
-    MstExp.NewGst('IGST 18% Purchase', 'Purchase Accounts', '18');
-    MstExp.NewGst('IGST 28% ', 'Purchase Accounts', '28');
-}
     if GSTLedType = 'Max' then
     begin
     MstExp.NewGst('Input SGST 1.5%', 'Duties & Taxes', '3');
@@ -3082,7 +3049,6 @@ begin
     MstExp.NewGst('input IGST 28%', 'Duties & Taxes', '28');
     end;
   end;
-//  if (VchType = 'Sales') or (VchType = 'Purchase') then
   if (WSType = 'Sales') or (WSType = 'Purchase') then
   begin
     MstExp.NewGst('SGST', 'Duties & Taxes', '12');

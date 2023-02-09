@@ -20,7 +20,7 @@ along with Excel to Tally. If not, see <http://www.gnu.org/licenses/>.
 Column Names are Case Sensitive
 Avoid dot in Column Name
 }
-unit XmlStr_GST;
+unit XmlStr_GST_uf;
 
 interface
 
@@ -2814,50 +2814,50 @@ StkJrnl = '<Voucher>'+
 '<Alias>DATE</Alias>'+
 '</DATE>'+
 '<CrITEM>'+
-'<Alias>Out Item</Alias>'+
+'<Alias>Out_Item</Alias>'+
 '</CrITEM>'+
 '<CrGODOWN>'+
-'<Alias>Out Godown</Alias>'+
+'<Alias>Out_Godown</Alias>'+
 '</CrGODOWN>'+
 '<CrBATCH>'+
-'<Alias>Out Batch</Alias>'+
+'<Alias>Out_Batch</Alias>'+
 '</CrBATCH>'+
 '<CrUNIT>'+
-'<Alias>Out Unit</Alias>'+
+'<Alias>Out_Unit</Alias>'+
 '</CrUNIT>'+
 '<CrQTY>'+
-'<Alias>Out Qty</Alias>'+
+'<Alias>Out_Qty</Alias>'+
 '</CrQTY>'+
 '<CrRATE>'+
-'<Alias>Out Rate</Alias>'+
+'<Alias>Out_Rate</Alias>'+
 '</CrRATE>'+
 '<CrAMOUNT>'+
-'<Alias>Out Amount</Alias>'+
+'<Alias>Out_Amount</Alias>'+
 '</CrAMOUNT>'+
 
 '<DrITEM>'+
-'<Alias>In Item</Alias>'+
+'<Alias>In_Item</Alias>'+
 '</DrITEM>'+
 '<DrGODOWN>'+
-'<Alias>In Godown</Alias>'+
+'<Alias>In_Godown</Alias>'+
 '</DrGODOWN>'+
 '<DrBATCH>'+
-'<Alias>In Batch</Alias>'+
+'<Alias>In_Batch</Alias>'+
 '</DrBATCH>'+
 '<DrUNIT>'+
-'<Alias>In Unit</Alias>'+
+'<Alias>In_Unit</Alias>'+
 '</DrUNIT>'+
 '<DrQTY>'+
-'<Alias>In Qty</Alias>'+
+'<Alias>In_Qty</Alias>'+
 '</DrQTY>'+
 '<DrRATE>'+
-'<Alias>In Rate</Alias>'+
+'<Alias>In_Rate</Alias>'+
 '</DrRATE>'+
 '<DrAMOUNT>'+
-'<Alias>In Amount</Alias>'+
+'<Alias>In_Amount</Alias>'+
 '</DrAMOUNT>'+
 '<VTYPE>'+
-'<Default>Journal</Default>'+
+'<Default>Stock Journal</Default>'+
 '</VTYPE>'+
 '<NARRATION>'+
 '<Alias>NARRATION</Alias>'+
