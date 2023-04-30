@@ -764,10 +764,10 @@ begin
   { NAME.LIST }
   xLdg := xLdg.GetParent;
   xLdg.NewChild2('BASEUNITS', BaseUnit);
-{
+
   if FIsBatchwiseOn then
   xldg.NewChild2('IsBatchWiseOn', 'Yes');
-}
+
   xLdg.NewChild2('OPENINGBALANCE', FormatCurr(TallyQtyPicture, FOBal)+' '+BaseUnit);
   if FORate > 0 then
   begin
@@ -838,10 +838,10 @@ begin
   { NAME.LIST }
   xLdg := xLdg.GetParent;
   xLdg.NewChild2('BASEUNITS', BaseUnit);
-{
+
   if FIsBatchwiseOn then
   xldg.NewChild2('IsBatchWiseOn', 'Yes');
-}
+
   xLdg.NewChild2('OPENINGBALANCE', FormatCurr(TallyAmtPicture, FOBal)+' '+BaseUnit);
   if FORate > 0 then
   begin
@@ -1721,6 +1721,7 @@ begin
   if Length(pLine(Lines.Items[idx])^.Ref) > 0 then
   begin
   if (MstExp.LedColl.ContainsKey(PackStr(pLine(Lines.Items[idx])^.Ledger)))
+{$IFDEF Extended_Bill_Reference}
      or (MstExp.IncomeExpensePList.Find(pLine(Lines.Items[idx])^.Ledger, rIdx))
      or (MstExp.CurrentAssetsLiabilitiesList.Find(pLine(Lines.Items[idx])^.Ledger, rIdx))
 {$endif}

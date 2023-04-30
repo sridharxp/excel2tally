@@ -49,6 +49,7 @@ uses
   Client,
   ZS733,
   PClientFns,
+  GenericFn,
   DateFns,
   XLSWorkbook,
   bjXml3_1,
@@ -968,10 +969,10 @@ Todo
         UOBalName := str;
     end;
 
-    xxCfg := xCfg.SearchForTag(nil, UoBatchName);
-    if Assigned(xxCfg) then
+    xCfg := Cfg.SearchForTag(nil, UoBatchName);
+    if Assigned(xCfg) then
     begin
-      str := xxCfg.GetChildContent(UAliasName);
+      str := xCfg.GetChildContent(UAliasName);
       if Length(str) > 0 then
         UoBatchName := str;
     end;
@@ -1339,11 +1340,13 @@ begin
   for i := 1 to COLUMNLIMIT+1 do
   begin
     if IsGSTNDeclared[i] then
+    begin
     if kadb.FindField(UGSTNName[i]) <> nil then
     begin
       IsGSTNDefined[i] := True;
       if not IsLedgerDefined[i] then
         raise Exception.Create('Required (Ledger) column not found');
+    end;
     end;
   end;
 end;
