@@ -1735,7 +1735,8 @@ begin
     xVou := xVou.GetParent;
   end;
   end;
-    { ALLLEDGERENTRIES.LIST }
+  { ALLLEDGERENTRIES.LIST }
+
   AttachAssessable(pLine(Lines.Items[idx])^.Ledger);
   AttachInv(pLine(Lines.Items[idx])^.Ledger, pLine(Lines.Items[idx])^.Ref);
   xVou := xVou.GetParent;
@@ -2422,6 +2423,7 @@ begin
   Result := Obj.GetState;
   if Length(Result)> 0 then
     Exit;
+end;
 procedure TbjMstExp.GetCollns;
 var
   xSVar, xStr, xFormula: IbjXml;

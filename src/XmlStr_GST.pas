@@ -79,12 +79,14 @@ RCPT ='<Voucher>'+
 '<BillRef>'+
 '<Alias>Bill_Ref</Alias>'+
 '</BillRef>'+
+
 '<RoundOff>'+
 '<Alias>Receipt_Ledger</Alias>'+
 '<Group>'+
 '<Default>Bank Accounts</Default>'+
 '</Group>'+
 '</RoundOff>'+
+
 '+<LEDGER>'+
 '<Alias>Party_Ledger</Alias>'+
 '<AmtCol>'+
@@ -99,6 +101,7 @@ RCPT ='<Voucher>'+
 '<Alias>GSTN</Alias>'+
 '</GSTN>'+
 '</LEDGER>'+
+
 '<ChequeNo>'+
 '<Alias>ChequeNo</Alias>'+
 '</ChequeNo>'+
@@ -126,12 +129,14 @@ PYMT = '<Voucher>'+
 '<BillRef>'+
 '<Alias>Bill_Ref</Alias>'+
 '</BillRef>'+
+
 '<RoundOff>'+
 '<Alias>Payment_Ledger</Alias>'+
 '<Group>'+
 '<Default>Bank Accounts</Default>'+
 '</Group>'+
 '</RoundOff>'+
+
 '<LEDGER>'+
 '<Alias>Party_Ledger</Alias>'+
 '<AmtCol>'+
@@ -148,9 +153,11 @@ PYMT = '<Voucher>'+
 '<Alias>GSTN</Alias>'+
 '</GSTN>'+
 '</LEDGER>'+
+
 '<ChequeNo>'+
 '<Alias>ChequeNo</Alias>'+
 '</ChequeNo>'+
+
 '<VTYPE>'+
 '<Alias>VTYPE</Alias>'+
 '<Default>Payment</Default>'+
@@ -360,6 +367,7 @@ MYSALE = '<Voucher>'+
 '<Alias>Alias</Alias>'+
 '</AliasName>'+
 '</RoundOff>'+
+
 '+<LEDGER>'+
 '<Default>GST 3% Sales</Default>'+
 '<Group>Sales Accounts</Group>'+
@@ -754,7 +762,6 @@ MYPURC = '<Voucher>'+
 '<Alias>Alias</Alias>'+
 '</AliasName>'+
 '</RoundOff>'+
-
 
 '+<LEDGER>'+
 '<Default>GST 3% Purchase</Default>'+
@@ -1668,7 +1675,6 @@ GSTSALE = '<Voucher>'+
 '</AmtCol>'+
 '</LEDGER>'+
 
-
 '+<LEDGER>'+
 '<Group>Bank Accounts</Group>'+
 '<AmtCol>'+
@@ -2002,7 +2008,6 @@ GSTPURC = '<Voucher>'+
 '</AmtCol>'+
 '</LEDGER>'+
 
-
 '+<LEDGER>'+
 '<AmtCol>'+
 '<Alias>Discount</Alias>'+
@@ -2233,6 +2238,7 @@ CNOTE = '<Voucher>'+
 '<Alias>Sales_Ledger</Alias>'+
 '<Group><Default>Sales Accounts</Default></Group>'+
 '<Default>Sales Account</Default>'+
+'<IsInvCol>Yes</IsInvCol>'+
 '<Dict>'+
 '<TokenCol>Tax_rate</TokenCol>'+
 '<Token>0</Token>'+
@@ -2433,7 +2439,6 @@ CNOTE = '<Voucher>'+
 '</AmtCol>'+
 '</LEDGER>'+
 
-
 '+<LEDGER>'+
 '<Group>Bank Accounts</Group>'+
 '<AmtCol>'+
@@ -2545,6 +2550,7 @@ DNOTE = '<Voucher>'+
 '<Alias>Purchase_Ledger</Alias>'+
 '<Group><Default>Purchase Accounts</Default></Group>'+
 '<Default>Purchase Account</Default>'+
+'<IsInvCol>Yes</IsInvCol>'+
 '<Dict>'+
 '<TokenCol>Tax_rate</TokenCol>'+
 '<Token>0</Token>'+
@@ -3270,6 +3276,7 @@ StkIn = '<Voucher>'+
 '<RATE>'+
 '<Alias>Rate</Alias>'+
 '</RATE>'+
+
 '+<LEDGER>'+
 '<Alias>Party_Ledger</Alias>'+
 '<Group>'+
@@ -3284,6 +3291,7 @@ StkIn = '<Voucher>'+
 '<Type>Cr</Type>'+
 '</AmtCol>'+
 '</LEDGER>'+
+
 '<LEDGER>'+
 '<Default>SGST</Default>'+
 '<Group>'+
@@ -3294,6 +3302,7 @@ StkIn = '<Voucher>'+
 '<Type>Dr</Type>'+
 '</AmtCol>'+
 '</LEDGER>'+
+
 '<LEDGER>'+
 '<Default>CGST</Default>'+
 '<Group>'+
@@ -3304,6 +3313,7 @@ StkIn = '<Voucher>'+
 '<Type>Dr</Type>'+
 '</AmtCol>'+
 '</LEDGER>'+
+
 '<LEDGER>'+
 '<Default>IGST</Default>'+
 '<Group>'+
@@ -3314,6 +3324,7 @@ StkIn = '<Voucher>'+
 '<Type>Dr</Type>'+
 '</AmtCol>'+
 '</LEDGER>'+
+
 '<VTYPE>'+
 '<Default>Journal</Default>'+
 '</VTYPE>'+
@@ -3321,6 +3332,7 @@ StkIn = '<Voucher>'+
 '<Alias>NARRATION</Alias>'+
 '</NARRATION>'+
 '</Voucher>';
+
 StkOut = '<Voucher>'+
 '<Data>'+
 '<InOutVchList>InOut</InOutVchList>'+
@@ -3354,6 +3366,7 @@ StkOut = '<Voucher>'+
 '<RATE>'+
 '<Alias>Rate</Alias>'+
 '</RATE>'+
+
 '+<LEDGER>'+
 '<Alias>Party_Ledger</Alias>'+
 '<Group>'+
@@ -3368,6 +3381,7 @@ StkOut = '<Voucher>'+
 '<Type>Dr</Type>'+
 '</AmtCol>'+
 '</LEDGER>'+
+
 '<LEDGER>'+
 '<Default>SGST</Default>'+
 '<Group>'+
@@ -3378,6 +3392,7 @@ StkOut = '<Voucher>'+
 '<Type>Cr</Type>'+
 '</AmtCol>'+
 '</LEDGER>'+
+
 '<LEDGER>'+
 '<Default>CGST</Default>'+
 '<Group>'+
@@ -3388,6 +3403,7 @@ StkOut = '<Voucher>'+
 '<Type>Cr</Type>'+
 '</AmtCol>'+
 '</LEDGER>'+
+
 '<LEDGER>'+
 '<Default>IGST</Default>'+
 '<Group>'+
@@ -3398,6 +3414,7 @@ StkOut = '<Voucher>'+
 '<Type>Cr</Type>'+
 '</AmtCol>'+
 '</LEDGER>'+
+
 '<VTYPE>'+
 '<Default>Journal</Default>'+
 '</VTYPE>'+
@@ -3405,6 +3422,7 @@ StkOut = '<Voucher>'+
 '<Alias>NARRATION</Alias>'+
 '</NARRATION>'+
 '</Voucher>';
+
 implementation
 
 end.
