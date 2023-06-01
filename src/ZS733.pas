@@ -261,6 +261,8 @@ type
     FVchState: string;
     FPartyState: string;
     FUserDescSize: Integer;
+    FVchDrCount: integer;
+    FVchCrCount: integer;
   protected
     { Protected declarations }
     Lines: TList;
@@ -330,6 +332,8 @@ type
     property VchState: string read FVchState write FVchState;
     property PartyState: string read FPartyState write FPartyState;
     property UserDescSize: Integer read FuserDescSize write FUserDescSize;
+    property VchDrCount: integer read FVchDrCount write FVchDrCount;
+    property VchCrCount: integer read FVchCrCount write FVchCrCount;
   end;
 
   TLine = Record
@@ -785,7 +789,6 @@ begin
     xLdg.NewChild2('BATCHNAME', FObatch)
     else
     xLdg.NewChild2('BATCHNAME', 'Primary Batch');
-//    xLdg.NewChild2('BATCHNAME', 'Primary Batch');
     xLdg.NewChild2('OPENINGBALANCE', FormatCurr(TallyQtyPicture, FOBal)+' '+BaseUnit);
     xLdg.NewChild2('OPENINGVALUE', FormatCurr(TallyQtyPicture, -FORate * FOBal));;
     xLdg.NewChild2('OPENINGRATE', FormatCurr(TallyQtyPicture,FORate)+'/'+BaseUnit);;
@@ -851,7 +854,6 @@ begin
   If Length(FGodown) > 0 then
   begin
   xLdg := xLdg.NewChild('BATCHALLOCATIONS.LIST','');
-//  xLdg.NewChild2('GODOWNNAME', FGodown );
     if Length(FGodown) > 0 then
     xLdg.NewChild2('GODOWNNAME', FGodown )
     else
@@ -860,7 +862,6 @@ begin
   xLdg.NewChild2('BATCHNAME', FOBatch)
   else
   xLdg.NewChild2('BATCHNAME', 'Primary Batch');
-//  xLdg.NewChild2('BATCHNAME', 'Primary Batch');
     xLdg.NewChild2('OPENINGBALANCE', FormatCurr(TallyAmtPicture, FOBal)+' '+BaseUnit);
     if FORate > 0 then
     begin
@@ -934,10 +935,6 @@ end;
 function TbjMstExp.CreateUnit(const ItemUnit: string): boolean;
 begin
 {  Result := False; }
-{
-  If Length(ItemUnit) = 0 then
-    Exit;
-}
   xmlHeader('L');
   xLdg := xLdg.NewChild('TALLYMESSAGE','');
 
@@ -968,7 +965,6 @@ function TbjMstExp.IsLedger(const Ledger: string): boolean;
 var
   Ledobj: TbjMstListImp;
   index: integer;
-//  Date: pointer;
 begin
 {  Result := False; }
   if not Assigned(LedPList) then
@@ -1109,7 +1105,6 @@ begin
     xLdg.NewChild2('SVEXPORTFORMAT', '$$SysName:XML');
     if length(Env.FFirm) > 0 then
     begin
-//      xLdg.NewChild2('SVCURRENTCOMPANY',TextToXML(Env.Firm));
       xLdg.NewChild2('SVCURRENTCOMPANY',Env.Firm);
     end;
   { STATICVARIABLES }
@@ -1154,7 +1149,6 @@ begin
     xvou.NewChild2('SVEXPORTFORMAT', '$$SysName:XML');
     if length(Env.FFirm) > 0 then
     begin
-//      xvou.NewChild2('SVCURRENTCOMPANY',TextToXML(Env.Firm));
       xvou.NewChild2('SVCURRENTCOMPANY',Env.Firm);
     end;
   { STATICVARIABLES }
@@ -1358,20 +1352,30 @@ begin
   if Amount >= 0 then
       IsVchTypeMatched := False;
   if  (WSType = 'Receipt') then
-    if Amount >= 0 then
+  begin
+    if Amount <= 0 then
       IsVchTypeMatched := False;
+    if (VchCrCount > 1) and (Amount >= 0) then
+      IsVchTypeMatched := False;
+  end;
   if  (WSType = 'Payment') then
-    if Amount <= 0 then
+  begin
+  if Amount >= 0 then
       IsVchTypeMatched := False;
+    if (VchDrCount > 1) and (Amount <= 0) then
+      IsVchTypeMatched := False;
+  end;
   if  (WSType = 'Sales') then
+  begin
     if Amount >= 0 then
       IsVchTypeMatched := False;
+  end;
   if  (WSType = 'Purchase') then
+  begin
     if Amount <= 0 then
       IsVchTypeMatched := False;
+  end;
   if  (WSType = 'Journal') then
-//    if Amount >= 0 then
-//      IsVchTypeMatched := False;
       IsVchTypeMatched := tRUe;
   if  (WSType = 'Contra') then
     if Amount <= 0 then
@@ -1531,6 +1535,10 @@ begin
   Item^.RefType :=  RefType;
   Item^.IsNegative := aTType;
   Lines.Add(Item);
+  If Amount > 1 then
+  FVchCrCount := FVchCrCount + 1;
+  If Amount < -1 then
+  FVchDrCount := FVchDrCount + 1;
   Result := Amount;
 end;
 
@@ -1640,6 +1648,8 @@ begin
   partyamt := 0;
   busidx := -1;
   busamt := 0;
+  FVchCrCount := 0;
+  FVchDrCount := 0;
 end;
 
 procedure TbjVchExp.ClearLines;
@@ -1722,8 +1732,8 @@ begin
   begin
   if (MstExp.LedColl.ContainsKey(PackStr(pLine(Lines.Items[idx])^.Ledger)))
 {$IFDEF Extended_Bill_Reference}
-     or (MstExp.IncomeExpensePList.Find(pLine(Lines.Items[idx])^.Ledger, rIdx))
-     or (MstExp.CurrentAssetsLiabilitiesList.Find(pLine(Lines.Items[idx])^.Ledger, rIdx))
+     or ((MstExp.IncomeExpensePList <> nil) and (MstExp.IncomeExpensePList.Find(pLine(Lines.Items[idx])^.Ledger, rIdx)))
+     or ((MstExp.CurrentAssetsLiabilitiesList <> nil) and (MstExp.CurrentAssetsLiabilitiesList.Find(pLine(Lines.Items[idx])^.Ledger, rIdx)))
 {$endif}
      then
   begin
@@ -1969,8 +1979,6 @@ begin
   for i := 0 to Lines.Count-1 do
   begin
     StrLedger := pLine(Lines.Items[i])^.Ledger;
-//    if not LedgerExists(StrLedger) then
-//      CreateLedger(StrLedger, DefaultGroup, 0);
       MstExp.NewLedger(StrLedger, Env.DefaultGroup, 0);
   end;
 end;
@@ -2216,7 +2224,6 @@ begin
   end;
 end;
 
-//procedure TbjMstExp.NewParty(const aLedger, aParent, aGSTN: string; aState: string);
 function TbjMstExp.NewParty(const aLedger, aParent, aGSTN: string; aState: string): string;
 var
   Found: boolean;

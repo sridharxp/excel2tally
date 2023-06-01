@@ -43,7 +43,7 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   DB,
-  xlstbl3,
+  xlstbl313,
   XlExp,
   Math,
   Client,
@@ -1555,8 +1555,10 @@ begin
     IsInventoryAssigned := False;
     if dsl.IsIdDefined then
     begin
+{$IfNDef SkipLines}
       if (kadb.IsEmptyField(dsl.UIdName)) then
         break;
+{$Endif}
     end
     else
     begin
@@ -1680,8 +1682,11 @@ begin
   if Abs(Amt[1]) >= 0.01 then
   begin
     IF dsl.IsBillRefDefined THEN
+    begin
+    BillRefColValue := kadb.GetFieldString(dsl.UBillRefName);
     VchExp.AddLinewithRef(LedgerColValue, RoundCurr(Amt[1]),
-      kadb.GetFieldString(dsl.UBillRefName), 'Agst Ref', IsMinus)
+      BillRefColValue, 'Agst Ref', IsMinus);
+    end
     else
     VchExp.AddLine(LedgerColValue, RoundCurr(Amt[1]), IsMinus);
     if dsl.IsAssessableDefined[1] then
@@ -1696,6 +1701,7 @@ end;
 procedure TbjMrMc.ProcessCol(const level: integer);
 var
   LedgerColValue: string;
+  BillRefColValue: string;
 begin
   if not dsl.IsLedgerDeclared[level] then
     Exit;
@@ -1707,8 +1713,11 @@ begin
   if abs(Amt[level]) >= 0.01 then
   begin
     if (level = 2) and (WSType = 'Journal') and dsl.IsBillRefDefined then
+    begin
+    BillRefColValue := kadb.GetFieldString(dsl.UBillRefName);
     VchExp.AddLinewithRef(LedgerColValue, RoundCurr(Amt[level]),
-      kadb.GetFieldString(dsl.UBillRefName), 'Agst Ref', IsMinus)
+      BillRefColValue, 'Agst Ref', IsMinus);
+    end
     else
     VchExp.AddLine(LedgerColValue, RoundCurr(Amt[level]), IsMinus);
     if dsl.IsAssessableDefined[level] then
@@ -2413,6 +2422,9 @@ function TbjMrMc.IsIDChanged: boolean;
 begin
   Result := False;
   if dsl.IsIdDefined then
+{$IfDef SkipLines}
+  if Length(kadb.GetFieldString(dsl.UIdName)) > 0 then
+{$Endif}
     if (kadb.GetFieldString(dsl.UIdName) <> IDstr) then
       Result  := True;
 

@@ -143,8 +143,6 @@ PYMT = '<Voucher>'+
 '<Alias>Payment_Amount</Alias>'+
 '<Type>Dr</Type>'+
 '</AmtCol>'+
-
-
 '<Group>'+
 '<Alias>Party_Group</Alias>'+
 '<Default>Suspense A/c</Default>'+
@@ -331,7 +329,7 @@ MYSALE = '<Voucher>'+
 '<IsMultiColumn>Yes</IsMultiColumn>'+
 '<KeyCol>VoucherRef</KeyCol>'+
 '<KeyCol>Sales_Value</KeyCol>'+
-'<KeyCol>Invoice_Date</KeyCol>'+
+'<KeyCol>Date</KeyCol>'+
 '</Data>'+
 
 '<VoucherNo>'+
@@ -723,7 +721,7 @@ MYPURC = '<Voucher>'+
 '<IsMultiColumn>Yes</IsMultiColumn>'+
 '<KeyCol>VoucherRef</KeyCol>'+
 '<KeyCol>Purchase_Value</KeyCol>'+
-'<KeyCol>Invoice_Date</KeyCol>'+
+'<KeyCol>Date</KeyCol>'+
 '</Data>'+
 
 '<VoucherNo>'+
@@ -2747,7 +2745,6 @@ DNOTE = '<Voucher>'+
 '<IsLedgerName>Yes</IsLedgerName>'+
 '</AmtCol>'+
 '</LEDGER>'+
-
 
 '+<LEDGER>'+
 '<AmtCol>'+
