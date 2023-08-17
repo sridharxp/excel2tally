@@ -26,7 +26,7 @@ interface
 
 uses
   SysUtils, Classes,
-  Dialogs, Strutils,
+  Strutils,
   bjxml3_1,
   Client,
   license,
@@ -36,6 +36,7 @@ uses
   Controls,
   Types,
   PClientFns,
+  ObjCollFn,
   VchLib,
   DCL_intf,
   Dialogs;
@@ -102,6 +103,8 @@ type
     FGSTLedType: string;
     FLastAction: string;
     Fvch_Date: string;
+    FCmpGSTN: string;
+    FCmpState: string;
   protected
     { Protected declarations }
     FTLic: string;
@@ -139,6 +142,8 @@ type
     property GSTLedType: string read FGSTLedType write FGSTLedType;
     property LastAction: string read FLastAction write FLastAction;
     property Vch_Date: string read FVch_Date write FVch_Date;
+    property CmpGSTN: string write FCMPGSTN;
+    property CmpState: string write FCMPState;
   end;
 
   TbjMstExp = class
@@ -174,6 +179,7 @@ type
     CashBankPList: TStringList;
     IncomeExpensePList: TStringList;
     CurrentAssetsLiabilitiesList: TStringList;
+    TaxPList: TStringList;
 {    GSTNList: TList; }
     GSTColl: IStrIntfMap;
     LedColl: IStrIntfMap;
@@ -182,7 +188,6 @@ type
     function CreateLedger(const Ledger, Parent: string; const OpBal: currency ): boolean;
     function CreateParty(const Ledger, Parent, GSTN, State: string ): boolean;
     function CreateGST(const Ledger, Parent: string; Const TaxRate: string ): boolean;
-//    function CreateItem(const Item, BaseUnit: string; const OpBal, OpRate: currency; const GRate: string): boolean;
     function CreateHSN(const Item, BaseUnit, aHSN: string; const GRate: string): boolean;
     function CreateItem(const Item, BaseUnit: string; const OpBal, OpRate: currency): boolean;
     function CreateUnit(const ItemUnit: string): boolean;
@@ -259,6 +264,7 @@ type
     FVchAction: string;
     FRemoteID: string;
     FVchState: string;
+	FPartyName: string;
     FPartyState: string;
     FUserDescSize: Integer;
     FVchDrCount: integer;
@@ -309,6 +315,7 @@ type
     function SetInvLine(const Item: string; const Qty, Rate, Amount: currency; const aDiscRate, Godown, Batch: string; UserDesc:TStringDynArray): currency;
     function Post(const Action: string; wem: boolean): string;
     function SPost(const Action: string; wem: boolean): string;
+    function GetTaxPList: TStringList;
 
     property VchID: string read FVchID write SetVchID;
     property vchDate: string read FVchDate write FVchDate;
@@ -330,6 +337,7 @@ type
     property VchAction: string read FVchAction write FVchAction;
     property RemoteID: string read FRemoteID write FRemoteID;
     property VchState: string read FVchState write FVchState;
+    property PartyName: string read FPartyName write FPartyName;
     property PartyState: string read FPartyState write FPartyState;
     property UserDescSize: Integer read FuserDescSize write FUserDescSize;
     property VchDrCount: integer read FVchDrCount write FVchDrCount;
@@ -365,6 +373,7 @@ type
   end;
   pGSTNLine = ^TGSTNline;
 
+  function StrState(const idx: Integer): string;
 implementation
 uses
   HashMap;
@@ -456,6 +465,7 @@ begin
   LedPList.Free;
   LedGroupPList.Free;
   CashBankPList.Free;
+  TaxPList.Free;
   IncomeExpensePList.Free;
   CurrentAssetsLiabilitiesList.Free;
   GSTColl.Clear;
@@ -471,16 +481,9 @@ begin
   Lines := TList.Create;
   ILines := TList.Create;
   GSTNLines := TList.Create;
-{   DrCrTotal := 0;}
   partyidx := -1;
   busidx := -1;
-{    partyamt := 0.0; }
-//  if not Assigned(bjMstExp) then
-//    bjMstExp := TbjMstExp.Create;
   randomize;
-{ No Default Group;
-  It should be defined by Callinf functions
-  For simple usage, that is}
   FInvVch := False;
   IsVchMode4Vch := True;
   UserDescSize := 1;
@@ -533,9 +536,6 @@ begin
   xLdg := xLdg.NewChild('ADDRESS.LIST','');
   if Length(Address[0]) > 0 then
     xLdg.NewChild2('ADDRESS', Address[0]);
-//  for k :=Low(Address) to High(Address) do
-//    if Length(Address[k]) > 0 then
-//      xLdg.NewChild2('ADDRESS', Address[k]);
   { ADDRESS.LIST }
   xLdg := xLdg.GetParent;
   xLdg := xLdg.NewChild('NAME.LIST','');
@@ -708,6 +708,7 @@ begin
     xLdg.NewChild2('EMAIL', FeMail);
   xLdg.NewChild2('SALESTAXNUMBER', GSTN);
   xLdg.NewChild2('COUNTRYNAME', 'India');
+  xLdg.NewChild2('COUNTRYOFRESIDENCE', 'India');
   if Length(GSTN) > 0 then
     xLdg.NewChild2('GSTREGISTRATIONTYPE', 'Regular')
   else
@@ -718,14 +719,28 @@ begin
   xLdg.NewChild2('OPENINGBALANCE', FormatCurr(TallyAmtPicture, FOBal));
   if Length(GSTN) > 0 then
     xLdg.NewChild2('PARTYGSTIN', GSTN);
-//  xLdg.NewChild2('SERVICECATEGORY', '&#4; Not Applicable');
 
   xLdg.NewChild2('LEDSTATENAME', State);
   if Length(GSTN) > 0 then
   xLdg.NewChild2('ISBILLWISEON', 'Yes');
+  xLdg := xLdg.NewChild('LEDGSTREGDETAILS.LIST', '');
+    xLdg.NewChild2('APPLICABLEFROM', '20230401');
+  if Length(GSTN) > 0 then
+    xLdg.NewChild2('GSTREGISTRATIONTYPE', 'Regular')
+  else
+    xLdg.NewChild2('GSTREGISTRATIONTYPE', 'Unregistered');
+  xLdg.NewChild2('STATE', State);
+  if Length(GSTN) > 0 then
+    xLdg.NewChild2('GSTIN', GSTN);
+  xLdg := xLdg.GetParent;
+  xLdg := xLdg.NewChild('LEDMAILINGDETAILS.LIST', '');
+  xLdg.NewChild2('APPLICABLEFROM', '20230401');
+  xLdg.NewChild2('STATE', State);
+  xLdg.NewChild2('COUNTRY', 'India');
   { LEDGER }
   xLdg := xLdg.GetParent;
 
+  xLdg := xLdg.GetParent;
   { TALLYMESSAGE }
   xLdg := xLdg.GetParent;
 
@@ -1172,6 +1187,7 @@ var
   sid: string;
   Item: pLine;
   i: Integer;
+  rGSTNParty: string;
 begin
   if IsContra then
   begin
@@ -1203,19 +1219,40 @@ begin
   xvou.NewChild2('REFERENCEDATE',vchDate);
 { GuId is important to track vouchers }
   xvou.NewChild2('GUID',sid);
-  if Length(PartyState) > 0 then
-    xvou.NewChild2('STATENAME', PartyState);
   if Length(VChNarration) > 0 then
   begin
     xvou.NewChild2('NARRATION',VchNarration);
   end;
+  if (WSType = 'Sales') or (WSType = 'Purchase') then
+  begin
+    if Length(VchGSTN) > 0 then
+      xvou.NewChild2('GSTREGISTRATIONTYPE', 'Regular')
+    else if MstExp.LedColl.ContainsKey(PackStr(PartyName)) then
+      xvou.NewChild2('GSTREGISTRATIONTYPE', 'Unregistered')
+    else
+    xvou.NewChild2('GSTREGISTRATIONTYPE', 'Unregistered/Consumer');
   if Length(PartyState) > 0 then
+      xvou.NewChild2('STATENAME', PartyState)
+    else
+      xvou.NewChild2('STATENAME', Env.FCmpState);
     xvou.NewChild2('COUNTRYOFRESIDENCE', 'India');
   if Length(VchGSTN) > 0 then
   xvou.NewChild2('PARTYGSTIN', VchGSTN);
   if Length(VchState) > 0 then
+      xvou.NewChild2('PLACEOFSUPPLY', VchState);
+    rGSTNParty := MstExp.GetGSTNParty(VchGSTN);
+    if Length(rGSTNParty) > 0 then
+      xvou.NewChild2('PARTYNAME', rGSTNParty)
+    else
+      xvou.NewChild2('PARTYNAME', PartyName);
+    if  Length(Env.FCmpGSTN) > 0 then
   begin
-    xvou.NewChild2('PLACEOFSUPPLY', VchState);
+    xvou.NewChild('GSTREGISTRATION', Env.FCmpGSTN);
+    XVou.SetAttr('TAXTYPE', 'GST');
+    xVou.GetParent;
+    xvou.NewChild2('CMPGSTIN', Env.FCmpGSTN);
+    xvou.NewChild2('CMPGSTREGISTRATIONTYPE', 'Regular');
+    end;
   end;
   xvou.NewChild2('VOUCHERTYPENAME',VchType);
   if Length(VchNo) > 0 then
@@ -1257,10 +1294,18 @@ begin
   end
   else
     xvou.NewChild2('REFERENCE',VchNo);
+  if (WSType = 'Sales') or (WSType = 'Purchase') then
+  begin
+    xvou.NewChild2('PARTYMAILINGNAME',PartyName);
+    xvou.NewChild2('CONSIGNEEMAILINGNAME',Partyname);
 
   if Length(VchState) > 0 then
   xvou.NewChild2('CONSIGNEESTATENAME',VchState);
 
+    xvou.NewChild2('CONSIGNEECOUNTRYNAME', 'India');
+    if Length(Env.FCmpState) > 0 then
+      xvou.NewChild2('CMPGSTSTATE', Env.FcmpState);
+  end;
 { Effective Date is crucial; Without which dll crashes }
   if Length(VouDate) > 0 then
   xvou.NewChild2('EFFECTIVEDATE',vouDate)
@@ -1281,14 +1326,12 @@ begin
     begin
       if (WsType = 'Sales') then
       begin
-//        wRef := RightStr('00000000'+StrtoHexDigitStr(VchRef),8);
         wRef := HexKey(VchRef);
         FVchId := wRef;
       end;
       if (WsType = 'Purchase') then
       if Length(VchGSTN) > 0 then
       begin
-//        wRef := RightStr(StrtoHexDigitStr(VchGSTN+VchRef),8);
         wRef := HexKey(RightStr(VchGSTN,3) + LeftStr(VchGSTN,12) + VchRef);
         FVchId := wRef;
       end;
@@ -1519,8 +1562,6 @@ begin
     Item := Lines.Items[Step - 1];
     if (Item^.Ledger = aLedger) and
       ((Length(Ref) = 0) or (Item^.Ref = Ref))  and
-//      ((Item^.Ref = Ref) or (Length(Ref) = 0)) and
-//      ((Item^.RefType = RefType) or (Length(RefType) = 0)) and
       (Item^.IsNegative = aTType) then
     begin
       Item^. Amount := Item^. Amount + Amount;
@@ -1550,7 +1591,6 @@ var
 begin
   PartyisDebit := False;
   j := -1;
-//  SetGSTLedType;
   for i := 0 to Lines.Count-1 do
   begin
     Item := Lines.Items[i];
@@ -1650,6 +1690,12 @@ begin
   busamt := 0;
   FVchCrCount := 0;
   FVchDrCount := 0;
+  if (WSType = 'Sales') or (WSType = 'Purchase') then
+  begin
+    xvou := xvou.NewChild('GST.LIST','');
+    xVou.NewChild2('PURPOSETYPE', 'GST');
+  xVou := xVou.GetParent;
+  end;
 end;
 
 procedure TbjVchExp.ClearLines;
@@ -1694,6 +1740,7 @@ end;
 
 procedure TbjVchExp.AddInDirect(const idx: integer);
 var
+  rLedger: string;
   rIdx: Integer;
 begin
   xvou := xvou.NewChild('ALLLEDGERENTRIES.LIST','');
@@ -1715,6 +1762,14 @@ begin
   xvou.NewChild2('AMOUNT', FormatCurr(TallyAmtPicture,
   pLine(Lines.Items[idx])^.Amount));
 
+  if Pos('GST',  UpperCase(pLine(Lines.Items[idx])^.Ledger)) > 0 then
+  begin
+    GetTaxPList;
+    rLedger := pLine(Lines.Items[idx])^.Ledger;
+    if MstExp.TaxPList.Find(rLedger, ridx) then
+  xvou.NewChild2('VATEXPAMOUNT', FormatCurr(TallyAmtPicture,
+  pLine(Lines.Items[idx])^.Amount));
+  end;
   IF (wsType = 'Receipt') or (wsType = 'Payment') then
   begin
     xvou := xvou.NewChild('BANKALLOCATIONS.LIST','');
@@ -1751,28 +1806,7 @@ begin
   AttachInv(pLine(Lines.Items[idx])^.Ledger, pLine(Lines.Items[idx])^.Ref);
   xVou := xVou.GetParent;
 end;
-  AttachInv(pLine(Lines.Items[idx])^.Ledger);
-  IF (wsType = 'Receipt') or (wsType = 'Payment') then
-  begin
-    xvou := xvou.NewChild('BANKALLOCATIONS.LIST','');
-    xvou.NewChild2('INSTRUMENTDATE', VchDate);
-    xvou.NewChild2('TRANSACTIONTYPE', 'Cheque');
-    if Length(vchChequeNo) > 0 then
-      xvou.NewChild2('INSTRUMENTNUMBER', vchChequeNo)
-    else
-      xvou.NewChild2('INSTRUMENTNUMBER', '');
-    xvou.NewChild2('AMOUNT', FormatCurr(TallyAmtPicture, pLine(Lines.Items[idx])^.Amount));
-  xVou := xVou.GetParent;
-end;
-  xVou := xVou.GetParent;
-end;
 
-procedure TbjVchExp.AddInOut(const idx: integer);
-begin
-  if (pInvLine(iLines.Items[idx])^.Amount < 0) then
-    xvou := xvou.NewChild('INVENTORYENTRIESIN.LIST','');
-  if (pInvLine(iLines.Items[idx])^.Amount > 0 ) then
-    xvou := xvou.NewChild('INVENTORYENTRIESOUT.LIST','');
   xvou.NewChild2('STOCKITEMNAME',pInvLine(iLines.Items[idx])^.Item);
   if (pInvLine(iLines.Items[idx])^.Amount < 0) then
     xvou.NewChild2('ISDEEMEDPOSITIVE','Yes');
@@ -1830,9 +1864,12 @@ begin
       if Length(pInvLine(iLines.Items[idx])^.DiscRate) > 0 then
       xvou.NewChild2('DISCOUNT', pInvLine(iLines.Items[idx])^.DiscRate);
       xvou.NewChild2('AMOUNT', FormatCurr(TallyAmtPicture, pInvLine(iLines.Items[idx])^.Amount));
+      if pInvLine(iLines.Items[idx])^.Qty > 0 then
+      begin
       xvou.NewChild2('ACTUALQTY', FormatCurr(TallyQtyPicture, pInvLine(iLines.Items[idx])^.Qty));
       xvou.NewChild2('BILLEDQTY', FormatCurr(TallyQtyPicture, pInvLine(iLines.Items[idx])^.Qty));
       xvou.NewChild2('RATE', FormatCurr(TallyAmtPicture, pInvLine(iLines.Items[idx])^.Rate));
+      end;
       if Length(pInvLine(iLines.Items[idx])^.Batch) > 0 then
       begin
       xvou := xvou.NewChild('BATCHALLOCATIONS.LIST', '');
@@ -1842,8 +1879,11 @@ begin
         xvou.NewChild2('GODOWNNAME', 'Main Location');
       xvou.NewChild2('BATCHNAME', pInvLine(iLines.Items[idx])^.Batch);
       xvou.NewChild2('AMOUNT', FormatCurr(TallyAmtPicture, pInvLine(iLines.Items[idx])^.Amount));
+        if pInvLine(iLines.Items[idx])^.Qty > 0 then
+        begin
       xvou.NewChild2('ACTUALQTY', FormatCurr(TallyQtyPicture, pInvLine(iLines.Items[idx])^.Qty));
       xvou.NewChild2('BILLEDQTY', FormatCurr(TallyQtyPicture, pInvLine(iLines.Items[idx])^.Qty));
+        end;
     { BATCHALLOCATIONS.LIST }
       xvou := xvou.GetParent;
       end
@@ -1871,7 +1911,6 @@ end;
 
 function TbjVchExp.AddLinewithRef(const Ledger: string; const Amount: currency; const Ref, RefType: string; const aTType: boolean): currency;
 begin
-//  CheckVchType(Ledger, Amount);
   Pack(Ledger, Amount, Ref, RefType, aTType);
   DrCrTotal := DrCrTotal + amount;
   RefLedger := Ledger;
@@ -2021,6 +2060,9 @@ begin
   if Assigned(MstExp) then
     MstExp.RefreshMstLists;
   FFirm := Name;
+  FCmpGSTN := GetCmpGSTIN(FFirm);
+  if Length(FcmpGSTN) > 0 then
+  FcmpState := StrState(StrToInt(copy(FcmpGSTN, 1, 2)));
 end;
 
 Procedure TbjEnv.SetHost(const aHost: string);
@@ -2267,7 +2309,6 @@ It does not use GetDupPartyGSTN
     end
     else  if Env.IsPostto1stLedgerwithGSTNon then
      begin
-//       if aLedger <> SystemLedName then
          Result := SystemLedName;
        Exit;
      end;
@@ -2433,7 +2474,7 @@ begin
 end;
 procedure TbjMstExp.GetCollns;
 var
-  xSVar, xStr, xFormula: IbjXml;
+  xSVar, xStr, xFmla: IbjXml;
   strs: string;
   lStr: string;
   OResult: IbjXml;
@@ -2445,6 +2486,7 @@ var
 begin
   xSVar := CreatebjXmlDocument;
   xStr := CreatebjXmlDocument;
+  xFmla := CreatebjXmlDocument;
   OResult := CreatebjXmlDocument;
   xSVar.LoadXML('<STATICVARIABLES>'+
   '<SVEXPORTFORMAT>$$SysName:XML</SVEXPORTFORMAT>'+
@@ -2454,16 +2496,20 @@ begin
   strs := Strs + '<BELONGSTO>' + 'Yes' + '</BELONGSTO>';
   strs := Strs + '<NATIVEMETHOD>PARTYGSTIN</NATIVEMETHOD>';
   strs := Strs + '<NATIVEMETHOD>LEDSTATENAME</NATIVEMETHOD>';
+  strs := Strs + '<FILTER>IsValid</FILTER>';
   xStr.LoadXml(strs);
-  CollName := 'Ledger';
-  lStr := ColExEval(CollName, 'Ledger', xSVar, xStr, xFormula);
+  CollName := 'aColln';
+  xFmla.LoadXML(
+  '<SYSTEM TYPE="FORMULAE" NAME="IsValid">$PartyGSTIN not null</SYSTEM>');
+  lStr := ColExEval(CollName, 'Ledger', xSVar, xStr, xFmla);
   rGrp := 'Sundry Creditors';
   strs := '<CHILDOF>' + TextToXML(rGrp) + '</CHILDOF>';
   strs := Strs + '<BELONGSTO>' + 'Yes' + '</BELONGSTO>';
   strs := Strs + '<NATIVEMETHOD>PARTYGSTIN</NATIVEMETHOD>';
   strs := Strs + '<NATIVEMETHOD>LEDSTATENAME</NATIVEMETHOD>';
+  strs := Strs + '<FILTER>IsValid</FILTER>';
   xStr.LoadXml(strs);
-  lStr := lStr + ColExEval(CollName, 'Ledger', xSVar, xStr, xFormula);
+  lStr := lStr + ColExEval(CollName, 'Ledger', xSVar, xStr, xFmla);
   OResult.LoadXml(lStr);
   LedNode := OResult.SearchforTag(nil , 'LEDGER');
   while Assigned(LedNode) do
@@ -2500,6 +2546,24 @@ begin
       lEDcOLL.PutValue(PackStr(rName), Itemobj);
     end;
     LedNode := OResult.SearchforTag(LedNode, 'LEDGER');
+  end;
+end;
+function TbjVchExp.GetTaxPList: TStringList;
+var
+  obj: TbjMstListImp;
+begin
+  if not Assigned(MstExp.TaxPList) then
+  begin
+      Obj := TbjMstListImp.Create;
+    MstExp.TaxPList := TStringList.Create;
+    try
+      Obj.ToPack := False;
+      Obj.Host := Env.Host;
+      MstExp.TaxPList.Text := Obj.GetTaxText;
+      MstExp.TaxPList.Sorted := True;
+    Finally
+      Obj.Free;
+    end;
   end;
 end;
 constructor TGSTNObj.Create;
@@ -2543,4 +2607,51 @@ begin
   F_Name := aName;
 end;
 
+function StrState(const idx: Integer): string;
+var
+  str: string;
+begin
+    Case idx of
+        1: str := 'Jammu & Kashmir';
+        2: str := 'Himachal Pradesh';
+        3: str := 'Punjab';
+        4: str := 'Chandigarh';
+        5: str := 'Uttranchal';
+        6: str := 'Haryana';
+        7: str := 'Delhi';
+        8: str := 'Rajasthan';
+       09: str := 'Uttar Pradesh';
+       10: str := 'Bihar';
+       11: str := 'Sikkim';
+       12: str := 'Arunachal Pradesh';
+       13: str := 'Nagaland';
+       14: str := 'Manipur';
+       15: str := 'Mizoram';
+       16: str := 'Tripura';
+       17: str := 'Meghalaya';
+       18: str := 'Assam';
+       19: str := 'West Bengal';
+       20: str := 'Jharkhand';
+       21: str := 'Odisha (Formerly Orissa';
+       22: str := 'Chhattisgarh';
+       23: str := 'Madhya Pradesh';
+       24: str := 'Gujarat';
+       25: str := 'Daman & Diu';
+       26: str := 'Dadra & Nagar Haveli';
+       27: str := 'Maharashtra';
+       28: str := 'Andhra Pradesh';
+       29: str := 'Karnataka';
+       30: str := 'Goa';
+       31: str := 'Lakshdweep';
+       32: str := 'Kerala';
+       33: str := 'Tamil Nadu';
+       34: str := 'Puducherry';
+       35: str := 'Andaman & Nicobar Islands';
+       36: str := 'Telangana';
+       37: str := 'Andhra Pradesh (New)';
+     else
+       str := '';
+     end;
+   Result := str;
+end;
 end.

@@ -502,9 +502,10 @@ var
   VList: string;
   MList: string;
   IList: string;
+  IOList: string;
   str: string;
   i: integer;
-  dcfg, xxcfg: IbjXml;
+  dcfg, xxcfg, xxxcfg: IbjXml;
   dItem: pDict;
 begin
   FUpdate('Processing Xml');
@@ -782,8 +783,12 @@ AutoCreateMst affects default group only
 Todo
 }
         LedgerGroup[i] := xxCfg.GetContent;
-        if Length(LedgerGroup[i]) = 0 then
-          LedgerGroup[i] := xxCfg.GetChildContent('Default');
+        str := '';
+        xxxcfg := xcfg.SearchForTag(xxcfg, 'Default');
+        if Assigned(xxxcfg) then
+        str := xXXCfg.GetContent;
+        if Length(str) > 0 then
+          LedgerGroup[i] := str;
 
         str := '';
         str := xxCfg.GetChildContent(UAliasName);
@@ -1661,6 +1666,7 @@ end;
 procedure TbjMrMc.ProcessRow;
 var
   LedgerColValue: string;
+  BillRefColValue: string;
 begin
   if dsl.IsNarrationDefined then
   begin
@@ -2075,7 +2081,7 @@ begin
     if dsl.IsGSTNDefined[1] then
       if not kadb.IsEmptyField('GSTN') then
       begin
-        wGSTN := GetLedgersGSTN(dbkLed);
+        wGSTN := GetPartyGSTIN(dbkLed);
         if Length(wGSTN) = 0 then
         begin
           kadb.SetFieldVal('TALLYID', 'Update GSTN');
@@ -2340,10 +2346,12 @@ begin
 //  if (VchType = 'Sales') or (VchType = 'Purchase') then
   if (WSType = 'Sales') or (WSType = 'Purchase') then
   begin
+    if (Length(kadb.GetFieldString(dsl.UStateName)) > 0) then
     VchExp.VchState := kadb.GetFieldString(dsl.UStateName);
     VchExp.PartyState := MstExp.GetPartyState(RoundOffName);
-    if Length(VchExp.VchState) = 0 then
-      VchExp.VchState := VchExp.PartyState;
+    VchExp.PartyName := RoundOffName;
+    if Length(VchExp.PartyState) = 0 then
+      VchExp.PartyState := VchExp.VchState
   end;
   notoskip := 0;
 end;
@@ -2771,6 +2779,10 @@ begin
     kadb.SetFieldVal('TALLYID', 'GSTN');
     Exit;
   end;
+  str := StrState(idx);
+  if Length(str) = 0 then
+    str := UdefStateName;
+{
   Case idx of
         1: str := 'Jammu & Kashmir';
         2: str := 'Himachal Pradesh';
@@ -2812,6 +2824,7 @@ begin
   else
   str := UdefStateName;
   end;
+}
   Result := str;
 end;
 
