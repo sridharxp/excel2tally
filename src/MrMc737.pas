@@ -512,7 +512,7 @@ begin
   cfgn.LoadXML(XmlStr);
   cfg := Cfgn.SearchForTag(nil, 'Voucher');
   if not Assigned(cfg) then
-    raise Exception.Create('Voucher Configuration not Found');
+    raise Exception.Create('No worksheet selected');
   xcfg := Cfg.SearchForTag(nil, 'Data');
   DataFolder := xcfg.GetChildContent('Folder');
   Database := xcfg.GetChildContent('Database');
@@ -1435,7 +1435,7 @@ passing Windows Exception as it is }
     flds.Add(dsl.UTallyIDName);
     flds.Add(dsl.URemoteIDName);
     kadb.GetFields(flds);
-    FormatCols;
+//    FormatCols;
     dsl.kadb := kadb;
     flds.Free;
   end;
@@ -1527,7 +1527,7 @@ begin
         MstExp.NewLedger(LedgerColValue, dsl.RoundOffGroup, 0);
       end;
     end;
-    MstExp.NewLedger('RoundOff', 'Indirect Expenses', 0);
+  MstExp.NewLedger('RoundOff', 'Indirect Expenses', 0);
   SetGSTSetting;
 end;
 
@@ -1585,9 +1585,13 @@ begin
   Elapsed := EndTime - StartTime;
   DecodeTime(Elapsed, Hrs, Mins, Secs, MSecs);
   if Mins > 0 then
-  timestr := InttoStr(Mins) + ' minute(s) ' + InttoStr(Secs) +' Seconds'
+  timestr := InttoStr(Mins) + ' minute(s) ' + InttoStr(Secs) + ' Seconds'
   else
-  timestr := InttoStr(Secs) +' Seconds';
+  timestr := InttoStr(Secs)+ '.' + InttoStr(MSecs) + ' Seconds';
+  if IsUnLocked then
+    StatusMsg := InttoStr(ProcessedCount) + ' Vouchers processed; ' +
+    InttoStr(SCount) + ' Success. ' + timestr
+  else
     StatusMsg := InttoStr(ProcessedCount) + '/' + InttoStr(FdynPgLen) +
     ' Vouchers processed; ' +
     InttoStr(SCount) + ' Success. ' + timestr;
@@ -1687,14 +1691,14 @@ begin
   Amt[1] := GetAmt(1);
   if Abs(Amt[1]) >= 0.01 then
   begin
-    IF dsl.IsBillRefDefined THEN
+    IF dsl.IsBillRefDefined then
     begin
     BillRefColValue := kadb.GetFieldString(dsl.UBillRefName);
     VchExp.AddLinewithRef(LedgerColValue, RoundCurr(Amt[1]),
       BillRefColValue, 'Agst Ref', IsMinus);
     end
     else
-    VchExp.AddLine(LedgerColValue, RoundCurr(Amt[1]), IsMinus);
+      VchExp.AddLine(LedgerColValue, RoundCurr(Amt[1]), IsMinus);
     if dsl.IsAssessableDefined[1] then
       VchExp.SetAssessable(kadb.GetFieldCurr(dsl.UAssessableName[1]));
     VTotal := VTotal + RoundCurr(Amt[1]);
@@ -1758,8 +1762,6 @@ begin
   if not dsl.IsItemDefined then
     Exit;
   if kadb.IsEmptyField(dsl.UItemName) then
-    Exit;
-  if kadb.IsEmptyField(dsl.UQtyName) then
     Exit;
   if dsl.UserDescColumns > 1 then
   SetLength(UserDescColValue, dsl.UserDescColumns)
@@ -2365,7 +2367,7 @@ begin
   WSType := '';
   if dsl.IsDateDefined then
     if not kadb.IsEmptyField(dsl.UDateName) then
-    DateColValue := kadb.GetFieldSDate(dsl.UDateName);
+      DateColValue := kadb.GetFieldSDate(dsl.UDateName);
   if dsl.IsVtypeDefined then
 { Find if user set has Voucher type }
     TypeColValue := kadb.GetFieldString(dsl.UVTypeName);
@@ -2902,7 +2904,7 @@ begin
   end;
   UnFilter;
 end;
-
+{
 procedure TbjMrMc.FormatCols;
 begin
   kadb.SetFieldFormat('Tax_rate', 35);
@@ -2942,7 +2944,7 @@ begin
   kadb.SetFieldFormat('REMOTEID', 35);
   kadb.SetFieldFormat('Disc_Rate', 35);
 end;
-
+}
 procedure TbjMrMc.UnFilter;
 var
   inErr: boolean;
@@ -2976,6 +2978,7 @@ begin
       Successdb.Delete;
       Continue;
     end;
+
     if not Successdb.IsEmptyField(dsl.UTallyIDName) then
       if Successdb.GetFieldCurr(dsl.UTallyIDName) =  0 then
       begin
@@ -2987,6 +2990,7 @@ begin
         inErr := False;
     Successdb.Next;
   end;
+
   if Successdb.ToSaveFile then
     Successdb.Save;
   finally
