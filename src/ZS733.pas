@@ -27,11 +27,10 @@ interface
 uses
   SysUtils, Classes,
   Strutils,
-  bjxml3_1,
+  bjxml33,
   Client,
   license,
   MstListImp,
-  Repet,
   Math,
   Controls,
   Types,
@@ -55,6 +54,7 @@ type
     State: string;
     _Name: string;
     GUID: string;
+    RegType: UTF8String;
   end;
   pGSTNRec = ^GSTNRec;
   IGSTNObj = interface
@@ -66,6 +66,8 @@ type
     procedure SetState(const aState: string);
     function Get_Name: string;
     procedure Set_Name(const aName: string);
+    function Get_RegType: string;
+    procedure Set_RegType(const aType: string);
   end;
   TGSTNObj = class(TInterfacedObject, IGSTNObj)
   public
@@ -73,6 +75,7 @@ type
     FGSTN: string;
     FState: string;
     F_Name: string;
+    FRegType: string;
     function GetName: string;
     procedure SetName(const aName: string);
     function GetGSTN: string;
@@ -81,6 +84,8 @@ type
     procedure SetState(const aState: string);
     function Get_Name: string;
     procedure Set_Name(const aName: string);
+    function Get_RegType: string;
+    procedure Set_RegType(const aType: string);
     constructor Create;
     destructor Destroy; override;
   end;
@@ -169,13 +174,6 @@ type
     xLdg: IbjXml;
     xLed: IbjXml;
     xLedid: IbjXml;
-    LedPList: TStringList;
-    ItemPList: TStringList;
-    LedGroupPList: TStringList;
-    UnitPList: TStringList;
-    ItemGroupPList: TStringList;
-    CategoryPList: TStringList;
-    GodownPList: TStringList;
     CashBankPList: TStringList;
     IncomeExpensePList: TStringList;
     CurrentAssetsLiabilitiesList: TStringList;
@@ -185,7 +183,7 @@ type
     LedColl: IStrIntfMap;
     procedure XmlHeader(const tgt:string);
     procedure XmlFooter(const tgt:string);
-    function CreateLedger(const Ledger, Parent: string; const OpBal: currency ): boolean;
+    function CreateLedger(const Ledger, Parent: string): boolean;
     function CreateParty(const Ledger, Parent, GSTN, State: string ): boolean;
     function CreateGST(const Ledger, Parent: string; Const TaxRate: string ): boolean;
     function CreateHSN(const Item, BaseUnit, aHSN: string; const GRate: string): boolean;
@@ -205,15 +203,15 @@ type
     Address: TStringDynArray;
     constructor Create;
     destructor Destroy; override;
-    function IsLedger(Const Ledger: string): boolean;
-    procedure NewLedger(const aLedger, aParent: string; OpBal: currency);
+    function IsLedger(Const aLedger: string): boolean;
+    procedure NewLedger(const aLedger, aParent: string);
     function GetGSTNParty(const aGSTN: string): string;
     function GetDupPartyGSTN(const aDup: string): string;
     function GetPartyState(const aDup: string): string;
     function NewParty(const aLedger, aParent, aGSTN: string; aState: string): string;
     procedure NewGST(const aLedger, aParent: string; const TaxRate: string);
     function GetHalfof(const TaxRate: string): string;
-    function IsItem(const Item: string): boolean;
+    function IsItem(const aItem: string): boolean;
     procedure NewItem(const aItem, aBaseUnit: string; OpBal, OpRate: currency);
     procedure NewHSN(const aItem, aBaseUnit, aHSN: string; const GRate: string);
     function IsUnit(const aUnit: string): boolean;
@@ -314,7 +312,6 @@ type
     function SetAssessable(const aAmount: currency): currency;
     function SetInvLine(const Item: string; const Qty, Rate, Amount: currency; const aDiscRate, Godown, Batch: string; UserDesc:TStringDynArray): currency;
     function Post(const Action: string; wem: boolean): string;
-    function SPost(const Action: string; wem: boolean): string;
     function GetTaxPList: TStringList;
 
     property VchID: string read FVchID write SetVchID;
@@ -457,19 +454,12 @@ var
 begin
   xLed.Clear;
   xLedid.Clear;
-  ItemPList.Free;
-  UnitPList.Free;
-  GodownPList.Free;
-  ItemGroupPList.Free;
-  CategoryPList.Free;
-  LedPList.Free;
-  LedGroupPList.Free;
   CashBankPList.Free;
   TaxPList.Free;
   IncomeExpensePList.Free;
   CurrentAssetsLiabilitiesList.Free;
-  GSTColl.Clear;
-  LedColl.Clear;
+  GSTColl := nil;
+  LedColl := nil;
   inherited;
 end;
 
@@ -518,7 +508,7 @@ end;
 Create, Update logic is in VchUpdate.dpr
 Low level funcntion should be Minimalist
 }
-function TbjMstExp.CreateLedger(const Ledger, Parent: string; const OpBal: currency): boolean;
+function TbjMstExp.CreateLedger(const Ledger, Parent: string): boolean;
 var
   k: Integer;
 begin
@@ -976,120 +966,45 @@ end;
   Parent List if created would not be in sync
   parent parameter may still be needed for correctness
 }
-function TbjMstExp.IsLedger(const Ledger: string): boolean;
-var
-  Ledobj: TbjMstListImp;
-  index: integer;
+function TbjMstExp.IsLedger(const aLedger: string): boolean;
 begin
+  Result := ObjCollFn.IsLedger(aLedger);
 {  Result := False; }
-  if not Assigned(LedPList) then
-  begin
-    ledObj := TbjMstListImp.Create;
-    LedObj.Host := Env.Host;
-    try
-      LedPList := LedObj.GetLedPackedList;
-    finally
-      ledobj.Free;
-    end;
-  end;
 
-  Result := LedPList.Find( PackStr(Ledger), index );
 { Idea to return existing ledger does not work as it is already packed }
 end;
 
-function TbjMstExp.IsItem(const Item: string): boolean;
+function TbjMstExp.IsItem(const aItem: string): boolean;
 var
   Ledobj: TbjMstListImp;
   index: integer;
 begin
+  Result := ObjCollFn.IsStockItem(aItem);
 {  Result := False; }
-  if not Assigned(ItemPList) then
-  begin
-    ledObj := TbjMstListImp.Create;
-    LedObj.Host := Env.Host;
-    try
-      ItemPList := LedObj.GetItemPackedList;
-    finally
-      ledobj.Free;
-    end;
-  end;
-  Result := ItemPList.Find( PackStr(Item), index );
 end;
 
 function TbjMstExp.IsUnit(const aUnit: string): boolean;
-var
-  Ledobj: TbjMstListImp;
-  index: integer;
 begin
+  Result := ObjCollFn.IsUnit(aUnit);
 {  Result := False; }
-  if not Assigned(UnitPList) then
-  begin
-    ledObj := TbjMstListimp.Create;
-    LedObj.Host := Env.Host;
-    try
-      UnitPList := LedObj.GetUnitPackedList;
-    finally
-      ledobj.Free;
-    end;
-  end;
-  Result := UnitPList.Find( PackStr(aUnit), index );
 end;
 
 function TbjMstExp.IsItemGroup(const Grp: string): boolean;
-var
-  Ledobj: TbjMstListImp;
-  index: integer;
 begin
+  Result := ObjCollFn.IsStockGroup(Grp);
 {  Result := False; }
-  if not Assigned(ItemGroupPList) then
-  begin
-    ledObj := TbjMstListImp.Create;
-    LedObj.Host := Env.Host;
-    try
-      ItemGroupPList := LedObj.GetItemGroupPackedList;
-    finally
-      ledobj.Free;
-    end;
-  end;
-  Result := ItemGroupPList.Find( PackStr(Grp), index );
 end;
 
 function TbjMstExp.IsCategory(const aCategory: string): boolean;
-var
-  Ledobj: TbjMstListImp;
-  index: integer;
 begin
+  Result := ObjCollFn.IsStockCategory(aCategory);
 {  Result := False; }
-  if not Assigned(CategoryPList) then
-  begin
-    ledObj := TbjMstListImp.Create;
-    LedObj.Host := Env.Host;
-    try
-      CategoryPList := LedObj.GetCategoryPACKEDList;;
-    finally
-      ledobj.Free;
-    end;
-  end;
-  Result := CategoryPList.Find( PackStr(aCategory), index );
 end;
 
 function TbjMstExp.IsGodown(const Gdn: string): boolean;
-var
-  Ledobj: TbjMstListImp;
-  index: integer;
 begin
+  Result := ObjCollFn.IsGodown(Gdn);
 {  Result := False; }
-  if not Assigned(GodownPList) then
-  begin
-    ledObj := TbjMstListImp.Create;
-    LedObj.Host := Env.Host;
-    try
-      GodownPList := LedObj.GetGodownPackedList;
-    finally
-      ledobj.Free;
-    end;
-  end;
-  Result := GodownPList.Find( PackStr(Gdn), index );
 end;
 
 Procedure TbjMstExp.XmlHeader(const tgt:string);
@@ -1225,10 +1140,9 @@ begin
   end;
   if (WSType = 'Sales') or (WSType = 'Purchase') then
   begin
-    if Length(VchGSTN) > 0 then
+    if (Length(VchGSTN) > 0) or
+    (MstExp.LedColl.ContainsKey(PackStr(PartyName))) then
       xvou.NewChild2('GSTREGISTRATIONTYPE', 'Regular')
-    else if MstExp.LedColl.ContainsKey(PackStr(PartyName)) then
-      xvou.NewChild2('GSTREGISTRATIONTYPE', 'Unregistered')
     else
     xvou.NewChild2('GSTREGISTRATIONTYPE', 'Unregistered/Consumer');
   if Length(PartyState) > 0 then
@@ -1238,7 +1152,9 @@ begin
     xvou.NewChild2('COUNTRYOFRESIDENCE', 'India');
   if Length(VchGSTN) > 0 then
   xvou.NewChild2('PARTYGSTIN', VchGSTN);
-  if Length(VchState) > 0 then
+    if Length(PartyState) > 0 then
+      xvou.NewChild2('PLACEOFSUPPLY', PartyState)
+    else if Length(VchState) > 0 then
       xvou.NewChild2('PLACEOFSUPPLY', VchState);
     rGSTNParty := MstExp.GetGSTNParty(VchGSTN);
     if Length(rGSTNParty) > 0 then
@@ -1296,6 +1212,7 @@ begin
     xvou.NewChild2('REFERENCE',VchNo);
   if (WSType = 'Sales') or (WSType = 'Purchase') then
   begin
+    xvou.NewChild2('BASICBUYERNAME',PartyName);
     xvou.NewChild2('PARTYMAILINGNAME',PartyName);
     xvou.NewChild2('CONSIGNEEMAILINGNAME',Partyname);
 
@@ -1303,6 +1220,7 @@ begin
   xvou.NewChild2('CONSIGNEESTATENAME',VchState);
 
     xvou.NewChild2('CONSIGNEECOUNTRYNAME', 'India');
+  xvou.NewChild2('BASICBASEPARTYNAME', PartyName);
     if Length(Env.FCmpState) > 0 then
       xvou.NewChild2('CMPGSTSTATE', Env.FcmpState);
   end;
@@ -1321,7 +1239,7 @@ var
 begin
   if length(id) = 0 then
   begin
-    Fvchid := InttoHex(random(10000000000),8);
+    Fvchid := InttoHex(random($FFFFFFFF), 8);
     if Env.IsUniqueVchRefon and (Length(VchRef) > 0)then
     begin
       if (WsType = 'Sales') then
@@ -1493,12 +1411,12 @@ begin
   if not Assigned(MstExp.CashBankPList) then
   begin
     Obj := TbjMstListImp.Create;
-    MstExp.CashBankPList := TStringList.Create;
     try
       Obj.ToPack := False;
       Obj.Host := Env.Host;
+      MstExp.CashBankPList := TStringList.Create;
       MstExp.CashBankPList.Text := Obj.GetCashBankText(True);
-      MstExp.CashBankPList.Sorted := True;
+      MstExp.CashBankPList.Sort;
     Finally
       Obj.Free;
     end;
@@ -1513,7 +1431,7 @@ begin
       Obj.ToPack := False;
       Obj.Host := Env.Host;
       MstExp.IncomeExpensePList.Text := Obj.GetIncomeExpenseText;
-      MstExp.IncomeExpensePList.Sorted := True;
+      MstExp.IncomeExpensePList.Sort;
     Finally
       Obj.Free;
     end;
@@ -1533,7 +1451,7 @@ begin
   end;
   end;
    if IsContra then
-   if not MstExp.CashBankPList.Find(ledger, idx) then
+   if not MstExp.CashBankPList.Find(PackStr(ledger), idx) then
      IsContra := False;
 
   aLedger := Ledger;
@@ -1766,11 +1684,13 @@ begin
   begin
     GetTaxPList;
     rLedger := pLine(Lines.Items[idx])^.Ledger;
-    if MstExp.TaxPList.Find(rLedger, ridx) then
+    if MstExp.TaxPList.Find(PackStr(rLedger), ridx) then
   xvou.NewChild2('VATEXPAMOUNT', FormatCurr(TallyAmtPicture,
   pLine(Lines.Items[idx])^.Amount));
   end;
-  IF (wsType = 'Receipt') or (wsType = 'Payment') then
+
+  IF (wsType = 'Receipt') or (wsType = 'Payment') or
+    (wsType = 'BReceipt') or (wsType = 'BPayment') then
   begin
     xvou := xvou.NewChild('BANKALLOCATIONS.LIST','');
     xvou.NewChild2('INSTRUMENTDATE', VchDate);
@@ -1785,20 +1705,14 @@ begin
   end;
   if Length(pLine(Lines.Items[idx])^.Ref) > 0 then
   begin
-  if (MstExp.LedColl.ContainsKey(PackStr(pLine(Lines.Items[idx])^.Ledger)))
 {$IFDEF Extended_Bill_Reference}
-     or ((MstExp.IncomeExpensePList <> nil) and (MstExp.IncomeExpensePList.Find(pLine(Lines.Items[idx])^.Ledger, rIdx)))
-     or ((MstExp.CurrentAssetsLiabilitiesList <> nil) and (MstExp.CurrentAssetsLiabilitiesList.Find(pLine(Lines.Items[idx])^.Ledger, rIdx)))
 {$endif}
-     then
-  begin
     xvou := xvou.NewChild('BILLALLOCATIONS.LIST','');
     xvou.NewChild2('NAME', pLine(Lines.Items[idx])^.Ref);
     xvou.NewChild2('BILLTYPE', pLine(Lines.Items[idx])^.Reftype);
     xvou.NewChild2('AMOUNT', FormatCurr(TallyAmtPicture, pLine(Lines.Items[idx])^.Amount));
   { BILLALLOCATIONS.LIST }
     xVou := xVou.GetParent;
-  end;
   end;
   { ALLLEDGERENTRIES.LIST }
 
@@ -1807,34 +1721,6 @@ begin
   xVou := xVou.GetParent;
 end;
 
-  xvou.NewChild2('STOCKITEMNAME',pInvLine(iLines.Items[idx])^.Item);
-  if (pInvLine(iLines.Items[idx])^.Amount < 0) then
-    xvou.NewChild2('ISDEEMEDPOSITIVE','Yes');
-  if (pInvLine(iLines.Items[idx])^.Amount > 0) then
-    xvou.NewChild2('ISDEEMEDPOSITIVE','No');
-  xvou.NewChild2('RATE', FormatCurr(TallyAmtPicture, pInvLine(iLines.Items[idx])^.Rate));
-  xvou.NewChild2('AMOUNT', FormatCurr(TallyAmtPicture, pInvLine(iLines.Items[idx])^.Amount));
-  xvou.NewChild2('ACTUALQTY', FormatCurr(TallyQtyPicture, pInvLine(iLines.Items[idx])^.Qty));
-  xvou.NewChild2('BILLEDQTY', FormatCurr(TallyQtyPicture, pInvLine(iLines.Items[idx])^.Qty));
-
-  xvou := xvou.NewChild('BATCHALLOCATIONS.LIST','');
-  if Length(pInvLine(iLines.Items[idx])^.Godown) > 0 then
-    xvou.NewChild2('GODOWNNAME', pInvLine(iLines.Items[idx])^.Godown )
-  else
-    xvou.NewChild2('GODOWNNAME', 'Main Location' );
-  if Length(pInvLine(iLines.Items[idx])^.Batch) > 0 then
-    xvou.NewChild2('BATCHNAME', pInvLine(iLines.Items[idx])^.Batch)
-  else
-    xvou.NewChild2('BATCHNAME', 'Primary Batch');
-  xvou.NewChild2('AMOUNT', FormatCurr(TallyAmtPicture, pInvLine(iLines.Items[idx])^.Amount));
-  xvou.NewChild2('ACTUALQTY', FormatCurr(TallyQtyPicture, pInvLine(iLines.Items[idx])^.Qty));
-  xvou.NewChild2('BILLEDQTY', FormatCurr(TallyQtyPicture, pInvLine(iLines.Items[idx])^.Qty));
-  { BATCHALLOCATIONS.LIST }
-  xVou := xVou.GetParent;
-
-  { INVENTORYENTRIES IN OUT.LIST }
-  xVou := xVou.GetParent;
-end;
 
 procedure TbjVchExp.AttachInv(const rLed, rRef: string);
 var
@@ -1861,14 +1747,14 @@ begin
       xvou.NewChild2('ISDEEMEDPOSITIVE', 'Yes')
     else
       xvou.NewChild2('ISDEEMEDPOSITIVE', 'No');
-      if Length(pInvLine(iLines.Items[idx])^.DiscRate) > 0 then
-      xvou.NewChild2('DISCOUNT', pInvLine(iLines.Items[idx])^.DiscRate);
       xvou.NewChild2('AMOUNT', FormatCurr(TallyAmtPicture, pInvLine(iLines.Items[idx])^.Amount));
       if pInvLine(iLines.Items[idx])^.Qty > 0 then
       begin
       xvou.NewChild2('ACTUALQTY', FormatCurr(TallyQtyPicture, pInvLine(iLines.Items[idx])^.Qty));
       xvou.NewChild2('BILLEDQTY', FormatCurr(TallyQtyPicture, pInvLine(iLines.Items[idx])^.Qty));
       xvou.NewChild2('RATE', FormatCurr(TallyAmtPicture, pInvLine(iLines.Items[idx])^.Rate));
+      if Length(pInvLine(iLines.Items[idx])^.DiscRate) > 0 then
+      xvou.NewChild2('DISCOUNT', pInvLine(iLines.Items[idx])^.DiscRate);
       end;
       if Length(pInvLine(iLines.Items[idx])^.Batch) > 0 then
       begin
@@ -1993,20 +1879,6 @@ begin
   xvch.Clear;
 end;
 
-function TbjVchExp.SPost(const Action: string; wem: boolean): string;
-var
-  Tallyid: IbjXml;
-  LErr: string;
-  Tid: string;
-  i: Integer;
-begin
-  if (vchAction <> 'Create') and
-    (vchAction <> 'Alter') and
-    (VchAction <> 'Delete') then
-  VchAction := 'Create';
-  SetVchHeader;
-  for i := 0 to ILines.Count-1 do
-  begin
 
 procedure TbjVchExp.CheckDefGroup;
 var
@@ -2018,7 +1890,7 @@ begin
   for i := 0 to Lines.Count-1 do
   begin
     StrLedger := pLine(Lines.Items[i])^.Ledger;
-      MstExp.NewLedger(StrLedger, Env.DefaultGroup, 0);
+      MstExp.NewLedger(StrLedger, Env.DefaultGroup);
   end;
 end;
 
@@ -2044,7 +1916,6 @@ Procedure TbjEnv.SetDefaultGroup(const aName: string);
 begin
   FDefaultGroup := aName;
 end;
-
 
 Procedure TbjEnv.SetGUID(const ID: string);
 begin
@@ -2074,19 +1945,12 @@ end;
 procedure TbjMstExp.RefreshMstLists;
 var
   Ledobj: TbjMstListImp;
-  Rpet: TRpetGSTN;
   i: integer;
   item: pGSTNRec;
 begin
-  LedPList.Free;
-  ItemPlist.Free;
-  UnitPList.Free;
   ledObj := TbjMstListImp.Create;
   LedObj.Host := Env.Host;
   try
-    LedPList := LedObj.GetLedPackedList;
-    ItemPList := LedObj.GetItemPackedList;
-    UnitPList := LedObj.GetUnitPackedList;
   finally
     ledobj.Free;
   end;
@@ -2112,39 +1976,22 @@ begin
   else
     LedColl := TStrIntfHashMap.Create;
   GetCollns;
-  Rpet := TRpetGSTN.Create;
-  try
-  Rpet.Host := Env.Host;
 {  Rpet.GetList(GSTNList); }
-  GetCollns;
-  finally
-    Rpet.Free;
-  end;
 end;
 
 procedure TbjMstExp.RefreshInvLists;
 var
   Ledobj: TbjMstListImp;
 begin
-  UnitPList.Free;
-  ItemPList.Free;
-  ItemGroupPList.Free;
-  CategoryPList.Free;
-  GodownPList.Free;
   ledObj := TbjMstListImp.Create;
   LedObj.Host := Env.Host;
   try
-    UnitPList :=  LedObj.GetUnitPackedList;
-    ItemPList := LedObj.GetItemPackedList;
-    ItemGroupPList := LedObj.GetItemGroupPackedList;
-    CategoryPList := Ledobj.GetCategoryPackedList;
-    GodownPList := LedObj.GetGodownPackedList;
   finally
     ledobj.Free;
   end;
 end;
 
-procedure TbjMstExp.NewLedger(const aLedger, aParent: string; OpBal: currency);
+procedure TbjMstExp.NewLedger(const aLedger, aParent: string);
 var
   Found: boolean;
 begin
@@ -2156,11 +2003,10 @@ begin
   Found := IsLedger(aLedger);
   if Found then
     if Env.ToUpdateMasters then
-      CreateLedger(aLedger, aParent, OpBal);
+      CreateLedger(aLedger, aParent);
   if not Found then
   begin
-    CreateLedger(aLedger, aParent, OpBal);
-    LedPList.Add(PackStr(aLedger));
+    CreateLedger(aLedger, aParent);
   end;
 end;
 
@@ -2177,7 +2023,6 @@ begin
   if not found then
   begin
     CreateItem(aItem, aBaseUnit, OpBal, OpRate);
-    ItemPList.Add(PackStr(aItem));
   end;
 end;
 
@@ -2194,7 +2039,6 @@ begin
   if not found then
   begin
     CreateHSN(aItem, aBaseUnit, aHSN, GRate);
-    ItemPList.Add(PackStr(aItem));
   end;
 end;
 
@@ -2211,7 +2055,6 @@ begin
   if not found then
   begin
     CreateUnit(aUnit);
-    UnitPList.Add(PackStr(aUnit));
   end;
 end;
 
@@ -2228,7 +2071,6 @@ begin
   if not found then
   begin
       CreateItemGroup(aGrp, aParent);
-    ItemGroupPList.Add(PackStr(aGrp));
   end;
 end;
 
@@ -2245,7 +2087,6 @@ begin
   if not found then
   begin
       CreateCategory(aCategory, aParent);
-    CategoryPList.Add(PackStr(aCategory));
   end;
 end;
 
@@ -2262,7 +2103,6 @@ begin
   if not found then
   begin
     CreateGodown(aGdn, aParent);
-    GodownPList.Add(PackStr(aGdn));
   end;
 end;
 
@@ -2274,12 +2114,22 @@ var
   item: pGSTNRec;
   ItemObj: iGSTNObj;
   dupName: boolean;
+  StrNN: string;
 begin
   dupName := False;
   If Length(aLedger) = 0 then
     Exit;
+  if Length(aGSTN) = 0 then
+  begin
+    NewLedger(aLedger, aParent);
+    Exit;
+  end;
   if Length(aState) = 0 then
-    aState := Env.DefaultGSTState;
+    begin
+      strNN := Copy(aGSTN, 1, 2);
+      if (strNN[1] in ['0'..'9']) and (strNN[2] in ['0'..'9']) then
+      aState := StrState(StrToInt(strNN));
+    end;
 	{ Trim the space }
   if Length(Trim(aGSTN)) > 0 then
   begin
@@ -2319,12 +2169,12 @@ It does not use GetDupPartyGSTN
   if not Found then
   begin
     CreateParty(aLedger, aParent, aGSTN, aState);
-    LedPList.Add(PackStr(aLedger));
     if Length(aGSTN) > 0 then
     begin
       ItemObj := TGSTNObj.Create;
       ItemObj.SetName(aLedger);
       ItemObj.SetGSTN(aGSTN);
+      ItemObj.SetState(aState);
       GSTColl.PutValue(aGSTN, ItemObj);
       LedColl.PutValue(PackStr(aLedger), ItemObj);
       Result := aLedger;
@@ -2352,6 +2202,7 @@ It does not use GetDupPartyGSTN
       ItemObj := TGSTNObj.Create;
       ItemObj.SetName(aLedger+'_'+aGSTN);
       ItemObj.SetGSTN(aGSTN);
+      ItemObj.SetState(aState);
       GSTColl.PutValue(aGSTN, ItemObj);
       LedColl.PutValue(PackStr(aLedger), ItemObj);
       Result := aLedger+'_'+aGSTN;
@@ -2371,7 +2222,6 @@ begin
   if not Found then
   begin
      CreateGST(aLedger, aParent, TaxRate);
-     LedPList.Add(PackStr(aLedger));
   end;
 end;
 
@@ -2415,7 +2265,6 @@ end;
 
 function TbjMstExp.GetGSTNParty(const aGSTN: string): string;
 var
-  Rpet: TRpetGSTN;
   i: integer;
   item: pGSTNRec;
   Obj: IGSTNObj;
@@ -2434,7 +2283,6 @@ end;
 
 function TbjMstExp.GetDupPartyGSTN(const aDup: string): string;
 var
-  Rpet: TRpetGSTN;
   i: integer;
   item: pGSTNRec;
   rName: string;
@@ -2454,7 +2302,6 @@ begin
 end;
 function TbjMstExp.GetPartyState(const aDup: string): string;
 var
-  Rpet: TRpetGSTN;
   i: integer;
   item: pGSTNRec;
   rName: string;
@@ -2472,51 +2319,57 @@ begin
   if Length(Result)> 0 then
     Exit;
 end;
+
 procedure TbjMstExp.GetCollns;
 var
-  xSVar, xStr, xFmla: IbjXml;
+  xSVar, xAttr, xFmla: IbjXml;
   strs: string;
   lStr: string;
   OResult: IbjXml;
   CollName: string;
-  LedNode, GSTNNode, StateNode: IbjXml;
+  LedNode, GSTNNode, StateNode, TypeNode: IbjXml;
   Itemobj: IGSTNObj;
   rGrp: string;
-  rName, rGStr, rSStr, pName: string;
+  rName, rGStr, rSStr, pName, rType: string;
+  rLevel: Integer;
+  strNN: string;
 begin
+  rLevel := 5;
   xSVar := CreatebjXmlDocument;
-  xStr := CreatebjXmlDocument;
+  xAttr := CreatebjXmlDocument;
   xFmla := CreatebjXmlDocument;
   OResult := CreatebjXmlDocument;
   xSVar.LoadXML('<STATICVARIABLES>'+
   '<SVEXPORTFORMAT>$$SysName:XML</SVEXPORTFORMAT>'+
-  '</STATICVARIABLES>');
+  '</STATICVARIABLES>'
+  );
   rGrp := 'Sundry Debtors';
   strs := '<CHILDOF>' + TextToXML(rGrp) + '</CHILDOF>';
   strs := Strs + '<BELONGSTO>' + 'Yes' + '</BELONGSTO>';
-  strs := Strs + '<NATIVEMETHOD>PARTYGSTIN</NATIVEMETHOD>';
-  strs := Strs + '<NATIVEMETHOD>LEDSTATENAME</NATIVEMETHOD>';
-  strs := Strs + '<FILTER>IsValid</FILTER>';
-  xStr.LoadXml(strs);
+  strs := Strs + '<FETCH>PARTYGSTIN</FETCH>';
+  strs := Strs + '<FETCH>LEDSTATENAME</FETCH>';
+  strs := Strs + '<FETCH>LEDGSTREGDETAILS[Last].$GSTIN</FETCH>';
+  strs := Strs + '<FETCH>LEDGSTREGDETAILS[Last].$STATE</FETCH>';
+  xAttr.LoadXml(strs);
   CollName := 'aColln';
-  xFmla.LoadXML(
-  '<SYSTEM TYPE="FORMULAE" NAME="IsValid">$PartyGSTIN not null</SYSTEM>');
-  lStr := ColExEval(CollName, 'Ledger', xSVar, xStr, xFmla);
+  lStr := ColExEval(CollName, 'Ledger', xSVar, xAttr, xFmla);
   rGrp := 'Sundry Creditors';
   strs := '<CHILDOF>' + TextToXML(rGrp) + '</CHILDOF>';
   strs := Strs + '<BELONGSTO>' + 'Yes' + '</BELONGSTO>';
-  strs := Strs + '<NATIVEMETHOD>PARTYGSTIN</NATIVEMETHOD>';
-  strs := Strs + '<NATIVEMETHOD>LEDSTATENAME</NATIVEMETHOD>';
-  strs := Strs + '<FILTER>IsValid</FILTER>';
-  xStr.LoadXml(strs);
-  lStr := lStr + ColExEval(CollName, 'Ledger', xSVar, xStr, xFmla);
+  strs := Strs + '<FETCH>PARTYGSTIN</FETCH>';
+  strs := Strs + '<FETCH>LEDSTATENAME</FETCH>';
+  strs := Strs + '<FETCH>LEDGSTREGDETAILS[Last].$GSTIN</FETCH>';
+  strs := Strs + '<FETCH>LEDGSTREGDETAILS[Last].$STATE</FETCH>';
+//  strs := Strs + '<FILTER>IsValid</FILTER>';
+  xAttr.LoadXml(strs);
+  lStr := lStr + ColExEval(CollName, 'Ledger', xSVar, xAttr, xFmla);
   OResult.LoadXml(lStr);
-  LedNode := OResult.SearchforTag(nil , 'LEDGER');
+  LedNode := OResult.BFSearchforTag(nil , 'LEDGER', rLevel);
   while Assigned(LedNode) do
   begin
     if Length(LedNode.GetContent) = 0 then
     begin
-      LedNode := OResult.SearchforTag(LedNode, 'LEDGER');
+      LedNode := OResult.BFSearchforTag(LedNode, 'LEDGER', rLevel);
       Continue;
     end;
     rName := '';
@@ -2530,18 +2383,33 @@ begin
     rSStr := '';
     GSTNNode := LedNode.SearchForTag(nil, 'PARTYGSTIN');
     StateNode := LedNode.SearchForTag(nil, 'LEDSTATENAME');
+    if not Assigned(GSTNNode) then
+    begin
+      GSTNNode := LedNode.SearchForTag(nil, 'GSTIN');
+      StateNode := LedNode.SearchForTag(nil, 'STATE');
+      TypeNode := LedNode.SearchForTag(nil, 'TAXTYPE');
+    end;
     if Assigned(GSTNNode) then
       rGStr := GSTNNode.GetContent;
     if Assigned(StateNode) then
       rSStr := StateNode.GetContent;
-    if (Length(rGStr) > 0) or (Length(rSStr) > 0) then
+    if Assigned(TypeNode) then
+      rType := TypeNode.GetContent;
+    if (Length(rGStr) > 0) then
     begin
+      if Length(rSStr) = 0 then
+      begin
+        strNN := Copy(rGStr, 1, 2);
+        if (strNN[1] in ['0'..'9']) and (strNN[2] in ['0'..'9']) then
+        rSStr := StrState(StrToInt(strNN));
+      end;
       Itemobj := TGSTNObj.Create;
       Itemobj.SetGSTN(rGStr);
       Itemobj.SetState(rSStr);
       Itemobj.SetName(rName);
       pName := PackStr(rName);
       Itemobj.Set_Name(pName);
+      Itemobj.Set_RegType(rType);
       GSTColl.PutValue(rGStr, Itemobj);
       lEDcOLL.PutValue(PackStr(rName), Itemobj);
     end;
@@ -2560,7 +2428,7 @@ begin
       Obj.ToPack := False;
       Obj.Host := Env.Host;
       MstExp.TaxPList.Text := Obj.GetTaxText;
-      MstExp.TaxPList.Sorted := True;
+      MstExp.TaxPList.Sort;
     Finally
       Obj.Free;
     end;
@@ -2607,6 +2475,14 @@ begin
   F_Name := aName;
 end;
 
+procedure TGSTNObj.Set_RegType(const aType: string);
+begin
+  FRegType := aType;
+end;
+function TGSTNObj.Get_RegType: string;
+begin
+  Result := FRegType;
+end;
 function StrState(const idx: Integer): string;
 var
   str: string;

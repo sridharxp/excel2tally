@@ -50,10 +50,10 @@ uses
   ZS733,
   PClientFns,
   GenericFn,
+  ObjCollFn,
   DateFns,
   XLSWorkbook,
-  bjXml3_1,
-  Repet,
+  bjXml33,
   VchLib,
   Types,
   Dialogs;
@@ -330,7 +330,6 @@ TbjMrMc = class(TinterfacedObject, IbjXlExp, IbjMrMc)
     function GETDictToken(const ctr: integer): string;
     function GETDictValue(const ctr: integer): string;
     procedure Filter(aFailure: integer);
-    procedure FormatCols;
     procedure UnFilter;
     procedure CreateGSTLedger;
     procedure CreateDefLedger;
@@ -359,7 +358,6 @@ TbjMrMc = class(TinterfacedObject, IbjXlExp, IbjMrMc)
     Env: TbjEnv;
     dsl: TbjDSLParser;
     kadb: TbjXLSTable;
-    RpetObj: TRpetGSTN;
     IsMinus: boolean;
     constructor Create;
     destructor Destroy; override;
@@ -1403,7 +1401,6 @@ begin
     if Length(ReportFileName) > 0 then
       kadb.SaveAs(ReportFileName);
   kadb.Free;
-  RpetObj.Free;
   inherited;
 end;
 
@@ -1475,7 +1472,7 @@ begin
       dsl.AmountType[DeclaredLedgers] := 'Cr';
 //      MstExp.NewLedger(dsl.DiLedgerValue[DeclaredLedgers], 'Indirect Incomes', 0);
       Str := Copy(kadb.GetFieldName(str),  4, Length(str)+11);
-      MstExp.NewLedger(Str, 'Indirect Incomes', 0);
+      MstExp.NewLedger(Str, 'Indirect Incomes');
     end;
     if copy(str, 1,3) = 'dr_' then
     begin
@@ -1487,7 +1484,7 @@ begin
       dsl.AmountType[DeclaredLedgers] := 'Dr';
 //      MstExp.NewLedger(dsl.DiLedgerValue[DeclaredLedgers], 'Indirect Expenses', 0);
       Str := Copy(kadb.GetFieldName(str),  4, Length(str)+11);
-      MstExp.NewLedger(Str, 'Indirect Expenses', 0);
+      MstExp.NewLedger(Str, 'Indirect Expenses');
     end;
   end;
 { Create Default Ledgers }
@@ -1496,11 +1493,11 @@ begin
     if (Length(dsl.LedgerGroup[i]) > 0) then
 { Default Ledger with Amount Column }
       if (Length(dsl.DiLedgerValue[i]) > 0) then
-        MstExp.NewLedger(dsl.DiLedgerValue[i], dsl.LedgerGroup[i], 0);
+        MstExp.NewLedger(dsl.DiLedgerValue[i], dsl.LedgerGroup[i]);
   end;
   if Length(dsl.RoundOffGroup) > 0 then
   if Length(dsl.DiRoundOff) > 0 then
-    MstExp.NewLedger(dsl.DiRoundOff, dsl.RoundOffGroup, 0);
+    MstExp.NewLedger(dsl.DiRoundOff, dsl.RoundOffGroup);
 
 { Create Dictionary Ledgers }
 { +1 for RoundOff }
@@ -1524,10 +1521,10 @@ begin
       if (Length(dsl.RoundOffGroup) > 0) then
       begin
         LedgerColValue := pDict(dItem)^.Value;
-        MstExp.NewLedger(LedgerColValue, dsl.RoundOffGroup, 0);
+        MstExp.NewLedger(LedgerColValue, dsl.RoundOffGroup);
       end;
     end;
-  MstExp.NewLedger('RoundOff', 'Indirect Expenses', 0);
+  MstExp.NewLedger('RoundOff', 'Indirect Expenses');
   SetGSTSetting;
 end;
 
@@ -1587,7 +1584,7 @@ begin
   if Mins > 0 then
   timestr := InttoStr(Mins) + ' minute(s) ' + InttoStr(Secs) + ' Seconds'
   else
-  timestr := InttoStr(Secs)+ '.' + InttoStr(MSecs) + ' Seconds';
+  timestr := InttoStr(Secs)+ ' . ' + InttoStr(MSecs) + ' Seconds';
   if IsUnLocked then
     StatusMsg := InttoStr(ProcessedCount) + ' Vouchers processed; ' +
     InttoStr(SCount) + ' Success. ' + timestr
@@ -1625,10 +1622,6 @@ begin
     GenerateID;
     CheckLedMst;
     ExpItemMst;
-    if dsl.IsMultiRowVoucher then
-      CreateRowLedger;
-    if dsl.IsMultiColumnVoucher then
-      CreateColLedger;
     kadb.Next;
   end;
   if dsl.IsMListDeclared then
@@ -1672,6 +1665,10 @@ var
   LedgerColValue: string;
   BillRefColValue: string;
 begin
+    if dsl.IsMultiRowVoucher then
+      CreateRowLedger;
+    if dsl.IsMultiColumnVoucher then
+      CreateColLedger;
   if dsl.IsNarrationDefined then
   begin
     if dsl.IsIDGenerated then
@@ -1824,6 +1821,8 @@ AutoCreateMst does not affect explicit group or roundoff group
         LedgerColValue := kadb.GetFieldString(dsl.ULedgerName[i]);
         if Length(LedgerColValue) = 0 then
           Continue;
+        IF MstExp.IsLedger(LedgerColValue) then
+          Continue;
         if dsl.IsGSTNDefined[i] then
         begin
           GSTNColValue := kadb.GetFieldString(dsl.UGSTNName[i]);
@@ -1846,7 +1845,7 @@ AutoCreateMst does not affect explicit group or roundoff group
               MstExp.NewGST(LedgerColValue, GroupColValue, aToken)
             else
             begin
-              MstExp.NewLedger(LedgerColValue, GroupColValue, 0);
+              MstExp.NewLedger(LedgerColValue, GroupColValue);
               FUpdate('Ledger: ' + LedgerColValue);
             end;
         end;
@@ -1890,7 +1889,7 @@ AutoCreateMst does not affect explicit group or roundoff group
       end;
     end
     else
-      MstExp.NewLedger(LedgerColValue, RoundOffGroupColValue, 0);
+      MstExp.NewLedger(LedgerColValue, RoundOffGroupColValue);
 //    FUpdate('Ledger: ' + LedgerColValue);
   end;
   MstExp.Alias := '';
@@ -1999,10 +1998,6 @@ begin
   if not IsCheckLedMst then
     Exit;
   wOBal := 0;
-  if not Assigned(RpetObj) then
-  begin
-    RpetObj := TRpetGSTN.Create;
-  end;
   kadb.SetFieldVal('TALLYID', ' - ');
   if dsl.IsOBalDefined then
   wOBal := kadb.GetFieldCurr(dsl.UOBalName);
@@ -2297,8 +2292,7 @@ AutoCreateMst does not affect explicit group or roundoff group
       end;
     end
     else
-      MstExp.NewLedger(LedgerColValue,
-        GroupColValue, OB);
+      MstExp.NewLedger(LedgerColValue, GroupColValue);
 //    FUpdate('Ledger: ' + LedgerColValue);
   end;
 end;
@@ -2326,9 +2320,7 @@ begin
     VchExp.VchRefDate := kadb.GetFieldSDate(dsl.UDateName);
   end;
   if dsl.IsBillRefDefined then
-  begin
     VchExp.BillRef := kadb.GetFieldString(dsl.UBillRefName);
-  end;
 { Late binding of VchExp.VchNarration }
   VchExp.VchNarration := '';
   VchExp.VchGSTN := '';
@@ -2352,8 +2344,6 @@ begin
     VchExp.VchState := kadb.GetFieldString(dsl.UStateName);
     VchExp.PartyState := MstExp.GetPartyState(RoundOffName);
     VchExp.PartyName := RoundOffName;
-    if Length(VchExp.PartyState) = 0 then
-      VchExp.PartyState := VchExp.VchState
   end;
   notoskip := 0;
 end;
@@ -2782,8 +2772,6 @@ begin
     Exit;
   end;
   str := StrState(idx);
-  if Length(str) = 0 then
-    str := UdefStateName;
 {
   Case idx of
         1: str := 'Jammu & Kashmir';
@@ -3031,7 +3019,7 @@ begin
     MstExp.NewGST(kadb.GetFieldString('Ledger'), kadb.GetFieldString('Group'),'12');
     Exit;
   end;
-  MstExp.NewLedger(kadb.GetFieldString('Ledger'), kadb.GetFieldString('Group'),0);
+  MstExp.NewLedger(kadb.GetFieldString('Ledger'), kadb.GetFieldString('Group'));
 end;
 
 procedure TbjMrMc.SetGSTSetting;
