@@ -345,6 +345,7 @@ TbjMrMc = class(TinterfacedObject, IbjXlExp, IbjMrMc)
 
     dbName: string;
     ReportFileName: string;
+    SaveFileName: string;
     XmlFile: string;
     FileFmt: string;
     IsDateCheck: boolean;
@@ -355,6 +356,7 @@ TbjMrMc = class(TinterfacedObject, IbjXlExp, IbjMrMc)
     UdefStateName: string;
     RoundOffMethod: string;
 {    ToCreateMasters: boolean; }
+    IsXlsx: Boolean;
     Env: TbjEnv;
     dsl: TbjDSLParser;
     kadb: TbjXLSTable;
@@ -537,6 +539,16 @@ begin
       TableName := IList;
     IsIVListDeclared := True;
   end;
+  IOList  := xcfg.GetChildContent('InOutVchList');
+  if (Length(IOList) > 0) then
+  begin
+    if Length(TableName) = 0 then
+      TableName := IOList;
+    IsInOutListDeclared := True;
+  end;
+  str  := xcfg.GetChildContent('ORow');
+  if Length(str) > 0 then
+    ORow := StrToInt(str);
 {
 AutoCreateMst affects default group only
 }
@@ -1386,7 +1398,7 @@ begin
   notoskip := 0;
   FProcessedCount := 0;
   FToLog := True;
-  FdynPgLen := PgLen + Random(47);
+  FdynPgLen := PgLen + Random(63);
   askAgainToAutoCreateMst := True;
 end;
 
@@ -1397,9 +1409,6 @@ begin
   Env.Free;
   dsl.Free;
   if Assigned(kadb) then
-  if kadb.ToSaveFile then
-    if Length(ReportFileName) > 0 then
-      kadb.SaveAs(ReportFileName);
   kadb.Free;
   inherited;
 end;
@@ -1435,6 +1444,18 @@ passing Windows Exception as it is }
 //    FormatCols;
     dsl.kadb := kadb;
     flds.Free;
+    if Pos('.xlsx', LowerCase(dbName)) > 0 then
+      IsXlsx := True;
+  if IsXlsx then
+  begin
+  SavefileName := saveFileName + '.xlsx';
+  ReportFileName := ReportFileName + '.xlsx';
+  end
+  else
+  begin
+  SavefileName := saveFileName + '.xls';
+  ReportFileName := ReportFileName + '.xls';
+  end;
   end;
 {$ENDIF}
   kadb.First;
@@ -1650,6 +1671,8 @@ begin
     ProcessRow;
     if dsl.IsIVListDeclared then
       ExpStkJrnl;
+    if dsl.IsInOutListDeclared then
+      ProcessRow;
     IsIdOnlyChecked := False;
   end;
   if FoundNewId then
@@ -2692,6 +2715,8 @@ begin
     VchExp.VchNarration := NarrationColValue;
   if dsl.IsiVListDeclared then
   StatMsg := VchExp.SPost(VchAction, True);
+  if dsl.IsInOutListDeclared then
+    StatMsg := VchExp.MPost(VchAction, True);
   FUpdate('Voucher: ' + Statmsg);
   FProcessedCount := FProcessedCount + 1;
 
@@ -2867,7 +2892,7 @@ procedure TbjMrMc.Filter(aFailure: integer);
 var
   inErr: boolean;
 begin
-  kadb.SaveAs('.\Data\Success.xls');
+  kadb.SaveAs(saveFileName);
   inErr := True;
   kadb.First;
   while not kadb.EOF do
@@ -2890,6 +2915,8 @@ begin
         inErr := True;
     kadb.Next;
   end;
+  if kadb.ToSaveFile then
+    kadb.SaveAs(ReportFileName);
   UnFilter;
 end;
 {
@@ -2942,7 +2969,7 @@ var
 begin
   Successdb := TbjXLSTable.Create;
   try
-  Successdb.XLSFileName := '.\Data\Success.xls';
+  Successdb.XLSFileName := saveFileName;
   Successdb.SetSheet(FTablename);
   Successdb.ToSaveFile := True;
   flds := TStringList.Create;

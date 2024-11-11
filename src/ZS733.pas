@@ -392,20 +392,20 @@ begin
   ip := TStringList.Create;
   op := TStringList.Create;
   ip.Add('Input SGST 1.5%');
-  ip.Add('intput CGST 1.5%');
-  ip.Add('input IGST 3%');
-  ip.Add('input SGST 2.5%');
-  ip.Add('input CGST 2.5%');
-  ip.Add('input IGST 5%');
-  ip.Add('input SGST 6%');
-  ip.Add('input CGST 6%');
-  ip.Add('input IGST 12%');
-  ip.Add('input SGST 9%');
-  ip.Add('input CGST 9%');
-  ip.Add('input IGST 18%');
-  ip.Add('input SGST 14%');
-  ip.Add('input CGST 14%');
-  ip.Add('input IGST 28%');
+  ip.Add('Input CGST 1.5%');
+  ip.Add('Input IGST 3%');
+  ip.Add('Input SGST 2.5%');
+  ip.Add('Input CGST 2.5%');
+  ip.Add('Input IGST 5%');
+  ip.Add('Input SGST 6%');
+  ip.Add('Input CGST 6%');
+  ip.Add('Input IGST 12%');
+  ip.Add('Input SGST 9%');
+  ip.Add('Input CGST 9%');
+  ip.Add('Input IGST 18%');
+  ip.Add('Input SGST 14%');
+  ip.Add('Input CGST 14%');
+  ip.Add('Input IGST 28%');
   ip.Sorted := True;
 
   op.Add('Output SGST 1.5%');
@@ -1475,6 +1475,17 @@ begin
     end;
   end;
 
+    if (Env.GSTLedType = 'Max') then
+  begin
+    if (Env.ip.Find(Ledger, idx)) then
+    begin
+      MstExp.NewLedger(Env.ip.Strings[idx], 'Duties & Taxes');
+    end;
+    if (Env.op.Find(Ledger, idx)) then
+    begin
+      MstExp.NewLedger(Env.op.Strings[idx], 'Duties & Taxes');
+    end;
+  end;
   for Step := 1 to Lines.Count do
   begin
     Item := Lines.Items[Step - 1];
